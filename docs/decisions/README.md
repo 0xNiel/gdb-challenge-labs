@@ -38,3 +38,4 @@ What becomes easier, what becomes harder, what to revisit and when.
 | [0004](0004-websocket-library.md) | `github.com/coder/websocket` | accepted | scaffold |
 | [0005](0005-flag-derivation.md) | Exact flag derivation and encoding | accepted | scaffold |
 | [0006](0006-phase-gates.md) | Phases with command gates; perf failures need a decision, not a pass | accepted | scaffold |
+| [0007](0007-gvisor-terminal-io-only.md) | Start gVisor containers in terminal mode only; non-terminal I/O hangs | accepted | Phase 0 finding |
