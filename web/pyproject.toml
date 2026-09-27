@@ -1,0 +1,34 @@
+[project]
+name = "gdblabs-web"
+version = "0.1.0"
+description = "gdb Challenge Labs web app (Django)"
+requires-python = ">=3.13,<3.14"  # Django 5.2 LTS supports up to 3.13 (ADR 0002)
+dependencies = [
+    "django==5.2.*",
+    "psycopg[binary]>=3.3.6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-django>=4.14.0",
+    "ruff>=0.16.9",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["**/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "SIM"]
+ignore = ["S101"]  # asserts are how pytest works
+
+[tool.ruff.lint.per-file-ignores]
+"config/settings/dev.py" = ["S105"]
+"config/settings/test.py" = ["S105"]
