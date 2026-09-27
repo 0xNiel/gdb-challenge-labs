@@ -4,13 +4,18 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
-**Phase 0 — Bootstrap.** Not started. First task: [docs/plan/phase-0-bootstrap.md](plan/phase-0-bootstrap.md), task 0.1.
+**Phase 0 — Bootstrap.** In progress on branch `phase-0-bootstrap`. Tasks 0.1–0.7 done; the gate passes on the Mac. Remaining, all needing a person or another machine:
+
+- **0.8 on the Linux x86-64 laptop:** clone, `./run.sh doctor`, `./run.sh vm up`, `./run.sh vm verify`, then `./run.sh gate --phase 0`. Write `docs/metrics/environment-linux-laptop.md` in the same format as `environment-dev-vm.md`. Also check whether non-terminal gVisor I/O hangs there too (ADR 0007): `sudo timeout 25 ctr -n labs run --rm --null-io --runtime io.containerd.runsc.v1 docker.io/library/alpine:3.20 t1 /bin/true; echo $?` (124 means it hangs).
+- **0.9:** second developer runs `./run.sh doctor` and follows `docs/ONBOARDING.md`.
+- **0.7 remainder:** CI has never run because the repo has no remote yet. Push and confirm all jobs are green.
+- **0.10:** gate output from the laptop pasted below; then merge `phase-0-bootstrap` into `main`.
 
 ## Phase board
 
 | Phase | Name | State | Gate result | Date |
 | --- | --- | --- | --- | --- |
-| 0 | Bootstrap: repo, toolchain, dev VM, CI | not started | — | — |
+| 0 | Bootstrap: repo, toolchain, dev VM, CI | in progress | passed on Mac; laptop pending | 2026-09-27 |
 | 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | blocked on 0 | — | — |
 | 2 | labd core (sessions, semaphore, reconciler) | blocked on 1 | — | — |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | blocked on 2 | — | — |
@@ -31,6 +36,25 @@ States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`.
 None. Every figure in [metrics/capacity.md](metrics/capacity.md) is still an estimate from the spec.
 
 ## Log
+
+### 2026-09-27 — Phase 0 tasks 0.1–0.7
+- Committed the scaffold, then on `phase-0-bootstrap`: Go module with config loader and `/healthz` (0.2), Django 5.2 skeleton (0.3), Lima VM + `provision.sh` + `verify-runtime.sh` (0.4–0.6), CI workflow (0.7).
+- Pinned: containerd 2.4.1, gVisor release-20260921.0, runc 1.5.2, Postgres 16, Go 1.26.4, uv 0.12.3, Django 5.2.17, Python 3.13.14.
+- `vm up` from nothing took 1 min 34 s. `provision.sh` second run is a no-op. Go and Django tests pass on macOS arm64 and inside the Linux arm64 VM with `-race`.
+- **Finding, ADR 0007:** gVisor containers started through containerd hang in `Create` unless they have a terminal. A shim goroutine dump shows it waiting on a pipe the sandbox inherited. It reproduces on two gVisor releases; runc is fine. labs always use a terminal, so the product path is unaffected, but P0 scripts and the challenge oracle must allocate a PTY. Not yet checked on x86-64.
+- **Finding:** gVisor releases since 2026-08-31 ship as one tarball with a `gvisor-bin/` sidecar directory that must sit next to `runsc`.
+- Dev hosts now get gcc (needed by `go test -race`); production still gets no compiler.
+- Git author email on the Mac is the placeholder `your.email@example.com`; fix with `git config user.email` and amend before the first push.
+
+Phase 0 gate on the Mac:
+```
+==> gate for phase 0 — 2026-09-27T21:29Z — macbook.local
+  PASS  run.sh check
+  PASS  run.sh test --all
+  PASS  run.sh vm verify prints runsc ok + cgroup2fs
+  PASS  working tree clean
+==> GATE 0 PASSED.
+```
 
 ### 2026-09-27 — two hosts, two developers
 - Owner has a Linux x86-64 laptop: it becomes the reference environment (ADR 0001 amended, Q1 resolved). Both arm64 (Mac via Lima) and x86-64 must stay green.

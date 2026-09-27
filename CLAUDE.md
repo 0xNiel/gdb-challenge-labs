@@ -71,6 +71,7 @@ Anything that needs containerd or runsc runs on Linux. On macOS, `run.sh` re-exe
 - Owner's Mac: Apple Silicon (arm64), Go 1.26, `uv`, Docker Desktop, Lima. Container work runs in an arm64 Ubuntu 24.04 Lima VM; `run.sh` handles the redirection.
 - Owner's Linux laptop: x86-64. **This is the reference environment**: `run.sh vm up` provisions it directly, integration tests and challenge content run natively, and it produces the authoritative P0 and perf numbers (host label `linux-laptop`).
 - **Both architectures must stay green.** Unit tests on both; anything touching containers, images or the sandbox spec is verified on the x86-64 laptop before a gate. Challenge images are x86-64 only; `labbase` and `perf` images are multi-arch. See ADR 0001.
+- **gVisor containers must be started with a terminal** (ADR 0007). Without one, the gVisor shim hangs in `Create`. Scripts wrap `ctr run -t` in `script -qec ... /dev/null`; Go code uses `cio.WithTerminal`.
 - Production: Hostinger KVM VPS, Ubuntu 24.04, 8 vCPU / 32 GB / 400 GB NVMe, x86-64. Same `provision.sh`, `--role prod`.
 
 ## Writing docs
