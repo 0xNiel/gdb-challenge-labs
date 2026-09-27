@@ -1,0 +1,61 @@
+# Lima template for the gdb Challenge Labs dev VM.
+# Rendered by ./run.sh vm up (replaces __REPO_ROOT__ with the absolute repo path) into
+# .lima/labs-dev.rendered.yaml and started with `limactl start`. Provisioning is not done
+# here but by `deploy/scripts/provision.sh --role dev`, which run.sh invokes after start, so the
+# same script provisions the VM, the perf box and the VPS (ADR 0001).
+#
+# Architecture defaults to the host's. `./run.sh vm up --arch x86_64` selects emulation
+# (slow; correctness checks of x86 content only).
+
+vmType: "vz"          # switched to qemu automatically by run.sh when --arch x86_64 on macOS
+rosetta:
+  enabled: false      # labs must run natively under gVisor, never through Rosetta
+
+images:
+  - location: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
+  - location: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img"
+    arch: "x86_64"
+
+cpus: 4
+memory: "8GiB"
+disk: "40GiB"
+
+mounts:
+  - location: "__REPO_ROOT__"
+    mountPoint: "__REPO_ROOT__"
+    writable: true
+
+# We install containerd 2.x + runsc ourselves; Lima's bundled containerd must stay off.
+containerd:
+  system: false
+  user: false
+
+ssh:
+  localPort: 0
+  loadDotSSHPubKeys: false
+
+# Guest 127.0.0.1 ports are forwarded to host 127.0.0.1 by default, so labd's internal
+# API (8081), the WebSocket (8082) and Postgres (5432) are reachable from the Mac.
+portForwards:
+  - guestPortRange: [1, 65535]
+    ignore: false
+
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux
+      # Only cheap, mount-independent preparation here; the real work is provision.sh.
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update -y
+      apt-get install -y --no-install-recommends curl ca-certificates jq git make
+      # cgroup v2 is the Ubuntu 24.04 default; assert it so a wrong image fails fast.
+      [ "$(stat -fc %T /sys/fs/cgroup)" = "cgroup2fs" ]
+
+probes:
+  - description: "cgroup v2 present"
+    script: |
+      #!/bin/bash
+      [ "$(stat -fc %T /sys/fs/cgroup)" = "cgroup2fs" ]
+    hint: "The image did not boot with cgroup v2; the labs need it."

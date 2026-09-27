@@ -1,0 +1,36 @@
+# secrets and local config
+.env
+*.env
+!deploy/env.example
+/etc/
+.lima/
+
+# Go
+labd/bin/
+labd/**/*.test
+labd/coverage.out
+
+# Python
+web/.venv/
+**/__pycache__/
+*.pyc
+web/.pytest_cache/
+web/.ruff_cache/
+web/staticfiles/
+web/db.sqlite3
+web/tests/e2e/.playwright/
+
+# build artefacts
+images/**/out/
+challenges/**/build/
+challenges/**/flag_blob.h
+*.oci.tar
+
+# metrics raw dumps that are regenerated (reports themselves are committed)
+docs/metrics/**/raw/
+
+# editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
