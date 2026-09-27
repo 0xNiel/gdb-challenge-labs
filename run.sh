@@ -71,7 +71,9 @@ run_linux() {
     "$@"
   else
     vm_running || die "VM '$VM_NAME' is not running; ./run.sh vm up"
-    limactl shell --workdir "$ROOT" "$VM_NAME" -- "$@"
+    # The repo is shared with the Mac; keep the VM's Python venv out of web/.venv so the two
+    # platforms never overwrite each other's binaries.
+    limactl shell --workdir "$ROOT" "$VM_NAME" -- env UV_PROJECT_ENVIRONMENT=/var/tmp/labs-web-venv "$@"
   fi
 }
 
@@ -119,8 +121,8 @@ cmd_vm() {
     ssh)     [[ "${1:-}" == "--" ]] && shift; vm_running || die "VM not running"
              limactl shell --workdir "$ROOT" "$VM_NAME" -- "${@:-bash}" ;;
     status)  if vm_exists; then limactl list "$VM_NAME"; else say "VM '$VM_NAME' not created yet — ./run.sh vm up"; fi ;;
-    down)    vm_exists && limactl stop "$VM_NAME" || say "VM '$VM_NAME' does not exist" ;;
-    delete)  vm_exists && limactl delete --force "$VM_NAME" || say "VM '$VM_NAME' does not exist" ;;
+    down)    if vm_exists; then limactl stop "$VM_NAME"; else say "VM '$VM_NAME' does not exist"; fi ;;
+    delete)  if vm_exists; then limactl delete --force "$VM_NAME"; else say "VM '$VM_NAME' does not exist"; fi ;;
     *)       die "vm: up|verify|ssh|status|down|delete" ;;
   esac
 }
@@ -358,7 +360,12 @@ cmd_lint() {
   if [[ -f "$LABD_DIR/go.mod" ]]; then
     say "gofmt / go vet"
     (cd "$LABD_DIR" && test -z "$(gofmt -l . | tee /dev/stderr)" && go vet ./...) || rc=1
-    have staticcheck && (cd "$LABD_DIR" && staticcheck ./...) || true
+    # Advisory: a staticcheck built with an older Go cannot analyse a newer stdlib and fails
+    # for reasons unrelated to our code.
+    if have staticcheck; then
+      (cd "$LABD_DIR" && staticcheck ./...) \
+        || warn "staticcheck failed; if the error mentions a Go version, update it: go install honnef.co/go/tools/cmd/staticcheck@latest"
+    fi
   fi
   if [[ -f "$WEB_DIR/pyproject.toml" ]]; then
     say "ruff"; (cd "$WEB_DIR" && uv run ruff check . && uv run ruff format --check .) || rc=1

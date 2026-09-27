@@ -8,7 +8,6 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PHASE="${1:?usage: gate.sh <phase 0..8>}"
 RUN="$ROOT/run.sh"
 STATUS="$ROOT/docs/STATUS.md"
-METRICS="$ROOT/docs/metrics"
 FAILED=0
 
 say()  { printf '\n==> [gate %s] %s\n' "$PHASE" "$*"; }
@@ -51,7 +50,7 @@ check_no_containers() {
 
 not_wired() {
   local doc
-  doc="$(ls "$ROOT"/docs/plan/phase-"$PHASE"-*.md 2>/dev/null | head -n1)"
+  doc="$(compgen -G "$ROOT/docs/plan/phase-$PHASE-*.md" | head -n1 || true)"
   printf 'gate for phase %s is not wired yet.\nImplement phase_%s in scripts/gate.sh as the last task of the phase.\nSee: %s (section "Gate").\n' "$PHASE" "$PHASE" "${doc:-docs/plan/}"
   exit 2
 }
