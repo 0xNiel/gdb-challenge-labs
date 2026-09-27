@@ -1,0 +1,14 @@
+# labd configuration — the spec's config block ("Orchestrator → Config").
+# Secrets are never in this file: LABD_INTERNAL_SECRET comes from the environment,
+# and LABD_POSTGRES_DSN may override postgres_dsn. See deploy/env.example.
+listen_internal: 127.0.0.1:8081
+listen_ws: 127.0.0.1:8082
+containerd_socket: /run/containerd/containerd.sock
+runtime: io.containerd.runsc.v1
+max_sessions: 100
+max_queue: 50
+ws_reconnect_grace_s: 60
+default_limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60, idle_minutes: 15, extend_minutes: 15}
+challenges_file: /etc/labd/challenges.json
+postgres_dsn: postgres://labd@localhost/labs
+metrics_flush_s: 10
