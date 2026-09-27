@@ -1,9 +1,11 @@
 # workflows
 
-| File | Trigger | Does | Phase |
-| --- | --- | --- | --- |
-| `ci.yml` | push, PR | `go vet` + `go test`, `ruff` + `pytest`, `shellcheck` | 0 |
-| `challenges.yml` | push to `main` touching `challenges/**` or `images/**`; `workflow_dispatch` (rebuild all) | Build only the changed challenge dirs, push to GHCR, write digests back, regenerate `challenges.json`, open a PR | 5 |
-| `labbase.yml` | `images/labbase/**` change; weekly cron | Rebuild and push `labbase`, then trigger `challenges.yml` for all | 5 |
+Intentionally empty. Do not add GitHub Actions workflows here until the owner asks: Actions minutes are limited (ADR 0008).
 
-Secrets needed: `DEPLOY_SECRET` (same value as production `web`), `GHCR_TOKEN` (write), `GHCR_NAMESPACE`.
+Checks run locally. Before pushing:
+
+```
+./run.sh check && ./run.sh test --all && ./run.sh lint
+```
+
+Challenge images are built with `scripts/challenge-build.sh` (Phase 5). The base image is rebuilt with `./run.sh images labbase`.

@@ -31,6 +31,7 @@ The MVP has two goals, in this order:
 - **Small, verifiable steps.** Each task in a phase doc ends with a "done when" line. Run it. Do not report a task done without having run its check.
 - **No new dependencies without a reason** written in the commit message. Go: prefer the standard library. Python: prefer what Django ships. See CONVENTIONS.md for the allow-list.
 - **Only `labd` talks to containerd. Only `web` talks to users.** Keep that boundary in code and in docs.
+- **No GitHub Actions.** Do not add or change anything under `.github/workflows/` until the owner asks; minutes are limited (ADR 0008). Run checks locally: `./run.sh check && ./run.sh test --all && ./run.sh lint`.
 - **Commit at task boundaries** with the phase prefix, e.g. `[P2] orch: FIFO queue with per-user cap`. Do not push unless asked.
 
 ## Repo map
@@ -40,7 +41,7 @@ The MVP has two goals, in this order:
 | `labd/` | Go module: orchestrator, terminal gateway, metrics, perf driver | 0, 2, 3, 4, 7 |
 | `web/` | Django project and apps | 0, 6, 7 |
 | `images/labbase/` | Shared Alpine + gdb base image | 1 |
-| `images/build/` | gcc toolchain image, CI only | 5 |
+| `images/build/` | gcc toolchain image, used only to build challenges | 5 |
 | `images/perf/` | Perf challenge image and scripted gdb session | 1, 4 |
 | `challenges/` | Curriculum content, one dir per challenge, schema | 5, 8 |
 | `deploy/` | Lima VM template, provisioning script, systemd units, Caddyfile | 0, 8 |
@@ -54,7 +55,7 @@ Everything goes through `./run.sh` (the Makefile is a thin alias layer). `./run.
 
 ```
 ./run.sh doctor                # what this host has, lacks, and how to install it
-./run.sh check                 # doctor --strict (gates, CI)
+./run.sh check                 # doctor --strict (used by gates)
 ./run.sh vm up|verify|ssh|down # macOS: Lima VM. Linux: this host is the lab host
 ./run.sh build                 # build labd and labd-perf
 ./run.sh test --all            # Go unit + Django tests (host)

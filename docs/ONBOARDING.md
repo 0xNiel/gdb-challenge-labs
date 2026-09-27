@@ -50,7 +50,7 @@ Supported hosts:
 ## 5. Working agreement
 
 - One branch per phase, `[PN] area: what` commits, gate must pass before merging to `main`.
-- Both architectures must stay green: a change is done when `./run.sh test --all` passes on your machine and CI (x86-64) is green. Anything touching containers or images is also verified with `./run.sh test --integration` on an x86-64 Linux host before the phase gate.
+- Both architectures must stay green: a change is done when `./run.sh test --all` passes on your machine, along with `./run.sh check` and `./run.sh lint`. There is no CI (ADR 0008). Anything touching containers or images is also verified with `./run.sh test --integration` on an x86-64 Linux host before the phase gate.
 - Measured numbers go in `docs/metrics/` with the host label (`linux-laptop`, `dev-vm`, `hostinger`). Only x86-64 hosts produce authoritative numbers.
 - Questions for the owner go in [QUESTIONS.md](QUESTIONS.md) with a proposed default; do not block on them.
 - Update STATUS.md at the end of every session, including what failed.

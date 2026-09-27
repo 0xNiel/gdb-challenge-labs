@@ -35,12 +35,12 @@ flowchart LR
 
 | Phase | Document | Deliverable | Gate in one line | Spec milestone |
 | --- | --- | --- | --- | --- |
-| 0 | [phase-0-bootstrap.md](phase-0-bootstrap.md) | Repo, toolchain, Lima VM with containerd + runsc, empty Go and Django skeletons, CI | `run.sh check`, `test --all`, `vm verify` all green; CI green | — |
+| 0 | [phase-0-bootstrap.md](phase-0-bootstrap.md) | Repo, toolchain, Lima VM with containerd + runsc, empty Go and Django skeletons | `run.sh check`, `test --all`, `vm verify` all green on the Mac and the Linux laptop | — |
 | 1 | [phase-1-gvisor-gdb-spike.md](phase-1-gvisor-gdb-spike.md) | `labbase` image, `sandbox-base.json`, perf image, P0 script and report | P0 every row pass or documented fallback; image < 45 MB; first RSS numbers recorded | M1 |
 | 2 | [phase-2-labd-core.md](phase-2-labd-core.md) | `labd` session manager: containerd, semaphore, queue, TTLs, reconciler, internal API, store | Go unit tests; integration tests in VM; P4-lite and P5 pass with zero leaked containers | M2 |
 | 3 | [phase-3-terminal-gateway.md](phase-3-terminal-gateway.md) | WebSocket ↔ PTY, tokens, rate limits, capture, dev test page | Unit tests; scripted WS gdb session; P1 report; a human debugs in a browser | M3 |
 | 4 | [phase-4-perf-suite.md](phase-4-perf-suite.md) | `labd-perf` driver, P1–P9, `perf-report.json`, capacity table replaced | All scenarios produce numbers on an x86-64 box; pass criteria met or failures have decisions | M4 |
-| 5 | [phase-5-challenge-pipeline.md](phase-5-challenge-pipeline.md) | Manifest schema, build tooling, flag derivation, 5 tier-1 challenges, `challenges.json`, CI workflows | Every challenge builds reproducibly, passes leak and solve/no-solve checks; `labd pull` works | M5 |
+| 5 | [phase-5-challenge-pipeline.md](phase-5-challenge-pipeline.md) | Manifest schema, build tooling, flag derivation, 5 tier-1 challenges, `challenges.json`, local build scripts (no CI, ADR 0008) | Every challenge builds reproducibly, passes leak and solve/no-solve checks; `labd pull` works | M5 |
 | 6 | [phase-6-web-app.md](phase-6-web-app.md) | Django: accounts, curriculum, lab page with xterm.js, flags, progress, dashboard | Unit tests; end-to-end: sign up, start lab, solve, submit flag, next unlocked | M6 |
 | 7 | [phase-7-metrics-admin.md](phase-7-metrics-admin.md) | events/samples emission, rollups, retention, dashboards, admin live view with kill | Rollup tests; admin watches a 20-lab `labd-perf` run live and kills one | M7 |
 | 8 | [phase-8-production.md](phase-8-production.md) | Provisioning, Caddy TLS, systemd, backups, hardening, tiers 2–3 (≥ 15 challenges), beta | Production checklist; 20-lab smoke on the VPS; backup restored into VM; 10 beta users | M8 |
@@ -71,11 +71,11 @@ Follow this protocol exactly. It is designed to survive context loss between ses
 
 | Layer | Tool | Where it runs | When |
 | --- | --- | --- | --- |
-| Go unit | `go test ./...` with fakes for containerd, clock, Postgres | host and CI | every commit |
+| Go unit | `go test ./...` with fakes for containerd, clock, Postgres | host | before every push |
 | Go integration | `go test -tags integration` against real containerd + runsc | Lima VM, x86 box | gates 2, 3 |
-| Django unit and view | `pytest-django`, SQLite or Postgres | host and CI | every commit |
+| Django unit and view | `pytest-django`, SQLite or Postgres | host | before every push |
 | Image tests | shell scripts asserting image contents and behaviour | VM | gates 1, 5 |
-| Challenge oracle | `gdb -batch` solve/no-solve under runsc, `strings` leak check | VM, CI | gate 5, every challenge change |
+| Challenge oracle | `gdb -batch` solve/no-solve under runsc, `strings` leak check | VM | gate 5, every challenge change |
 | End to end | Playwright against Django + real labd | VM | gate 6, 7 |
 | Perf | `labd-perf` scenarios P0–P9 | x86-64 Linux box | gates 1, 3, 4, 8 |
 

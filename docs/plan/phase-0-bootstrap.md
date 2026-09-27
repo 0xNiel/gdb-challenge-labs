@@ -9,7 +9,7 @@
 
 ## Objective
 
-A repository where `./run.sh test --all` passes, a Lima VM where a container runs under `runsc`, and CI that runs the same tests on push. Nothing here is product code; everything here is what every later phase relies on.
+A repository where `./run.sh test --all` passes, and a Lima VM where a container runs under `runsc`. There is no CI (ADR 0008). Nothing here is product code; everything here is what every later phase relies on.
 
 ## Deliverables
 
@@ -23,7 +23,6 @@ A repository where `./run.sh test --all` passes, a Lima VM where a container run
 | `deploy/scripts/provision.sh` | Idempotent installer: containerd 2.x, runsc + containerd-shim-runsc-v1, `labs` namespace config, Postgres 16, Go, uv, Caddy (prod only). `--role dev|prod`. Shared by VM and VPS |
 | `deploy/scripts/verify-runtime.sh` | Runs `alpine` under `io.containerd.runsc.v1` in namespace `labs`, prints `runsc ok`, cleans up |
 | `deploy/env.example` | Every environment variable the system reads, with a comment |
-| `.github/workflows/ci.yml` | Go vet + test, ruff + pytest, shellcheck, on push and PR |
 | `scripts/gate.sh` phase 0 section | Real checks (already stubbed) |
 
 ## Tasks
@@ -59,9 +58,9 @@ Print versions at the end: `containerd --version`, `runsc --version`, `psql --ve
 Write `deploy/scripts/verify-runtime.sh`: `ctr -n labs images pull docker.io/library/alpine:3.20`, `ctr -n labs run --rm --runtime io.containerd.runsc.v1 docker.io/library/alpine:3.20 verify-$$ /bin/sh -c 'echo runsc ok; uname -r; cat /proc/version'`. Assert output contains `runsc ok` and the kernel string is gVisor's (contains `gVisor` or a `4.4.0` fake version). Check `stat -fc %T /sys/fs/cgroup` prints `cgroup2fs`.
 **Done when:** `./run.sh vm verify` prints `runsc ok` and `cgroup2fs`.
 
-### 0.7 CI
-`.github/workflows/ci.yml` with three jobs: `go` (setup-go from `go.mod`, `go vet`, `go test ./...`), `web` (uv, ruff, pytest), `shell` (shellcheck on `run.sh`, `scripts/*.sh`, `deploy/scripts/*.sh`). Run on push to any branch and on PRs.
-**Done when:** the workflow file passes `actionlint` locally if installed, or the first push shows all three jobs green.
+### 0.7 CI — removed
+Superseded by ADR 0008: the owner removed the workflow to save Actions minutes. The local equivalent is `./run.sh check && ./run.sh test --all && ./run.sh lint`, run on both hosts before pushing.
+**Done when:** nothing to do; do not re-add a workflow.
 
 ### 0.8 Both hosts green
 Run tasks 0.4–0.6 on the Linux x86-64 laptop as well (`./run.sh vm up` provisions the laptop itself; no VM). Record `docs/metrics/environment-linux-laptop.md` and `environment-dev-vm.md`: `nproc`, RAM, kernel, containerd and runsc versions, cgroup mode, `/dev/kvm` presence (QUESTIONS Q10).

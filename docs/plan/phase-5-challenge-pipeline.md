@@ -27,7 +27,7 @@ Five tier-1 challenges exist as source, lesson, manifest, oracle and solution; a
   8. With `--push`: push to `ghcr.io/$GHCR_NAMESPACE/lab-<slug>`, read the digest, write it into `manifest.yaml` `image:`.
   9. Without `--push` (dev): import into containerd namespace `labs` and write `image:` as `local/lab-<slug>@sha256:<digest>` — accepted by the schema only when `ALLOW_LOCAL_IMAGES=1`.
 - **`scripts/challenges-json.sh`** walks `challenges/tier*/*/manifest.yaml` and emits `challenges.json` `{version, generated_at, challenges:[{slug,title,tier,order,difficulty,estimated_minutes,image,limits,hints,tags,enabled:true,lesson_path,solution_path}]}` sorted by tier then order. `lesson.md` and `solution.md` are read by Django's import command from the repo checkout on the box; the JSON carries paths, not bodies.
-- **CI** `.github/workflows/challenges.yml`: on push to `main` touching `challenges/**` or `images/**`, compute changed challenge dirs (`git diff --name-only HEAD~1`), build each with `--push`, commit updated manifests and `challenges.json` back on a `bot/challenges-<sha>` branch and open a PR. `labbase.yml`: on `images/labbase/**` change or weekly cron, rebuild labbase, push, then trigger `challenges.yml` for all challenges.
+- **No CI** (ADR 0008). The pipeline is the two scripts above, run by a developer. `--push` uses `GHCR_TOKEN` from the developer's environment, writes digests into the manifests, and the developer regenerates `challenges.json` and commits. The base image is rebuilt with `./run.sh images labbase` when its Dockerfile changes and monthly; a `labbase` rebuild means rebuilding every challenge.
 - **`labd pull` and `labd prune`** completed: pull by digest from GHCR using containerd's `hosts.toml` credentials; prune removes digests not referenced by any enabled challenge and older than 14 days.
 
 ## Deliverables
@@ -43,7 +43,6 @@ Five tier-1 challenges exist as source, lesson, manifest, oracle and solution; a
 | `challenges/TEMPLATE/` | The scaffold |
 | `challenges/README.md` | Authoring guide: design rules from the spec, hint escalation, how to run the oracle locally |
 | `challenges.json` (repo root, generated) | Import artifact |
-| `.github/workflows/challenges.yml`, `labbase.yml` | CI |
 | `labd/internal/orch/pull.go`, `prune.go` and tests | Registry logic |
 
 ## Tasks
@@ -84,8 +83,9 @@ One task each, in order. For each: write `src/main.c` (< 120 lines) following th
 ### 5.12 `labd pull` and `prune`
 **Done when:** unit tests with a fake content store: pull skips present digests, pulls missing, labels `lab.keep`; prune keeps referenced, keeps unreferenced younger than 14 days, removes older unreferenced. Integration: `labd pull` against local images succeeds.
 
-### 5.13 CI workflows
-**Done when:** a push touching one challenge triggers a build of only that challenge (visible in the Actions log) and opens a PR with the digest. Needs Q2 answered; until then `--push` is skipped in CI and the workflow builds and validates only.
+### 5.13 Rebuild-changed helper (replaces CI, ADR 0008)
+Add `scripts/challenges-changed.sh [<base-ref>]`: lists challenge dirs changed since `<base-ref>` (default `origin/main`), or all of them when `images/labbase/` or `images/build/` changed, and runs `challenge-build.sh` on each. Do not add a GitHub Actions workflow.
+**Done when:** touching one challenge's `src/main.c` makes the helper build only that challenge, and touching `images/labbase/Dockerfile` makes it build all five.
 
 ### 5.14 Authoring guide
 `challenges/README.md`: the five design rules from the spec, hint ladder, how to write `solve.gdb`, how to run the oracle locally, how to test in the dev page, what never goes into the image.

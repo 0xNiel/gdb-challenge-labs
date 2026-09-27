@@ -24,7 +24,7 @@ flag = "LAB{" + body + "}"
 - `static inline void flag_decode(unsigned key, char out[29])` implements the inverse.
 - The challenge's `report(unsigned key)` calls `flag_decode` and prints `out`.
 
-**Rotation.** Changing `DEPLOY_SECRET` requires rebuilding every challenge image (CI `workflow_dispatch` "rebuild all") and redeploying `web` with the new secret in the same deploy. Old images with the old flag are pruned after 14 days as usual.
+**Rotation.** Changing `DEPLOY_SECRET` requires rebuilding every challenge image (`scripts/challenge-build.sh` on every challenge, ADR 0008) and redeploying `web` with the new secret in the same deploy. Old images with the old flag are pruned after 14 days as usual.
 
 ## Consequences
 

@@ -4,18 +4,18 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
-**Phase 0 — Bootstrap.** In progress on branch `phase-0-bootstrap`. Tasks 0.1–0.7 done; the gate passes on the Mac. Remaining, all needing a person or another machine:
+**Phase 0 — Bootstrap.** In progress. All Phase 0 work is on `main` (pushed to `origin/main`); the `phase-0-bootstrap` branch no longer exists. Tasks 0.1–0.7 done; the gate passes on the Mac. Remaining, all needing a person or another machine:
 
 - **0.8 on the Linux x86-64 laptop:** clone, `./run.sh doctor`, `./run.sh vm up`, `./run.sh vm verify`, then `./run.sh gate --phase 0`. Write `docs/metrics/environment-linux-laptop.md` in the same format as `environment-dev-vm.md`. Also check whether non-terminal gVisor I/O hangs there too (ADR 0007): `sudo timeout 25 ctr -n labs run --rm --null-io --runtime io.containerd.runsc.v1 docker.io/library/alpine:3.20 t1 /bin/true; echo $?` (124 means it hangs).
 - **0.9:** second developer runs `./run.sh doctor` and follows `docs/ONBOARDING.md`.
-- **0.7 remainder:** CI has never run because the repo has no remote yet. Push and confirm all jobs are green.
-- **0.10:** gate output from the laptop pasted below; then merge `phase-0-bootstrap` into `main`.
+- **0.7:** removed. The owner deleted the CI workflow to save Actions minutes; do not add workflows (ADR 0008).
+- **0.10:** gate output from the laptop pasted below. **Do not start Phase 1** until the owner has run Phase 0 on the Linux laptop.
 
 ## Phase board
 
 | Phase | Name | State | Gate result | Date |
 | --- | --- | --- | --- | --- |
-| 0 | Bootstrap: repo, toolchain, dev VM, CI | in progress | passed on Mac; laptop pending | 2026-09-27 |
+| 0 | Bootstrap: repo, toolchain, dev VM | in progress | passed on Mac; laptop pending | 2026-09-27 |
 | 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | blocked on 0 | — | — |
 | 2 | labd core (sessions, semaphore, reconciler) | blocked on 1 | — | — |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | blocked on 2 | — | — |
@@ -36,6 +36,12 @@ States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`.
 None. Every figure in [metrics/capacity.md](metrics/capacity.md) is still an estimate from the spec.
 
 ## Log
+
+### 2026-09-27 — remote added, CI removed
+- Owner added a remote and pushed. `main` now holds every Phase 0 commit (fast-forward, linear history) plus the owner's "removed CI" commit.
+- No GitHub Actions until the owner asks (ADR 0008). Phase 0 task 0.7 and Phase 5 task 5.13 were rewritten to use local `run.sh` commands and a local rebuild-changed helper.
+- Commits pushed so far carry the placeholder author email `your.email@example.com`. Fixing them now means rewriting pushed history and force-pushing, which only the owner should decide. Setting `git config user.email` fixes future commits.
+- Next: the owner runs Phase 0 on the Linux laptop (task 0.8). Phase 1 has not started.
 
 ### 2026-09-27 — Phase 0 tasks 0.1–0.7
 - Committed the scaffold, then on `phase-0-bootstrap`: Go module with config loader and `/healthz` (0.2), Django 5.2 skeleton (0.3), Lima VM + `provision.sh` + `verify-runtime.sh` (0.4–0.6), CI workflow (0.7).
