@@ -8,6 +8,8 @@ Each question has a **default in force**. Work proceeds under the default until 
 
 The Linux x86-64 laptop is now the reference dev host (Q1 resolved). P2/P3 need about 13 GB for 100 labs plus headroom, so the laptop's RAM and core count decide whether the full capacity run can happen there or only on the VPS.
 
+**Known now (2026-09-27):** the laptop is an ASUS TUF Gaming F16, 16 vCPU, 15 GB RAM, Ubuntu 26.04.1, kernel 7.0, `/dev/kvm` present. At the spec's estimate of ~130 MB per lab plus ~3 GB for the system, 100 labs need ~16 GB before headroom, so **the full 100-lab run cannot happen on the laptop**. At 25 % headroom it fits roughly 60 labs (estimate; Phase 1 measures the real per-lab cost). `/dev/kvm` means the laptop can also benchmark `runsc --platform=kvm`, which the VPS likely cannot.
+
 **Default in force:** Phase 4 runs P1–P9 on the laptop at whatever N fits with 25 % memory headroom (`labd-perf` refuses to exceed it), which establishes per-lab cost, gVisor overhead, churn, recovery and leak numbers. The 100-lab P2/P3 run happens on the VPS in Phase 8 if the laptop cannot host it. Please add the laptop's `nproc` and RAM to `docs/metrics/environment-linux-laptop.md` during Phase 0.
 
 ### Q11. Should challenge images also be built for arm64?

@@ -161,8 +161,11 @@ tool_version() {
     bash)       echo "${BASH_VERSION%%(*}" ;;
     make)       make --version 2>/dev/null | head -n1 | awk '{print $NF}' ;;
     psql)       psql --version 2>/dev/null | awk '{print $3}' ;;
+    shellcheck) shellcheck --version 2>/dev/null | sed -n 's/^version: //p' ;;
     *)          "$1" --version 2>/dev/null | head -n1 | grep -oE '[0-9]+(\.[0-9]+)+' | head -n1 ;;
   esac
+  # A tool whose --version output we cannot parse must never abort doctor (set -e + pipefail).
+  return 0
 }
 
 # install_hint NAME — one-line install suggestion for this host.
@@ -198,7 +201,7 @@ cmd_doctor() {
   tool() {
     local name="$1" required="$2" min="${3:-}" purpose="${4:-}" v
     if have "$name"; then
-      v="$(tool_version "$name")"
+      v="$(tool_version "$name" 2>/dev/null)" || v=""
       if [[ -n "$min" && -n "$v" ]] && ! ver_ge "$v" "$min"; then
         row "OLD" "$name $v" "need >= $min — $(install_hint "$name")"
         if [[ $required == 1 ]]; then needed+="  $name >= $min: $(install_hint "$name")"$'\n'
@@ -270,6 +273,9 @@ cmd_doctor() {
     tool ctr 1 "" "containerd CLI used by scripts and gates"
     tool runsc 1 "" "gVisor sandbox runtime"
     tool containerd-shim-runsc-v1 1 "" "containerd ↔ runsc shim"
+    if dpkg -s containerd.io >/dev/null 2>&1 || dpkg -s containerd >/dev/null 2>&1; then
+      warn_row "packaged containerd" "Docker/distro containerd is installed; ./run.sh vm up replaces the running daemon with the version pinned in provision.sh (Docker keeps working, namespace moby)"
+    fi
     if [[ -S /run/containerd/containerd.sock ]]; then
       if [[ -w /run/containerd/containerd.sock ]]; then fact "containerd socket" "writable by $(id -un)"
       else fact "containerd socket" "present; needs sudo or membership of the socket's group (provision.sh sets this up)"; fi

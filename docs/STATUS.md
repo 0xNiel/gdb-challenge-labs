@@ -37,6 +37,12 @@ None. Every figure in [metrics/capacity.md](metrics/capacity.md) is still an est
 
 ## Log
 
+### 2026-09-27 — doctor crash with shellcheck installed; laptop is Ubuntu 26.04
+- On the laptop, `./run.sh doctor` stopped silently after the `jq` line. The cause: `shellcheck --version` has no number on its first line, so the generic version parser's `grep` failed, and `set -euo pipefail` aborted the script. It never showed up before because no tested host had shellcheck. Fixed: shellcheck gets its own parser, and a failed version lookup can no longer abort `doctor`. Verified in a container with shellcheck and inside the fully provisioned VM, which covers every Linux branch of `doctor`.
+- The laptop runs **Ubuntu 26.04.1** (kernel 7.0), whose repositories ship only Postgres 18. That is what broke `vm up`. With the previous fix, an Ubuntu 26.04 container gets Postgres 16.15 from apt.postgresql.org (`resolute-pgdg`), and every base package exists on 26.04.
+- New warning in `doctor` and `provision.sh` when a Docker or distro containerd package is installed: `vm up` replaces the running containerd daemon with the pinned build.
+- Laptop specs: 16 vCPU, 15 GB RAM, `/dev/kvm` present. Too little RAM for the 100-lab run (QUESTIONS Q10 updated).
+
 ### 2026-09-27 — Postgres 16 on non-reference distros
 - On the owner's Linux laptop, `./run.sh vm up` failed with `Unable to locate package postgresql-16`. `provision.sh` assumed Ubuntu 24.04, whose repositories ship Postgres 16; the laptop's distro does not.
 - Fix: `provision.sh` detects the distro, refuses non-apt distros with a clear message, and adds the official PostgreSQL apt repository (apt.postgresql.org) when the distro lacks `postgresql-16`. Derivatives map to their Ubuntu or Debian base codename.

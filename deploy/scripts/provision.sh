@@ -109,6 +109,14 @@ fi
 
 # ---------------------------------------------------------------- 2. containerd
 step "containerd $CONTAINERD_VERSION"
+# Docker Engine ships its own containerd (package containerd.io or containerd). Our unit in
+# /etc/systemd/system overrides the packaged one, so Docker keeps working but runs on this
+# pinned containerd and shares its socket (Docker uses namespace "moby", labs use "labs").
+for pkg in containerd.io containerd; do
+  if dpkg -s "$pkg" >/dev/null 2>&1; then
+    echo "    note: distro/Docker package '$pkg' is installed; containerd $CONTAINERD_VERSION from /usr/local/bin will replace it as the running daemon."
+  fi
+done
 if command -v containerd >/dev/null && [[ "$(containerd --version | awk '{print $3}')" == "v$CONTAINERD_VERSION" ]]; then
   ok "containerd v$CONTAINERD_VERSION"
 else
