@@ -16,8 +16,12 @@ Supported hosts:
 
 | Host | How labs run | Notes |
 | --- | --- | --- |
-| Linux x86-64 (laptop, VPS) | directly on the machine: `./run.sh vm up` installs containerd, gVisor, Postgres, Go, uv | This is what production is. Authoritative for every number and for challenge content |
+| Linux x86-64 (laptop, VPS) | directly on the machine: `./run.sh vm up` installs containerd, gVisor, Postgres 16 (server), Go, uv | This is what production is. Authoritative for every number and for challenge content |
 | Linux arm64 | same as above | Platform works; challenge binaries are x86-64 and will not run here |
+
+On Linux, `vm up` changes the machine itself: it installs system services (containerd, Postgres) with sudo. Any Debian/Ubuntu-family distro works (Ubuntu 24.04 is the reference; Debian 12, Ubuntu 22.04, Mint and Pop!_OS are fine). If the distro does not ship Postgres 16, `vm up` adds the official PostgreSQL apt repository so every host runs the same major version. Non-apt distros (Fedora, Arch) are not supported by `provision.sh`.
+
+`doctor` lists `psql` as optional: that is the Postgres *client* for inspecting the database by hand. The Postgres *server* is never a `doctor` item; `vm up` installs it.
 | macOS (Apple Silicon or Intel) | inside a Lima VM: `./run.sh vm up` creates and provisions it | The VM is arm64 on Apple Silicon, x86-64 on Intel. Everything container-related is executed in the VM for you by `run.sh` |
 | Windows | not supported directly; use WSL2 (untested) or a Linux VM | `doctor` warns about cgroup v2 under WSL2 |
 

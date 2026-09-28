@@ -222,6 +222,17 @@ cmd_doctor() {
   fact "os / arch" "$os $arch ($(uname -r))"
   if is_linux; then
     fact "cpu / memory" "$(nproc) vCPU, $(awk '/MemTotal/{printf "%.0f GB", $2/1048576}' /proc/meminfo)"
+    # osr KEY — a field from /etc/os-release, unquoted (parsed, not sourced).
+    osr() { sed -n "s/^$1=//p" /etc/os-release 2>/dev/null | tr -d '"' | head -n1; }
+    local distro did dver dlike
+    distro="$(osr PRETTY_NAME)"; did="$(osr ID)"; dver="$(osr VERSION_ID)"; dlike="$did $(osr ID_LIKE)"
+    if [[ "$did" == ubuntu && "$dver" == 24.04 ]]; then
+      fact "distro" "$distro (reference)"
+    elif [[ " $dlike " == *" ubuntu "* || " $dlike " == *" debian "* ]]; then
+      fact "distro" "${distro:-unknown} — supported; vm up adds upstream repos for anything missing (e.g. Postgres 16)"
+    else
+      warn_row "distro" "${distro:-unknown} is not Debian/Ubuntu-based; provision.sh (./run.sh vm up) needs apt"
+    fi
     grep -qi microsoft /proc/version 2>/dev/null && warn_row "WSL detected" "gVisor under WSL2 is untested here; needs cgroup v2 (kernelCommandLine=cgroup_no_v1=all in .wslconfig)"
     if [[ "$(stat -fc %T /sys/fs/cgroup 2>/dev/null)" == "cgroup2fs" ]]; then fact "cgroup" "v2 (cgroup2fs)"
     else warn_row "cgroup" "not cgroup v2 — labs need it (boot with systemd.unified_cgroup_hierarchy=1)"; fi
@@ -285,9 +296,18 @@ cmd_doctor() {
   fi
 
   hdr "database"
-  tool psql 0 "" "inspect Postgres from the host (./run.sh db shell works without it via the VM/host service)"
-  if is_linux && have pg_isready; then
-    if pg_isready -q 2>/dev/null; then fact "postgres" "accepting connections"; else fact "postgres" "not running (./run.sh db up)"; fi
+  tool psql 0 "" "Postgres CLIENT on this host, for poking at the DB by hand"
+  if is_linux; then
+    # The SERVER is not a doctor item: ./run.sh vm up installs it (Postgres 16 on every host).
+    local pgv; pgv="$(dpkg-query -W -f='${Version}' postgresql-16 2>/dev/null || true)"
+    if [[ -n "$pgv" ]]; then
+      if have pg_isready && pg_isready -q 2>/dev/null; then fact "postgres server" "16 ($pgv), accepting connections"
+      else fact "postgres server" "16 ($pgv), not running (./run.sh db up)"; fi
+    else
+      fact "postgres server" "not installed yet — ./run.sh vm up installs Postgres 16 (not an apt step for you)"
+    fi
+  else
+    fact "postgres server" "runs inside the Lima VM; ./run.sh vm up installs it"
   fi
 
   hdr "project state"

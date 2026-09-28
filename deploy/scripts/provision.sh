@@ -48,6 +48,23 @@ case "$(uname -m)" in
   *) echo "unsupported architecture $(uname -m)" >&2; exit 1 ;;
 esac
 
+# Distro: Ubuntu 24.04 is the reference (VM and VPS). Other apt-based distros work; packages
+# they lack at the pinned version (Postgres 16) come from the upstream vendor's repository.
+[[ -r /etc/os-release ]] || { echo "cannot read /etc/os-release" >&2; exit 1; }
+# shellcheck disable=SC1091
+. /etc/os-release
+family=" ${ID:-} ${ID_LIKE:-} "
+if ! command -v apt-get >/dev/null || [[ "$family" != *" ubuntu "* && "$family" != *" debian "* ]]; then
+  echo "provision.sh supports Debian/Ubuntu-family distros only (found: ${PRETTY_NAME:-unknown})" >&2
+  exit 1
+fi
+# Codename of the Ubuntu or Debian base, so derivatives (Mint, Pop!_OS, LMDE) map correctly.
+BASE_CODENAME="${UBUNTU_CODENAME:-${DEBIAN_CODENAME:-${VERSION_CODENAME:-}}}"
+DISTRO="${PRETTY_NAME:-$ID} (base codename: ${BASE_CODENAME:-unknown})"
+if [[ "${ID:-}" != ubuntu || "${VERSION_ID:-}" != 24.04 ]]; then
+  echo "note: $DISTRO is not the reference Ubuntu 24.04; continuing (ADR 0001)."
+fi
+
 TARGET_USER="${SUDO_USER:-}"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -206,11 +223,33 @@ else installing "namespace labs"; ctr namespaces create labs; fi
 
 # ---------------------------------------------------------------- 5. Postgres
 step "Postgres $POSTGRES_MAJOR"
-if dpkg -s "postgresql-$POSTGRES_MAJOR" >/dev/null 2>&1; then ok "postgresql-$POSTGRES_MAJOR"
+PG_PKG="postgresql-$POSTGRES_MAJOR"
+PGDG_KEY=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+PGDG_LIST=/etc/apt/sources.list.d/pgdg.list
+
+# pkg_available PKG — true when apt has an install candidate for PKG.
+pkg_available() { [[ "$(apt-cache policy "$1" 2>/dev/null | awk '/Candidate:/{print $2}')" =~ ^[0-9] ]]; }
+
+if dpkg -s "$PG_PKG" >/dev/null 2>&1; then ok "$PG_PKG"
 else
-  installing "postgresql-$POSTGRES_MAJOR"
   apt-get update -qq
-  apt-get install -y -qq --no-install-recommends "postgresql-$POSTGRES_MAJOR" >/dev/null
+  if ! pkg_available "$PG_PKG"; then
+    # Not in this distro's repositories (e.g. Ubuntu 22.04 ships 14, Debian 12 ships 15).
+    # Use the official PostgreSQL apt repository so every host runs the same major version.
+    [[ -n "$BASE_CODENAME" ]] || { echo "cannot determine distro codename for the PostgreSQL apt repo" >&2; exit 1; }
+    installing "PostgreSQL apt repository (apt.postgresql.org, $BASE_CODENAME-pgdg)"
+    install -d -m 0755 "$(dirname "$PGDG_KEY")"
+    curl -fsSL --retry 3 -o "$PGDG_KEY" https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    echo "deb [signed-by=$PGDG_KEY] https://apt.postgresql.org/pub/repos/apt $BASE_CODENAME-pgdg main" > "$PGDG_LIST"
+    apt-get update -qq
+    pkg_available "$PG_PKG" || {
+      echo "$PG_PKG is not available for $DISTRO, even from apt.postgresql.org." >&2
+      echo "Supported codenames: https://apt.postgresql.org/pub/repos/apt/dists/" >&2
+      exit 1
+    }
+  fi
+  installing "$PG_PKG"
+  apt-get install -y -qq --no-install-recommends "$PG_PKG" >/dev/null
 fi
 systemctl is-active --quiet postgresql || { installing "postgresql start"; systemctl enable --now postgresql; }
 
