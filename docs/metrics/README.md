@@ -15,7 +15,7 @@ Every measured number in the project lands here. Files carry the date and the ho
 | File | Phase | What |
 | --- | --- | --- |
 | `capacity.md` | 1, 3, 4, 7, 8 | The capacity table from the spec, estimates replaced by measurements as they arrive |
-| `environment-<host>.md` | 0, 4, 8 | Kernel, containerd, runsc, cgroup mode, CPU, RAM, KVM presence |
+| `environment-dev-vm.md`, `environment-linux-laptop.md`, `environment-hostinger.md` | 0, 4, 8 | Kernel, containerd, runsc, cgroup mode, CPU, RAM, KVM presence |
 | `p0-<date>-<host>.{json,md}` | 1 | gdb feature matrix under runsc and runc |
 | `single-lab-<date>-<host>.{json,md}` | 1 | One idle lab: RSS, Sentry RSS, start latency, image size |
 | `create-latency-<date>-<host>.md` | 2 | Container create-to-running from P4-lite |

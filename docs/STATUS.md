@@ -4,19 +4,28 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
-**Phase 0 — Bootstrap.** In progress. All Phase 0 work is on `main` (pushed to `origin/main`); the `phase-0-bootstrap` branch no longer exists. Tasks 0.1–0.7 done; the gate passes on the Mac. Remaining, all needing a person or another machine:
+**Phase 0 — Bootstrap.** Gate passed on both hosts: the Mac (2026-09-27) and the Linux laptop (2026-09-28). Everything is on `main`. One task remains open and does not block Phase 1 unless the owner says so:
+
+- **0.9:** the second developer runs `./run.sh doctor` and follows `docs/ONBOARDING.md`.
+
+**Phase 1 is next and has not started.** The owner decides when it starts.
+
+<details><summary>Earlier checklist (done)</summary>
+
 
 - **0.8 on the Linux x86-64 laptop:** clone, `./run.sh doctor`, `./run.sh vm up`, `./run.sh vm verify`, then `./run.sh gate --phase 0`. Write `docs/metrics/environment-linux-laptop.md` in the same format as `environment-dev-vm.md`. Also check whether non-terminal gVisor I/O hangs there too (ADR 0007): `sudo timeout 25 ctr -n labs run --rm --null-io --runtime io.containerd.runsc.v1 docker.io/library/alpine:3.20 t1 /bin/true; echo $?` (124 means it hangs).
 - **0.9:** second developer runs `./run.sh doctor` and follows `docs/ONBOARDING.md`.
 - **0.7:** removed. The owner deleted the CI workflow to save Actions minutes; do not add workflows (ADR 0008).
 - **0.10:** gate output from the laptop pasted below. **Do not start Phase 1** until the owner has run Phase 0 on the Linux laptop.
 
+</details>
+
 ## Phase board
 
 | Phase | Name | State | Gate result | Date |
 | --- | --- | --- | --- | --- |
-| 0 | Bootstrap: repo, toolchain, dev VM | in progress | passed on Mac; laptop pending | 2026-09-27 |
-| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | blocked on 0 | — | — |
+| 0 | Bootstrap: repo, toolchain, dev VM | done (0.9 open, non-blocking) | passed on Mac and laptop | 2026-09-28 |
+| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | not started, waiting for owner | — | — |
 | 2 | labd core (sessions, semaphore, reconciler) | blocked on 1 | — | — |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | blocked on 2 | — | — |
 | 4 | Perf suite and measured capacity | blocked on 3 | — | — |
@@ -36,6 +45,21 @@ States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`.
 None. Every figure in [metrics/capacity.md](metrics/capacity.md) is still an estimate from the spec.
 
 ## Log
+
+### 2026-09-28 — Phase 0 gate passes on the Linux laptop
+- The owner ran Phase 0 on the laptop: `doctor` all required present, `vm up` a no-op, `vm verify` passes on x86_64, and the gate passes (output below). Environment in `docs/metrics/environment-linux-laptop.md`.
+- ADR 0007 is confirmed on x86-64: gVisor without a terminal hangs (`timeout 25` exited 124), as on the arm64 VM. Terminal mode works on both, and labs always use it.
+- Open: task 0.9 (second developer onboarding) and the laptop's CPU model for the environment file.
+
+Phase 0 gate on the Linux laptop:
+```
+==> gate for phase 0 — 2026-09-28T01:21Z — linux-laptop
+  PASS  run.sh check
+  PASS  run.sh test --all
+  PASS  run.sh vm verify prints runsc ok + cgroup2fs
+  PASS  working tree clean
+==> GATE 0 PASSED.
+```
 
 ### 2026-09-27 — `vm verify` hung silently on the laptop
 - On the laptop, `./run.sh vm verify` printed `cgroup2fs` and then nothing. Likely cause: the shell predates the `containerd` group membership that `vm up` added, so verify used `sudo ctr`. That call ran inside `script` (the PTY required by ADR 0007), which is a new terminal, so sudo asked for the password again, and the prompt was swallowed by the captured output. The Mac VM never showed this because Lima has passwordless sudo.
