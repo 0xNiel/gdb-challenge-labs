@@ -1,0 +1,10 @@
+# gdb settings for every lab. Installed at /etc/lab-config/gdb/gdbinit, which gdb reads
+# because the sandbox sets XDG_CONFIG_HOME=/etc/lab-config. It cannot live in ~/.gdbinit:
+# /home/lab is an empty tmpfs at runtime. Alpine's gdb has no system-wide gdbinit.
+
+# ASLR off (spec: hard requirement for early tiers; binaries are also -no-pie).
+set disable-randomization on
+# Hardware watchpoints depend on debug registers gVisor may not expose; software everywhere.
+set can-use-hw-watchpoints 0
+set pagination off
+set confirm off
