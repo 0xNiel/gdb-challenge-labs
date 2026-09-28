@@ -23,7 +23,9 @@ Also found: gVisor releases since 20260831 ship as one tarball, and `runsc` requ
 
 - Every lab container is created with a terminal (`cio.WithTerminal`), which the spec already requires for the browser PTY. labd never creates a gVisor container without a terminal.
 - Tools that run a container non-interactively allocate a PTY: shell scripts wrap `ctr run -t` in `script -qec ... /dev/null`, and Go helpers use `cio.WithTerminal` and read the PTY. This applies to `deploy/scripts/verify-runtime.sh` (done), the Phase 1 `specrun` helper and P0 checks, and the Phase 5 challenge oracle (`gdb -batch` under runsc).
-- PTY output contains `\r` and sometimes NUL bytes. Scripts strip them (`tr -d '\r\000'`) before matching.
+- PTY output contains `\r` and sometimes NUL bytes, which a terminal may also echo as the literal text `^@`. Scripts strip them before matching.
+- Wrap `script` as `timeout --foreground -k 5 N script ...`. Without `--foreground`, run from an interactive terminal, `timeout` puts `script` in a background process group. `script` then sets raw mode, the kernel stops both with SIGTTOU, and the timeout never fires. Found on the laptop, commit `d322f44`.
+- `ctr run` needs root even for members of the `containerd` group, because it reads image snapshots under `/var/lib/containerd`. Scripts authenticate sudo once, visibly, then run the whole `script` under sudo.
 - Re-test non-terminal mode whenever containerd or gVisor is upgraded (command in `docs/metrics/environment-linux-laptop.md`). If it works everywhere, this ADR can be relaxed but not removed.
 
 ## Consequences

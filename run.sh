@@ -277,8 +277,10 @@ cmd_doctor() {
       warn_row "packaged containerd" "Docker/distro containerd is installed; ./run.sh vm up replaces the running daemon with the version pinned in provision.sh (Docker keeps working, namespace moby)"
     fi
     if [[ -S /run/containerd/containerd.sock ]]; then
-      if [[ -w /run/containerd/containerd.sock ]]; then fact "containerd socket" "writable by $(id -un)"
-      else fact "containerd socket" "present; needs sudo or membership of the socket's group (provision.sh sets this up)"; fi
+      # The group gives socket access (pull, ls, kill), but `ctr run` still needs root: it
+      # reads image snapshots under /var/lib/containerd (0700). Scripts use sudo for that.
+      if [[ -w /run/containerd/containerd.sock ]]; then fact "containerd socket" "writable by $(id -un) (ctr run still needs sudo)"
+      else fact "containerd socket" "not writable in this shell; scripts use sudo (group membership applies after re-login)"; fi
     else
       [[ "$needed" == *containerd* ]] || warn_row "containerd socket" "/run/containerd/containerd.sock missing — is containerd running? (sudo systemctl start containerd)"
     fi

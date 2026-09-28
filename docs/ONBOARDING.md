@@ -63,7 +63,7 @@ On Linux, `vm up` changes the machine itself: it installs system services (conta
 
 | Symptom | Fix |
 | --- | --- |
-| `doctor` says `containerd socket` needs sudo | `sudo usermod -aG containerd $USER` then log out and in; `provision.sh` creates the group |
+| Scripts ask for your sudo password | Expected: `ctr run` needs root because it reads image snapshots under `/var/lib/containerd`. The `containerd` group (added by `vm up`, active after re-login) only covers socket commands such as `ctr images ls` |
 | `vm verify` fails with an image pull error | you are offline, or the corporate proxy blocks `docker.io`; retry, or `ctr -n labs images import` a saved tar |
 | `vm up` on macOS is slow to first boot | the Ubuntu cloud image download is once; later starts take seconds |
 | `test --integration` on macOS says VM not running | `./run.sh vm up` |

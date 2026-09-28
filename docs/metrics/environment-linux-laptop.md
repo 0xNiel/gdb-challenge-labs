@@ -35,7 +35,8 @@ Recorded 2026-09-28, Phase 0, task 0.8. Source: `./run.sh doctor`, `provision.sh
 ## Notes
 
 - Ubuntu 26.04 differs from production (24.04). Package sources differ (Postgres from PGDG), and kernel 7.0 is newer than the VPS will run. Treat laptop numbers as representative of x86-64 gVisor cost, and re-check on the VPS in Phase 8.
-- The owner's shell predated the `containerd` group membership, so `verify` used sudo. After logging out and back in, containerd commands work without sudo.
+- `verify` always uses sudo: `ctr run` reads image snapshots under `/var/lib/containerd` (root-only), even for members of the `containerd` group. The group covers socket-only commands (`ctr images ls`, `ctr tasks ls`). Found and fixed by the owner in commit `d322f44`.
+- Interactive runs need `timeout --foreground` around `script`, or the terminal stops both processes with SIGTTOU and the timeout never fires (same commit; see ADR 0007).
 
 ## Re-test for ADR 0007 (after any containerd or gVisor upgrade)
 
