@@ -11,7 +11,6 @@ NS=labs
 RUNTIME=io.containerd.runsc.v1
 ID="verify-$$"
 TIMEOUT="${VERIFY_TIMEOUT:-60}"
-SOCK=/run/containerd/containerd.sock
 
 say()  { printf '  .. %s\n' "$*" >&2; }
 fail() { printf 'verify-runtime: %s\n' "$*" >&2; exit 1; }
@@ -23,15 +22,16 @@ cg="$(stat -fc %T /sys/fs/cgroup)"
 [[ "$cg" == cgroup2fs ]] || fail "cgroup v2 required, found $cg"
 echo "$cg"
 
-# Root is needed unless this shell already has the containerd group. Ask for the password
-# ONCE, here, on the real terminal. Everything later uses `sudo -n` (never prompts) or runs
-# under a single `sudo script ...`, so no prompt can ever end up hidden inside captured output.
+# Root is needed even with the containerd group: the socket is enough for pull/ls/kill, but
+# `ctr run` builds the OCI spec client-side and reads the image rootfs snapshot under
+# /var/lib/containerd (0700 root), which fails with "permission denied". Ask for the password
+# ONCE, here, on the real terminal. Everything later runs under sudo with a cached credential
+# or under a single `sudo script ...`, so no prompt can ever end up hidden inside captured output.
 SUDO=()
-if [[ ! -w "$SOCK" ]]; then
+if [[ $EUID -ne 0 ]]; then
   SUDO=(sudo)
   if ! sudo -n true 2>/dev/null; then
-    say "containerd socket is not writable by $(id -un) in this shell; using sudo."
-    say "(to avoid this, log out and back in so your 'containerd' group membership applies)"
+    say "ctr run needs root (it reads /var/lib/containerd); using sudo."
     sudo -v || fail "sudo authentication failed"
   fi
 fi
@@ -66,11 +66,14 @@ ctr_ images pull "$IMAGE" >/dev/null || fail "image pull failed — offline, or 
 # Terminal mode is required: with gVisor's shim, non-terminal I/O (FIFO or null) hangs in
 # `create` (ADR 0007). `script` supplies the TTY that `ctr run -t` needs. The whole `script`
 # runs under sudo when needed, so ctr inside it never has to authenticate.
+# --foreground is required: without it, timeout moves itself and script into a background
+# process group; script then sets raw mode on the terminal, the kernel stops both with
+# SIGTTOU, and the timeout never fires. -k sends KILL if script ignores the TERM.
 say "starting a container under $RUNTIME (timeout ${TIMEOUT}s)"
 raw="$(mktemp)"
 trap 'cleanup; rm -f "$raw"' EXIT
 set +e
-timeout "$TIMEOUT" "${SUDO[@]}" script -qec \
+timeout --foreground -k 5 "$TIMEOUT" "${SUDO[@]}" script -qec \
   "ctr -n $NS run -t --rm --runtime $RUNTIME $IMAGE $ID /bin/sh -c 'echo runsc ok; dmesg | head -n1'" /dev/null >"$raw"
 rc=$?
 set -e
