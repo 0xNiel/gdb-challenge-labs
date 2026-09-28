@@ -37,6 +37,12 @@ None. Every figure in [metrics/capacity.md](metrics/capacity.md) is still an est
 
 ## Log
 
+### 2026-09-27 — `vm verify` hung silently on the laptop
+- On the laptop, `./run.sh vm verify` printed `cgroup2fs` and then nothing. Likely cause: the shell predates the `containerd` group membership that `vm up` added, so verify used `sudo ctr`. That call ran inside `script` (the PTY required by ADR 0007), which is a new terminal, so sudo asked for the password again, and the prompt was swallowed by the captured output. The Mac VM never showed this because Lima has passwordless sudo.
+- Fix: verify asks for sudo once, visibly, before doing anything, and runs the whole `script` under sudo, so nothing inside can prompt. It prints each step to stderr. On a timeout or bad output it dumps diagnostics (task state, gVisor processes, runsc log, containerd journal for that container) and then cleans up. `VERIFY_TIMEOUT` overrides the 60 s limit.
+- Tested in the VM: the normal path passes, and a simulated hang produces the diagnostics and leaves no containers or sandboxes. The gVisor container finishes in under 0.3 s.
+- Still unconfirmed on the laptop: whether the sudo prompt was the whole story, or whether gVisor also hangs there with a terminal. The new diagnostics will show which.
+
 ### 2026-09-27 — doctor crash with shellcheck installed; laptop is Ubuntu 26.04
 - On the laptop, `./run.sh doctor` stopped silently after the `jq` line. The cause: `shellcheck --version` has no number on its first line, so the generic version parser's `grep` failed, and `set -euo pipefail` aborted the script. It never showed up before because no tested host had shellcheck. Fixed: shellcheck gets its own parser, and a failed version lookup can no longer abort `doctor`. Verified in a container with shellcheck and inside the fully provisioned VM, which covers every Linux branch of `doctor`.
 - The laptop runs **Ubuntu 26.04.1** (kernel 7.0), whose repositories ship only Postgres 18. That is what broke `vm up`. With the previous fix, an Ubuntu 26.04 container gets Postgres 16.15 from apt.postgresql.org (`resolute-pgdg`), and every base package exists on 26.04.
