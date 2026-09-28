@@ -1,0 +1,100 @@
+{
+  "ociVersion": "1.3.0",
+  "process": {
+    "terminal": true,
+    "user": { "uid": 1000, "gid": 1000 },
+    "args": ["/bin/sh"],
+    "env": [
+      "PATH=/usr/bin:/bin",
+      "HOME=/home/lab",
+      "XDG_CONFIG_HOME=/etc/lab-config",
+      "TERM=xterm-256color",
+      "PS1=lab$ "
+    ],
+    "cwd": "/home/lab",
+    "capabilities": {
+      "bounding": [],
+      "effective": [],
+      "inheritable": [],
+      "permitted": [],
+      "ambient": []
+    },
+    "rlimits": [
+      { "type": "RLIMIT_NOFILE", "hard": 256, "soft": 256 },
+      { "type": "RLIMIT_FSIZE", "hard": 33554432, "soft": 33554432 },
+      { "type": "RLIMIT_NPROC", "hard": 32, "soft": 32 },
+      { "type": "RLIMIT_CORE", "hard": 0, "soft": 0 }
+    ],
+    "noNewPrivileges": true
+  },
+  "root": { "path": "rootfs", "readonly": true },
+  "hostname": "lab",
+  "mounts": [
+    {
+      "destination": "/proc",
+      "type": "proc",
+      "source": "proc",
+      "options": ["nosuid", "noexec", "nodev"]
+    },
+    {
+      "destination": "/dev",
+      "type": "tmpfs",
+      "source": "tmpfs",
+      "options": ["nosuid", "noexec", "strictatime", "mode=755", "size=64k"]
+    },
+    {
+      "destination": "/dev/pts",
+      "type": "devpts",
+      "source": "devpts",
+      "options": ["nosuid", "noexec", "newinstance", "ptmxmode=0666", "mode=0620", "gid=5"]
+    },
+    {
+      "destination": "/tmp",
+      "type": "tmpfs",
+      "source": "tmpfs",
+      "options": ["nosuid", "nodev", "noexec", "mode=1777", "size=16m"]
+    },
+    {
+      "destination": "/home/lab",
+      "type": "tmpfs",
+      "source": "tmpfs",
+      "options": ["nosuid", "nodev", "noexec", "mode=0700", "uid=1000", "gid=1000", "size=16m"]
+    }
+  ],
+  "linux": {
+    "namespaces": [
+      { "type": "pid" },
+      { "type": "ipc" },
+      { "type": "uts" },
+      { "type": "mount" },
+      { "type": "network" },
+      { "type": "cgroup" }
+    ],
+    "maskedPaths": [
+      "/proc/acpi",
+      "/proc/asound",
+      "/proc/interrupts",
+      "/proc/kcore",
+      "/proc/keys",
+      "/proc/latency_stats",
+      "/proc/timer_list",
+      "/proc/timer_stats",
+      "/proc/sched_debug",
+      "/proc/scsi"
+    ],
+    "readonlyPaths": [
+      "/proc/bus",
+      "/proc/fs",
+      "/proc/irq",
+      "/proc/sys",
+      "/proc/sysrq-trigger"
+    ],
+    "resources": {
+      "devices": [{ "allow": false, "access": "rwm" }],
+      "memory": { "limit": 134217728, "swap": 134217728 },
+      "cpu": { "quota": 50000, "period": 100000 },
+      "pids": { "limit": 32 }
+    },
+    "cgroupsPath": "/labs/PLACEHOLDER"
+  }
+}

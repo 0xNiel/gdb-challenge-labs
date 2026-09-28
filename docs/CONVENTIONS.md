@@ -11,7 +11,7 @@ These apply to every phase. A phase document may add rules; it may not relax the
 
 ## Go (`labd/`)
 
-- Go 1.25 or newer as `go` directive in `go.mod`; module path `gdblabs/labd`.
+- `go` directive in `go.mod` is whatever our dependencies require (1.26.6 since containerd v2.4.1); `provision.sh` installs at least that version. Module path `gdblabs/labd`.
 - Standard library first. Allowed third-party modules without an ADR:
   - `github.com/containerd/containerd/v2` (client), `github.com/containerd/errdefs`
   - `github.com/opencontainers/runtime-spec`

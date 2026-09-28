@@ -130,7 +130,7 @@ cmd_vm() {
 # ---------------------------------------------------------------- doctor (dependency report)
 
 # Minimum versions. Keep in sync with docs/CONVENTIONS.md and deploy/scripts/provision.sh.
-MIN_GO=1.25
+MIN_GO=1.26   # go.mod needs 1.26.6; older 1.26.x fetches it automatically (GOTOOLCHAIN=auto)
 MIN_CONTAINERD=2.0
 MIN_GIT=2.30
 MIN_BASH=4.0
