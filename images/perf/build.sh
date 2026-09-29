@@ -13,13 +13,16 @@ STAGE="$IMAGES_ROOT/out/perf-context"
 # -fdebug-prefix-map: sources are compiled from /src but live at /opt/perf in the image.
 CFLAGS="-O0 -g -no-pie -fno-pie -fno-stack-protector -fdebug-prefix-map=/src=/opt/perf"
 
+docker_init
 bash "$IMAGES_ROOT/build/build.sh"
 platform="$(lab_platform)"
+# Run build containers as us, so everything they write into images/out is ours on Linux.
+AS_ME=(--user "$(id -u):$(id -g)")
 
 compile() { # compile OUTDIR — build perf and probe into OUTDIR using the toolchain image
   local out="$1"
   mkdir -p "$out"
-  docker run --rm --platform "$platform" -e SOURCE_DATE_EPOCH=0 \
+  "${DOCKER[@]}" run --rm --platform "$platform" "${AS_ME[@]}" -e SOURCE_DATE_EPOCH=0 \
     -v "$PERF/src:/src:ro" -v "$out:/out" -w /src gdblabs/build:dev sh -ec "
       gcc $CFLAGS -pthread -o /out/perf perf.c
       gcc $CFLAGS -o /out/probe probe.c
@@ -38,7 +41,7 @@ for b in perf probe; do
 done
 
 img_say "generating perf.core (perf crash, under gdb in the build container)"
-docker run --rm --platform "$platform" -v "$IMAGES_ROOT/out/perf-a:/out" -w /out gdblabs/build:dev \
+"${DOCKER[@]}" run --rm --platform "$platform" "${AS_ME[@]}" -v "$IMAGES_ROOT/out/perf-a:/out" -w /out gdblabs/build:dev \
   gdb -batch -ex run -ex "generate-core-file /out/perf.core" --args /out/perf crash >/dev/null 2>&1 || true
 [[ -s "$IMAGES_ROOT/out/perf-a/perf.core" ]] || img_die "perf.core was not generated"
 

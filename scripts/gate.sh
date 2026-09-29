@@ -85,7 +85,13 @@ phase_1() {
   say "unit tests (spec golden file, invariants, cgroup parsing)"
   check "run.sh test --all" "$RUN" test --all
   say "P0 and single-lab run on this host"
-  check "P0 completes (runsc and runc)" "$RUN" perf --scenario P0
+  # Scratch output: this only proves P0 runs here. Committed results come from explicit
+  # `LAB_HOST=<label> ./run.sh perf --scenario P0` runs (docs/STATUS.md has the commands).
+  # Inside the repo (git-ignored) so the Lima VM sees the same path as the Mac.
+  local scratch="$ROOT/.scratch/gate-p0"
+  mkdir -p "$scratch"
+  check "P0 completes (runsc and runc)" "$RUN" perf --scenario P0 --out "$scratch"
+  rm -rf "$scratch"
   say "authoritative results (x86-64, ADR 0001)"
   local p0 sl
   p0="$(newest_json p0 '.arch == "x86_64" and .host != "dev-vm"')"

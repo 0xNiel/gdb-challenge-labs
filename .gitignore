@@ -4,6 +4,7 @@
 !deploy/env.example
 /etc/
 .lima/
+.scratch/
 
 # Go
 labd/bin/

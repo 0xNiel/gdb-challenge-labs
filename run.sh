@@ -296,6 +296,13 @@ cmd_doctor() {
   hdr "image building (needed to build labbase, perf and challenge images)"
   tool docker 0 "" "docker buildx multi-arch builds"
   if have docker; then
+    local derr
+    if derr="$(docker info 2>&1 >/dev/null)"; then fact "docker daemon" "reachable as $(id -un)"
+    elif grep -qi 'permission denied' <<<"$derr"; then
+      warn_row "docker access" "$(id -un) cannot use the Docker socket; image scripts fall back to sudo docker. Fix: sudo usermod -aG docker $(id -un), then re-login (the docker group is root-equivalent)"
+    else
+      warn_row "docker daemon" "not reachable: $(tail -n1 <<<"$derr" | cut -c1-80) (sudo systemctl start docker, or start Docker Desktop)"
+    fi
     if docker buildx version >/dev/null 2>&1; then fact "docker buildx" "$(docker buildx version 2>/dev/null | awk '{print $2}')"
     else row "--" "docker buildx" "optional: $(install_hint buildx)"; optional_missing+="  docker buildx: $(install_hint buildx)"$'\n'; fi
     if is_linux; then
@@ -366,7 +373,11 @@ cmd_test() {
   local rc=0
   if [[ $go -eq 1 ]]; then
     if [[ -f "$LABD_DIR/go.mod" ]]; then
-      say "go test"; (cd "$LABD_DIR" && go vet ./... && go test $verbose -race ./...) || rc=1
+      say "go test"
+      # proxy.golang.org drops connections now and then; fetch modules first, with retries.
+      local try
+      for try in 1 2 3; do (cd "$LABD_DIR" && go mod download) && break; warn "go mod download failed (attempt $try); retrying"; sleep 3; done
+      (cd "$LABD_DIR" && go vet ./... && go test $verbose -race ./...) || rc=1
     else warn "labd/go.mod missing — skipping Go tests (Phase 0, task 0.2)"; rc=1; fi
   fi
   if [[ $web -eq 1 ]]; then

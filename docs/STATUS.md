@@ -55,6 +55,11 @@ Dev VM only (arm64, not authoritative; see [metrics/capacity.md](metrics/capacit
 
 ## Log
 
+### 2026-09-29 — first Phase 1 gate run on the laptop
+- The owner's gate run failed for reasons outside the Phase 1 code: no access to the Docker socket (permission denied), a transient proxy.golang.org error, and P0 failing only because no images existed.
+- Fixed: every image script goes through `docker_init` in `images/lib.sh`. It uses plain `docker` when the user can reach the socket, else `sudo docker` after one visible prompt with the permanent fix printed, else it says the daemon is down. Build containers run as the invoking user, so `images/out` never gets root-owned files. `doctor` reports Docker access. `run.sh test` pre-downloads Go modules with 3 retries. The gate's own P0 run now writes to a scratch directory, not `docs/metrics`.
+- Tested: the sudo fallback with a fake `docker` in the VM, and the full gate on the Mac (same result as before: everything passes except the two x86-64 result checks).
+
 ### 2026-09-29 — Phase 1 tasks 1.1–1.8 on the dev VM
 - **labbase:** Alpine 3.20 + gdb 14.2 + binutils + file. Only the spec's keep-list is on PATH (326 entries removed). 95.9 MB uncompressed, 30.6 MB gzipped, against a 45 MB target; Python is most of it (task 1.9). 50 content checks pass.
 - **Sandbox spec + `BuildSpec`:** 14 ways of loosening it are rejected, and the golden file is pinned. `specrun` runs one container with a terminal and reports cgroup peaks. Verified under gVisor: uid 1000, no capabilities, read-only root, 16 MiB tmpfs, no network interfaces.

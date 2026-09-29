@@ -10,15 +10,19 @@
 # the plan records it and moves the Python-free gdb build to task 1.9.
 set -uo pipefail
 
+# shellcheck source=../lib.sh disable=SC1091
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib.sh"
+docker_init
+
 IMG="${1:-gdblabs/labbase:dev}"
 FAILED=0
 pass() { printf '  PASS  %s\n' "$*"; }
 fail() { printf '  FAIL  %s\n' "$*"; FAILED=1; }
 
-docker image inspect "$IMG" >/dev/null 2>&1 || { echo "image $IMG not found; run images/labbase/build.sh" >&2; exit 1; }
+"${DOCKER[@]}" image inspect "$IMG" >/dev/null 2>&1 || { echo "image $IMG not found; run images/labbase/build.sh" >&2; exit 1; }
 
 # Run a command in the image as the lab user, no network, like the sandbox.
-in_img() { docker run --rm --network none "$IMG" /bin/sh -c "$1" 2>&1; }
+in_img() { "${DOCKER[@]}" run --rm --network none "$IMG" /bin/sh -c "$1" 2>&1; }
 
 echo "==> labbase contents ($IMG)"
 
@@ -52,15 +56,15 @@ grep -q 'willingness to use watchpoint hardware is 0' <<<"$settings" && pass "gd
 grep -q 'State of pagination is off' <<<"$settings" && pass "gdb: pagination off" || fail "gdb: pagination not off"
 grep -q 'Whether to confirm potentially dangerous operations is off' <<<"$settings" && pass "gdb: confirm off" || fail "gdb: confirm not off"
 # Same result with an empty HOME, which is what the tmpfs gives at runtime.
-if docker run --rm --network none --tmpfs /home/lab "$IMG" gdb -batch -ex "show disable-randomization" 2>&1 | grep -q ' is on'; then
+if "${DOCKER[@]}" run --rm --network none --tmpfs /home/lab "$IMG" gdb -batch -ex "show disable-randomization" 2>&1 | grep -q ' is on'; then
   pass "gdb settings apply with an empty tmpfs home"
 else
   fail "gdb settings lost with an empty tmpfs home"
 fi
 
 # Size (reported against the spec target; not a failure, see header).
-size_mb="$(docker image inspect "$IMG" --format '{{.Size}}' | awk '{printf "%.1f", $1/1000000}')"
-compressed_mb="$(docker save "$IMG" | gzip -c | wc -c | awk '{printf "%.1f", $1/1000000}')"
+size_mb="$(image_size_mb "$IMG")"
+compressed_mb="$("${DOCKER[@]}" save "$IMG" | gzip -c | wc -c | awk '{printf "%.1f", $1/1000000}')"
 if awk -v s="$size_mb" 'BEGIN{exit !(s < 45)}'; then pass "size ${size_mb} MB < 45 MB"
 else printf '  INFO  size %s MB uncompressed, %s MB gzipped; over the 45 MB target (task 1.9: gdb without Python)\n' "$size_mb" "$compressed_mb"; fi
 

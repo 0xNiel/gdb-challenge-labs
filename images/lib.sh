@@ -13,6 +13,27 @@ RUN="$REPO_ROOT/run.sh"
 img_say() { printf '==> %s\n' "$*" >&2; }
 img_die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
+# DOCKER is how we invoke Docker: (docker) when this user can reach the socket, else
+# (sudo docker) after one visible password prompt. Call docker_init before using it.
+DOCKER=()
+docker_init() {
+  [[ ${#DOCKER[@]} -gt 0 ]] && return
+  command -v docker >/dev/null || img_die "docker not found (./run.sh doctor)"
+  local err
+  if err="$(docker info 2>&1 >/dev/null)"; then DOCKER=(docker); return; fi
+  if grep -qi 'permission denied' <<<"$err"; then
+    img_say "$(id -un) cannot use the Docker socket; using sudo docker for this run."
+    img_say "Permanent fix: sudo usermod -aG docker $(id -un), then log out and back in."
+    img_say "(Membership of the docker group is equivalent to root on this machine.)"
+    sudo -v || img_die "sudo authentication failed"
+    sudo docker info >/dev/null 2>&1 \
+      || img_die "docker daemon not reachable even with sudo: $(sudo docker info 2>&1 | tail -n1)"
+    DOCKER=(sudo docker)
+    return
+  fi
+  img_die "docker daemon not reachable: $(tail -n1 <<<"$err") (start it: sudo systemctl start docker)"
+}
+
 # lab_platform — linux/amd64 or linux/arm64 for the lab host (override with LAB_PLATFORM).
 lab_platform() {
   if [[ -n "${LAB_PLATFORM:-}" ]]; then echo "$LAB_PLATFORM"; return; fi
@@ -30,8 +51,7 @@ lab_platform() {
 # it to images/out/, imports it into containerd namespace `labs`, and prints the digest.
 build_and_import() {
   local tag="$1" ctx="$2"; shift 2
-  command -v docker >/dev/null || img_die "docker not found (./run.sh doctor)"
-  docker info >/dev/null 2>&1 || img_die "docker daemon not running"
+  docker_init
   local platform out safe
   platform="$(lab_platform)"
   safe="${tag//[\/:]/_}"
@@ -39,9 +59,10 @@ build_and_import() {
   mkdir -p "$IMAGES_ROOT/out"
 
   img_say "building $tag for $platform"
-  docker build --platform "$platform" -t "$tag" "$@" "$ctx" >&2
+  "${DOCKER[@]}" build --platform "$platform" -t "$tag" "$@" "$ctx" >&2
   img_say "saving to ${out#"$REPO_ROOT"/}"
-  docker save "$tag" -o "$out"
+  # Redirect in this shell (not `save -o`) so the file belongs to us even under sudo docker.
+  "${DOCKER[@]}" save "$tag" >"$out"
 
   img_say "importing into containerd namespace labs on the lab host"
   "$RUN" vm ssh -- sudo ctr -n labs images import --platform "$platform" --local "$out" >&2 \
@@ -52,4 +73,4 @@ build_and_import() {
 }
 
 # image_size_mb TAG — uncompressed size in Docker, MB.
-image_size_mb() { docker image inspect "$1" --format '{{.Size}}' | awk '{printf "%.1f", $1/1000000}'; }
+image_size_mb() { docker_init; "${DOCKER[@]}" image inspect "$1" --format '{{.Size}}' | awk '{printf "%.1f", $1/1000000}'; }
