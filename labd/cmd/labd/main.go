@@ -1,13 +1,11 @@
 // Command labd is the lab orchestrator and terminal gateway.
 //
-// Phase 0: loads and validates config, serves GET /healthz on listen_internal, and shuts
-// down cleanly on SIGINT/SIGTERM. Sessions, the internal API and the WebSocket gateway
-// arrive in Phases 2 and 3.
+// Subcommands: serve (default) runs the session manager and the internal API; migrate
+// applies the SQL migrations. The WebSocket gateway arrives in Phase 3.
 package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -68,11 +66,7 @@ func run(args []string, stdout *os.File) error {
 
 	switch cmd {
 	case "serve":
-		ln, err := net.Listen("tcp", cfg.ListenInternal)
-		if err != nil {
-			return fmt.Errorf("listen %s: %w", cfg.ListenInternal, err)
-		}
-		return serve(ctx, ln, log)
+		return runServe(ctx, *cfgPath, cfg, log)
 	case "migrate":
 		return migrate(ctx, cfg, stdout)
 	default:
@@ -101,10 +95,10 @@ func migrate(ctx context.Context, cfg config.Config, stdout *os.File) error {
 	return nil
 }
 
-// serve runs the internal HTTP server on ln until ctx is cancelled, then drains.
-func serve(ctx context.Context, ln net.Listener, log *slog.Logger) error {
+// serveHTTP runs h on ln until ctx is cancelled, then drains.
+func serveHTTP(ctx context.Context, ln net.Listener, h http.Handler, log *slog.Logger) error {
 	srv := &http.Server{
-		Handler:           newMux(),
+		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	errc := make(chan error, 1)
@@ -116,7 +110,7 @@ func serve(ctx context.Context, ln net.Listener, log *slog.Logger) error {
 		return err
 	case <-ctx.Done():
 	}
-	log.Info("shutting down", "drain", shutdownDrain)
+	log.Info("shutting down; labs keep running", "drain", shutdownDrain)
 	sctx, cancel := context.WithTimeout(context.Background(), shutdownDrain)
 	defer cancel()
 	if err := srv.Shutdown(sctx); err != nil {
@@ -126,13 +120,4 @@ func serve(ctx context.Context, ln net.Listener, log *slog.Logger) error {
 		return err
 	}
 	return nil
-}
-
-func newMux() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
-	})
-	return mux
 }

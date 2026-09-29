@@ -6,39 +6,20 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 )
 
-func TestHealthz(t *testing.T) {
-	rec := httptest.NewRecorder()
-	newMux().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status %d", rec.Code)
-	}
-	if got := strings.TrimSpace(rec.Body.String()); got != `{"ok":true}` {
-		t.Fatalf("body %q", got)
-	}
-}
-
-func TestHealthz_WrongMethod(t *testing.T) {
-	rec := httptest.NewRecorder()
-	newMux().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/healthz", nil))
-	if rec.Code != http.StatusMethodNotAllowed {
-		t.Fatalf("status %d, want 405", rec.Code)
-	}
-}
-
-func TestServe_ShutsDownOnCancel(t *testing.T) {
+func TestServeHTTP_ShutsDownOnCancel(t *testing.T) {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
-	go func() { done <- serve(ctx, ln, slog.New(slog.NewTextHandler(io.Discard, nil))) }()
+	h := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
+	go func() { done <- serveHTTP(ctx, ln, h, slog.New(slog.NewTextHandler(io.Discard, nil))) }()
 
 	resp, err := http.Get("http://" + ln.Addr().String() + "/healthz")
 	if err != nil {
@@ -53,9 +34,23 @@ func TestServe_ShutsDownOnCancel(t *testing.T) {
 	select {
 	case err := <-done:
 		if err != nil {
-			t.Fatalf("serve returned %v", err)
+			t.Fatalf("serveHTTP returned %v", err)
 		}
 	case <-time.After(shutdownDrain + time.Second):
-		t.Fatal("serve did not return after cancel")
+		t.Fatal("serveHTTP did not return after cancel")
+	}
+}
+
+func TestRun_UnknownCommand(t *testing.T) {
+	if err := run([]string{"-config", "../../labd.example.yaml", "frobnicate"}, nil); err == nil {
+		t.Fatal("unknown command accepted")
+	}
+}
+
+func TestRun_ServeRefusesWithoutSecret(t *testing.T) {
+	t.Setenv("LABD_INTERNAL_SECRET", "")
+	err := run([]string{"-config", "../../labd.example.yaml", "serve"}, nil)
+	if err == nil || !strings.Contains(err.Error(), "LABD_INTERNAL_SECRET") {
+		t.Fatalf("err %v, want a refusal naming LABD_INTERNAL_SECRET", err)
 	}
 }

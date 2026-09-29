@@ -15,7 +15,7 @@ Go module `gdblabs/labd`: the orchestrator, terminal gateway, metrics sampler an
 | `internal/metrics/` | cgroup and /proc sampler → `samples` | 7 |
 | `internal/perf/` | Profiles, virtual users, collector, report | 4 |
 | `internal/flag/` | Flag derivation (ADR 0005) | 5 |
-| `sandbox/` | `sandbox-base.json` OCI spec and its README | 1 |
+| `sandbox/` | `sandbox-base.json` OCI spec, its README, and `embed.go`, which compiles the spec into labd (the only Go code outside `cmd/` and `internal/`) | 1, 2 |
 | `internal/store/migrations/` | `NNNN_*.sql`, embedded, applied by `labd migrate` and at boot (ADR 0011) | 2 |
 | `perf/` | Shell wrappers: `p0/`, `p1.sh`, `p4lite.sh`, `p5.sh`, `p7.sh`, `p9.sh`, `runall.sh` | 1–4 |
 | `testpage/` | Dev-only xterm.js page and vendored assets | 3 |
@@ -24,4 +24,4 @@ Go module `gdblabs/labd`: the orchestrator, terminal gateway, metrics sampler an
 
 Rules: standard library first (allow-list in `docs/CONVENTIONS.md`); nothing outside `internal/orch` imports containerd; every blocking call takes a context.
 
-Run in the VM: `./run.sh build && ./run.sh labd`. Tests: `./run.sh test --go`, `./run.sh test --integration`.
+Run in the VM: `./run.sh build && LABD_INTERNAL_SECRET=dev ./run.sh labd`. labd needs the `containerd` group, not root (`scripts/with-containerd-group.sh`), and Postgres (`./run.sh db migrate` or its own migration at boot). Tests: `./run.sh test --go`, `./run.sh test --integration`.
