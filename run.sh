@@ -387,7 +387,8 @@ cmd_test() {
   fi
   if [[ $integ -eq 1 ]]; then
     say "go integration tests (Linux)"
-    run_linux bash -c "cd '$LABD_DIR' && go test $verbose -tags integration -count=1 ./integration/... ./internal/..." || rc=1
+    # Tests run as this user with the containerd group, as labd does (S10); not as root.
+    run_linux bash -c "cd '$LABD_DIR' && go test $verbose -tags integration -count=1 -exec '$ROOT/scripts/with-containerd-group.sh' ./integration/... ./internal/..." || rc=1
   fi
   if [[ $e2e -eq 1 ]]; then
     say "end-to-end tests (Linux)"
