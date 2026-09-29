@@ -12,6 +12,17 @@ The Linux x86-64 laptop is now the reference dev host (Q1 resolved). P2/P3 need 
 
 **Default in force:** Phase 4 runs P1–P9 on the laptop at whatever N fits with 25 % memory headroom (`labd-perf` refuses to exceed it), which establishes per-lab cost, gVisor overhead, churn, recovery and leak numbers. The 100-lab P2/P3 run happens on the VPS in Phase 8 if the laptop cannot host it. Please add the laptop's `nproc` and RAM to `docs/metrics/environment-linux-laptop.md` during Phase 0.
 
+### Q13. gdb does not work under gVisor on arm64 (Mac developers)
+
+P0 on the arm64 dev VM: any program started by gdb under gVisor crashes in the dynamic loader before `main` (10 of 10 runs, both gVisor platforms, any dynamically linked binary). The same gdb session passes 27 of 27 checks under runc. So a Mac developer cannot debug a lab under gVisor locally.
+
+Options:
+- (a) Mac developers exercise labs under runc (`specrun --runtime runc`, and a dev-only labd flag in Phase 2), and everything gVisor-specific is verified on an x86-64 host.
+- (b) Run an x86-64 Lima VM under emulation for gVisor checks (correct but very slow).
+- (c) Report upstream to gVisor and wait.
+
+**Default in force:** (a) plus filing (c) when convenient. Production is x86-64, so this blocks nothing if the laptop's P0 passes. If the laptop shows the same crash, this becomes a project blocker and needs a decision before Phase 2.
+
 ### Q11. Should challenge images also be built for arm64?
 
 Multi-arch challenge images would let a Mac developer play the labs inside the arm64 VM. But the lessons teach x86 registers and stack layouts, the oracle is x86-specific, and the perf numbers are x86-only anyway.

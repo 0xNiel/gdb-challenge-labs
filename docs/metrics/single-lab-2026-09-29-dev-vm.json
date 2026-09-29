@@ -1,0 +1,68 @@
+{
+  "host": "dev-vm",
+  "arch": "aarch64",
+  "kernel": "6.8.0-142-generic",
+  "date": "2026-09-29T01:15:29Z",
+  "runsc": "runsc version release-20260921.0",
+  "image": "docker.io/gdblabs/perf:dev",
+  "image_size": "94.2 MiB",
+  "runtimes": [
+    {
+      "runtime": "runsc",
+      "start_to_prompt_ms": {
+        "runs": 10,
+        "p50": 428,
+        "p95": 513,
+        "max": 513
+      },
+      "at_prompt": {
+        "samples": 30,
+        "cgroup_mem_mb": {
+          "p50": 22.9,
+          "p95": 22.9,
+          "max": 22.9
+        },
+        "sentry_rss_mb": {
+          "p50": 39.6,
+          "p95": 39.6,
+          "max": 39.6
+        },
+        "gofer_rss_mb": {
+          "p50": 24.0,
+          "max": 24.0
+        }
+      },
+      "at_breakpoint": null,
+      "session_gdb": null
+    },
+    {
+      "runtime": "runc",
+      "start_to_prompt_ms": {
+        "runs": 10,
+        "p50": 77,
+        "p95": 95,
+        "max": 95
+      },
+      "at_prompt": {
+        "samples": 30,
+        "cgroup_mem_mb": {
+          "p50": 9.1,
+          "p95": 9.1,
+          "max": 9.1
+        }
+      },
+      "at_breakpoint": {
+        "samples": 30,
+        "cgroup_mem_mb": {
+          "p50": 13.6,
+          "p95": 13.6,
+          "max": 13.6
+        }
+      },
+      "session_gdb": {
+        "runs": 3,
+        "wall_ms_p50": 171
+      }
+    }
+  ]
+}

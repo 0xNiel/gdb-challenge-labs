@@ -11,6 +11,21 @@
 
 Prove that gdb does its job inside gVisor with the sandbox locked down as the spec requires, find out which features do not work and write the fallback into `.gdbinit`, and take the first real measurement: memory and start time for one idle lab under `runsc` versus `runc`. This phase de-risks the only real unknown in the project.
 
+## As built (2026-09-29) — read this before the tasks
+
+The tasks below are the original plan. Where the implementation differs, this list wins:
+
+- **Build image** is Alpine 3.20 (musl, same digest as labbase) + `build-base gdb file`, not `gcc:13`. A glibc binary would not run on Alpine.
+- **gdb settings** live at `/etc/lab-config/gdb/gdbinit`, read via `XDG_CONFIG_HOME` set in the sandbox spec. Alpine's gdb has no system gdbinit, and `/home/lab` is an empty tmpfs at runtime.
+- **Image tooling** is shared in `images/lib.sh`. Docker builds for the lab host's architecture, then `ctr import` loads the image into namespace `labs`.
+- **`specrun`** lives at `labd/cmd/specrun`. The containerd code is in `labd/internal/orch` (`RunOnce`, `BuildSpec`, `CheckInvariants`, `ReadCgroupStats`), because nothing outside `orch` may import containerd.
+- **P0 checks** are inline in `labd/perf/p0/p0.sh`, not separate `checks/*.gdb` files, and a `probe` binary in the perf image tests the sandbox with raw syscalls. 27 checks per runtime.
+- **Measurements** are in `labd/perf/single-lab.sh` (`./run.sh perf --scenario single-lab`).
+- **Pids:** the lab limit is `RLIMIT_NPROC`; cgroup pids = limit + 96 under gVisor (ADR 0009).
+- **CPU** is judged from the host cgroup. gVisor's in-sandbox CPU clock over-reports.
+- **Gate:** requires a P0 with zero runsc FAIL rows, and single-lab numbers, from an **x86-64** host. The arm64 dev VM cannot pass P0 under gVisor (QUESTIONS Q13).
+- **Task 1.9** (gdb without Python) is not started. It is optional; do it if the x86-64 start latency or image size warrants it.
+
 ## Deliverables
 
 | File | Purpose |

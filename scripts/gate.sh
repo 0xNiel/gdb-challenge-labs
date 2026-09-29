@@ -65,7 +65,46 @@ phase_0() {
   say "repository";       check_clean_tree
 }
 
-phase_1() { not_wired; }   # Phase 1, task 1.8
+# newest_json PREFIX JQ_FILTER — newest docs/metrics/PREFIX-*.json (names carry the date, so
+# name order is date order) for which JQ_FILTER is true; empty if none.
+newest_json() {
+  local files=() i
+  shopt -s nullglob
+  files=("$ROOT/docs/metrics/$1"-*.json)
+  shopt -u nullglob
+  for ((i = ${#files[@]} - 1; i >= 0; i--)); do
+    if jq -e "$2" "${files[i]}" >/dev/null 2>&1; then echo "${files[i]}"; return; fi
+  done
+}
+
+phase_1() {
+  say "images"
+  check "labbase builds"                     bash "$ROOT/images/labbase/build.sh"
+  check "labbase contents (images/labbase/test.sh)" bash "$ROOT/images/labbase/test.sh"
+  check "perf image builds; binaries reproducible" bash "$ROOT/images/perf/build.sh"
+  say "unit tests (spec golden file, invariants, cgroup parsing)"
+  check "run.sh test --all" "$RUN" test --all
+  say "P0 and single-lab run on this host"
+  check "P0 completes (runsc and runc)" "$RUN" perf --scenario P0
+  say "authoritative results (x86-64, ADR 0001)"
+  local p0 sl
+  p0="$(newest_json p0 '.arch == "x86_64" and .host != "dev-vm"')"
+  if [[ -z "$p0" ]]; then
+    fail "no P0 from an x86-64 host yet: on the laptop run LAB_HOST=linux-laptop ./run.sh perf --scenario P0, commit docs/metrics"
+  elif jq -e '[.rows[] | select(.runtime == "runsc" and .status == "FAIL")] | length == 0' "$p0" >/dev/null; then
+    pass "x86-64 P0 has no runsc FAIL rows ($(basename "$p0"))"
+  else
+    fail "x86-64 P0 has runsc FAIL rows ($(basename "$p0")): $(jq -r '[.rows[] | select(.runtime=="runsc" and .status=="FAIL") | .check] | join(", ")' "$p0")"
+  fi
+  sl="$(newest_json single-lab '.arch == "x86_64" and .host != "dev-vm"')"
+  if [[ -z "$sl" ]]; then
+    fail "no single-lab measurement from an x86-64 host yet: LAB_HOST=linux-laptop ./run.sh perf --scenario single-lab"
+  elif jq -e '.runtimes[] | select(.runtime == "runsc") | .start_to_prompt_ms.p95 != null and .at_breakpoint != null' "$sl" >/dev/null; then
+    pass "x86-64 single-lab has runsc start latency and at-breakpoint memory ($(basename "$sl"))"
+  else
+    fail "x86-64 single-lab lacks runsc start latency or at-breakpoint memory ($(basename "$sl"))"
+  fi
+}
 phase_2() { not_wired; }   # Phase 2, task 2.13
 phase_3() { not_wired; }   # Phase 3, task 3.11
 phase_4() { not_wired; }   # Phase 4, task 4.13

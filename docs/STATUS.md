@@ -4,11 +4,20 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
-**Phase 0 — Bootstrap.** Gate passed on both hosts: the Mac (2026-09-27) and the Linux laptop (2026-09-28). Everything is on `main`. One task remains open and does not block Phase 1 unless the owner says so:
+**Phase 1 — gVisor + gdb spike.** In progress on branch `phase-1-gvisor-gdb-spike`. Tasks 1.1–1.8 are built and run on the arm64 dev VM. The gate passes every check it can on the Mac. It is waiting only for **x86-64 results from the Linux laptop**:
 
-- **0.9:** the second developer runs `./run.sh doctor` and follows `docs/ONBOARDING.md`.
+```
+git pull && git checkout phase-1-gvisor-gdb-spike
+./run.sh vm up                                           # installs Go 1.26.6
+./run.sh gate --phase 1                                  # builds images, runs P0 on this host
+LAB_HOST=linux-laptop ./run.sh perf --scenario P0          # the authoritative P0
+LAB_HOST=linux-laptop ./run.sh perf --scenario single-lab  # ~3 minutes
+git add docs/metrics && git commit -m "[P1] metrics: x86-64 P0 and single-lab" && git push
+```
 
-**Phase 1 is next and has not started.** The owner decides when it starts.
+Then `./run.sh gate --phase 1` must pass. If gdb under gVisor fails on x86-64 the way it does on arm64, stop and decide Q13 before Phase 2.
+
+Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
 <details><summary>Earlier checklist (done)</summary>
 
@@ -25,7 +34,7 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 | Phase | Name | State | Gate result | Date |
 | --- | --- | --- | --- | --- |
 | 0 | Bootstrap: repo, toolchain, dev VM | done (0.9 open, non-blocking) | passed on Mac and laptop | 2026-09-28 |
-| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | not started, waiting for owner | — | — |
+| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | in progress: needs x86-64 P0 | Mac: all local checks pass | 2026-09-29 | — | — |
 | 2 | labd core (sessions, semaphore, reconciler) | blocked on 1 | — | — |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | blocked on 2 | — | — |
 | 4 | Perf suite and measured capacity | blocked on 3 | — | — |
@@ -42,9 +51,23 @@ States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`.
 
 ## Measured numbers so far
 
-None. Every figure in [metrics/capacity.md](metrics/capacity.md) is still an estimate from the spec.
+Dev VM only (arm64, not authoritative; see [metrics/capacity.md](metrics/capacity.md) "Dev VM observations"). gVisor idle lab 14 MiB, gdb at prompt 23 MiB, start to prompt p95 513 ms warm, CPU quota exact. Every capacity estimate still stands until the laptop's x86-64 numbers arrive.
 
 ## Log
+
+### 2026-09-29 — Phase 1 tasks 1.1–1.8 on the dev VM
+- **labbase:** Alpine 3.20 + gdb 14.2 + binutils + file. Only the spec's keep-list is on PATH (326 entries removed). 95.9 MB uncompressed, 30.6 MB gzipped, against a 45 MB target; Python is most of it (task 1.9). 50 content checks pass.
+- **Sandbox spec + `BuildSpec`:** 14 ways of loosening it are rejected, and the golden file is pinned. `specrun` runs one container with a terminal and reports cgroup peaks. Verified under gVisor: uid 1000, no capabilities, read-only root, 16 MiB tmpfs, no network interfaces.
+- **perf image:** perf and probe build reproducibly. **P0** runs 27 checks per runtime in about 30 s.
+- **Findings** (arm64 VM):
+  1. gdb under gVisor crashes the traced program in the musl loader, 10 of 10 runs (Q13).
+  2. `personality(ADDR_NO_RANDOMIZE)` fails. Code and globals stay fixed thanks to `-no-pie`; the stack moves.
+  3. The cgroup pids limit counts gVisor's own host tasks; a 32 limit killed the sandbox. Fixed with ADR 0009.
+  4. gVisor's in-sandbox CPU clock over-reports; the host cgroup confirms the quota is exact.
+  5. gVisor mounts its own synthetic `/sys`.
+- **From the owner's commit `d322f44`:** `ctr run` needs root even with the containerd group, and `timeout` needs `--foreground` around `script`. Docs corrected; the rule is in ADR 0007.
+- Go bumped to 1.26.6 (containerd v2.4.1 client). Provisioning installs it.
+- Next: the owner runs the laptop steps above.
 
 ### 2026-09-28 — Phase 0 gate passes on the Linux laptop
 - The owner ran Phase 0 on the laptop: `doctor` all required present, `vm up` a no-op, `vm verify` passes on x86_64, and the gate passes (output below). Environment in `docs/metrics/environment-linux-laptop.md`.

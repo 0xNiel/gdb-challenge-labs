@@ -52,7 +52,9 @@ gdb Challenge Labs — ./run.sh <command> [flags]
 
   images labbase|perf|build|all
   images challenge <dir> [--push]
-  perf --scenario P0..P9 [--n N] [--hold 20m] [--ramp 5] [--runtime runsc|runc] [--out DIR]
+  perf --scenario P0|single-lab|P1..P9 [--n N] [--hold 20m] [--ramp 5] [--runtime runsc|runc|both] [--out DIR]
+                               P0 and single-lab default to --runtime both. Label results with LAB_HOST
+                               (e.g. LAB_HOST=linux-laptop); default: dev-vm in Lima, else the hostname
   gate --phase N               exit test for phase N (scripts/gate.sh)
   deploy                       production deploy on the VPS (Phase 8)
 
@@ -475,7 +477,7 @@ cmd_images() {
 }
 
 cmd_perf() {
-  local scenario="" n=10 hold="20m" ramp=5 runtime="runsc" out="$METRICS_DIR"
+  local scenario="" n=10 hold="20m" ramp=5 runtime="" out="$METRICS_DIR"
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --scenario) scenario="$2"; shift 2;; --n) n="$2"; shift 2;; --hold) hold="$2"; shift 2;;
@@ -486,11 +488,13 @@ cmd_perf() {
   [[ -n "$scenario" ]] || die "perf: --scenario P0..P9 is required"
   case "$scenario" in
     P0) [[ -x "$LABD_DIR/perf/p0/p0.sh" ]] || die "labd/perf/p0/p0.sh missing — Phase 1"
-        run_linux bash "$LABD_DIR/perf/p0/p0.sh" --runtime "$runtime" --out "$out" ;;
+        run_linux bash "$LABD_DIR/perf/p0/p0.sh" --runtime "${runtime:-both}" --out "$out" ${LAB_HOST:+--host "$LAB_HOST"} ;;
+    single-lab)
+        run_linux bash "$LABD_DIR/perf/single-lab.sh" --runtime "${runtime:-both}" --out "$out" ${LAB_HOST:+--host "$LAB_HOST"} ;;
     P1|P2|P3|P4|P5|P6|P7|P8|P9)
         [[ -x "$LABD_DIR/bin/labd-perf" ]] || cmd_build
         run_linux "$LABD_DIR/bin/labd-perf" run --scenario "$scenario" --n "$n" --hold "$hold" \
-          --ramp "$ramp" --runtime "$runtime" --out "$out" ;;
+          --ramp "$ramp" --runtime "${runtime:-runsc}" --out "$out" ;;
     *) die "perf: unknown scenario $scenario" ;;
   esac
 }

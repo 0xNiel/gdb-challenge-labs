@@ -2,7 +2,7 @@
   "host": "dev-vm",
   "arch": "aarch64",
   "kernel": "6.8.0-142-generic",
-  "date": "2026-09-29T01:02:53Z",
+  "date": "2026-09-29T02:14:53Z",
   "runsc": "runsc version release-20260921.0",
   "containerd": "v2.4.1",
   "image": "docker.io/gdblabs/perf:dev",
@@ -140,7 +140,7 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "FALLBACK",
-      "detail": "$sp varies: 0xfdffd0cf8a90 0xfdffde23fa90 0xfdffcadfda90",
+      "detail": "$sp varies: 0xfdfff2bb7a90 0xfdffcd090a90 0xfdffda965a90",
       "fallback": "challenges must not depend on stack addresses"
     },
     {
@@ -156,7 +156,7 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "INFO",
-      "detail": "stack randomized without gdb (expected): 0xfdffc050bd5c 0xfdfffb9c5d5c 0xfdffd0b12d5c",
+      "detail": "stack randomized without gdb (expected): 0xfdffe28b7d5c 0xfdffe762bd5c 0xfdffd659bd5c",
       "fallback": ""
     },
     {
@@ -260,7 +260,7 @@
       "category": "sandbox",
       "runtime": "runsc",
       "status": "INFO",
-      "detail": "idle shell: cgroup memory peak 15 MiB, host tasks 21, create 33 ms, start 39 ms",
+      "detail": "idle shell: cgroup memory peak 14 MiB, host tasks 20, create 32 ms, start 23 ms",
       "fallback": ""
     },
     {
@@ -404,7 +404,7 @@
       "category": "gdb",
       "runtime": "runc",
       "status": "INFO",
-      "detail": "stack randomized without gdb (expected): 0xfffffad1617c 0xffffeffd6c1c 0xffffc884aafc",
+      "detail": "stack randomized without gdb (expected): 0xffffc5fed15c 0xfffff87d675c 0xffffcb61760c",
       "fallback": ""
     },
     {
@@ -500,7 +500,7 @@
       "category": "sandbox",
       "runtime": "runc",
       "status": "PASS",
-      "detail": "host CPU 0.51 cores for a busy loop (quota 0.5); in-sandbox view 0.50",
+      "detail": "host CPU 0.50 cores for a busy loop (quota 0.5); in-sandbox view 0.50",
       "fallback": ""
     },
     {
@@ -508,7 +508,7 @@
       "category": "sandbox",
       "runtime": "runc",
       "status": "INFO",
-      "detail": "idle shell: cgroup memory peak 2 MiB, host tasks 5, create 95 ms, start 9 ms",
+      "detail": "idle shell: cgroup memory peak 3 MiB, host tasks 6, create 29 ms, start 3 ms",
       "fallback": ""
     },
     {

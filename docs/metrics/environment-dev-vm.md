@@ -16,7 +16,7 @@ Recorded 2026-09-27, Phase 0, task 0.8. Source: `uname`, `/proc`, tool `--versio
 | runsc | release-20260921.0, platform `systrap`, sidecars in `/usr/local/bin/gvisor-bin/` |
 | runc | 1.5.2 (dev only, reference runs) |
 | Postgres | 16.15 |
-| Go | 1.26.4 linux/arm64 |
+| Go | 1.26.6 linux/arm64 (bumped in Phase 1 for the containerd v2.4.1 client) |
 | uv | 0.12.3 |
 
 ## Timings (curiosity, not metrics)
@@ -28,4 +28,5 @@ Recorded 2026-09-27, Phase 0, task 0.8. Source: `uname`, `/proc`, tool `--versio
 
 ## Known issues on this host
 
-- gVisor containers hang in `create` without a terminal. See ADR 0007. Not yet checked on x86-64.
+- gVisor containers hang in `create` without a terminal (ADR 0007; also on x86-64).
+- gdb under gVisor crashes the traced program in the musl loader before `main`, 10 of 10 runs (QUESTIONS Q13). `personality(ADDR_NO_RANDOMIZE)` fails with EINVAL.
