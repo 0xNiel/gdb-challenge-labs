@@ -14,7 +14,7 @@
 # response time of POST /internal/sessions.
 # Output: DIR/create-latency-<date>-<host>.json and .md (default docs/metrics).
 set -euo pipefail
-# shellcheck source=lib.sh
+# shellcheck source=lib.sh disable=SC1091
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 DURATION=600 INTERVAL=2 CAP=20 OUT="$PERF_ROOT/docs/metrics"

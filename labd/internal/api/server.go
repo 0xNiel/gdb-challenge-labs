@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
@@ -140,11 +141,9 @@ func (s *Server) stopSession(w http.ResponseWriter, r *http.Request) {
 	var b struct {
 		Reason string `json:"reason"`
 	}
-	if r.ContentLength != 0 {
-		if err := decode(r, &b); err != nil {
-			writeError(w, http.StatusBadRequest, "bad_request", err.Error())
-			return
-		}
+	if err := decode(r, &b); err != nil && !errors.Is(err, io.EOF) { // no body: default reason
+		writeError(w, http.StatusBadRequest, "bad_request", err.Error())
+		return
 	}
 	if b.Reason == "" {
 		b.Reason = orch.ReasonUserStop

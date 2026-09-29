@@ -265,3 +265,50 @@ func waitFor(t *testing.T, cond func() bool) {
 		time.Sleep(5 * time.Millisecond)
 	}
 }
+
+func TestManager_StopWhileCreatingFreesTheUser(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 5)
+	gate := make(chan struct{})
+	h.rt.gate = gate
+	old := h.start(t, 1)
+	if _, err := h.m.Stop(context.Background(), old.ID, ReasonUserStop); err != nil {
+		t.Fatal(err)
+	}
+	fresh := h.start(t, 1)
+	if fresh.ID == old.ID {
+		t.Fatal("start after stopping a creating lab returned the doomed session")
+	}
+	close(gate)
+	h.m.Settle()
+	if got := h.state(t, fresh.ID); got != StateRunning {
+		t.Fatalf("fresh session is %s, want running once the old slot freed", got)
+	}
+}
+
+// After Close (labd shutting down) nothing may end or start a lab: they must survive for
+// the next labd to adopt.
+func TestManager_CloseLeavesLabsAlone(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 2, 5)
+	a, b := h.running(t, 1), h.running(t, 2)
+	h.m.Close()
+	h.clk.Advance(2 * time.Hour)      // idle and hard timers would have fired
+	h.rt.get("lab-" + b.ID).stop()    // a task exit (or a failed Wait) after Close
+	h.m.Touch(a.ID)                   // must not re-arm anything
+	time.Sleep(50 * time.Millisecond) // give a wrongly launched teardown time to run
+	if h.clk.Pending() != 0 {
+		t.Fatalf("%d timers armed after Close", h.clk.Pending())
+	}
+	if h.rt.get("lab-"+a.ID) == nil {
+		t.Fatal("a running lab was torn down after Close")
+	}
+	for _, id := range []string{a.ID, b.ID} {
+		if row, _ := h.st.Session(id); row.State != "running" {
+			t.Fatalf("row %s is %s after Close; the next labd would not adopt it", id, row.State)
+		}
+	}
+	if _, err := h.m.Start(context.Background(), StartReq{UserID: 3, ChallengeSlug: "perf"}); !errors.Is(err, ErrClosed) {
+		t.Fatalf("start after Close: %v", err)
+	}
+}

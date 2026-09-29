@@ -176,6 +176,10 @@ func (m *Manager) Stop(_ context.Context, id, reason string) (SessionInfo, error
 		if s.stopReason == "" {
 			s.stopReason = reason
 		}
+		// The user may start a new lab at once; this one is torn down when its create ends.
+		if m.byUser[s.UserID] == s {
+			delete(m.byUser, s.UserID)
+		}
 	case StateRunning:
 		m.beginEndLocked(s, reason)
 		in := s.info(0)
@@ -444,7 +448,14 @@ func (m *Manager) forgetLocked(s *Session) {
 	}
 }
 
+// launchCreate and launchTeardown never start work once the Manager is closed: the labs
+// keep running for the next labd, and Close's ops.Wait must not race a new Add.
 func (m *Manager) launchCreate(s *Session) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.closed {
+		return
+	}
 	m.ops.Add(1)
 	go func() {
 		defer m.ops.Done()
@@ -453,6 +464,11 @@ func (m *Manager) launchCreate(s *Session) {
 }
 
 func (m *Manager) launchTeardown(s *Session) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.closed {
+		return
+	}
 	m.ops.Add(1)
 	go func() {
 		defer m.ops.Done()
@@ -507,6 +523,12 @@ func (m *Manager) create(s *Session) {
 	}
 	s.State = StateRunning
 	s.idleWindow = minutes(s.Limits.IdleMinutes)
+	if m.closed {
+		// labd is shutting down: leave the lab running, unarmed; the next labd adopts it.
+		m.mu.Unlock()
+		m.persist(s)
+		return
+	}
 	m.armIdleLocked(s)
 	s.hardDeadline = s.AdmittedAt.Add(minutes(s.Limits.TTLMinutes))
 	id := s.ID
@@ -547,7 +569,7 @@ func (m *Manager) watchExit(s *Session, c Container) {
 func (m *Manager) expire(id, reason string) {
 	m.mu.Lock()
 	s := m.sessions[id]
-	if s == nil || s.State != StateRunning {
+	if m.closed || s == nil || s.State != StateRunning {
 		m.mu.Unlock()
 		return
 	}
@@ -562,6 +584,9 @@ func (m *Manager) expire(id, reason string) {
 }
 
 func (m *Manager) armIdleLocked(s *Session) {
+	if m.closed {
+		return
+	}
 	s.idleDeadline = m.clk.Now().Add(s.idleWindow)
 	if s.idle == nil {
 		id := s.ID
@@ -593,6 +618,8 @@ func (m *Manager) teardown(s *Session) {
 			m.log.Warn("kill failed", "session_id", s.ID, "err", err)
 		}
 		if err := c.Delete(ctx); err != nil {
+			// The slot is released anyway: holding it would shrink capacity until a restart.
+			// The container is left over (containers > active) until the reconciler removes it.
 			m.log.Error("delete failed; the reconciler removes it on the next restart", "session_id", s.ID, "err", err)
 		}
 	}

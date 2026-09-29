@@ -24,6 +24,8 @@ type ContainerdRuntime struct {
 	client  *containerd.Client
 	runtime string // io.containerd.runsc.v1, or runc on dev hosts
 	fifoDir string // terminal FIFOs; "" uses containerd's default (/run/containerd/fifo)
+	closing chan struct{}
+	once    sync.Once
 }
 
 // NewContainerdRuntime connects to the containerd socket. runtime is the shim name from
@@ -38,11 +40,14 @@ func NewContainerdRuntime(socket, runtime, fifoDir string) (*ContainerdRuntime, 
 	if err != nil {
 		return nil, fmt.Errorf("connect containerd %s: %w", socket, err)
 	}
-	return &ContainerdRuntime{client: c, runtime: runtime, fifoDir: fifoDir}, nil
+	return &ContainerdRuntime{client: c, runtime: runtime, fifoDir: fifoDir, closing: make(chan struct{})}, nil
 }
 
 // Close releases the client connection. Containers keep running.
-func (r *ContainerdRuntime) Close() error { return r.client.Close() }
+func (r *ContainerdRuntime) Close() error {
+	r.once.Do(func() { close(r.closing) })
+	return r.client.Close()
+}
 
 // nsctx puts a context in namespace labs.
 func (r *ContainerdRuntime) nsctx(ctx context.Context) context.Context {
@@ -88,13 +93,15 @@ func (r *ContainerdRuntime) Create(ctx context.Context, o CreateOpts) (_ Contain
 		}
 	}()
 
-	c := newCtrdContainer(ctr, "/sys/fs/cgroup"+o.Spec.Linux.CgroupsPath)
+	c := newCtrdContainer(ctr, "/sys/fs/cgroup"+o.Spec.Linux.CgroupsPath, r.closing)
 	task, err := ctr.NewTask(ctx, cio.NewCreator(r.ioOpts(c.stdinR, c.stdoutW)...))
 	if err != nil {
+		c.closePipes()
 		return nil, fmt.Errorf("create task: %w", err)
 	}
 	if err := c.watch(ctx, task); err != nil {
 		_, _ = task.Delete(context.WithoutCancel(ctx), containerd.WithProcessKill)
+		c.closePipes()
 		return nil, err
 	}
 	return c, nil
@@ -131,22 +138,34 @@ func (r *ContainerdRuntime) Attach(ctx context.Context, id string) (Container, e
 	if spec.Linux != nil {
 		cg = "/sys/fs/cgroup" + spec.Linux.CgroupsPath
 	}
-	c := newCtrdContainer(ctr, cg)
+	c := newCtrdContainer(ctr, cg, r.closing)
 	task, err := ctr.Task(ctx, cio.NewAttach(r.ioOpts(c.stdinR, c.stdoutW)...))
-	if errdefs.IsNotFound(err) {
-		return nil, ErrNoTask
-	}
 	if err != nil {
+		c.closePipes()
+		if errdefs.IsNotFound(err) {
+			return nil, ErrNoTask
+		}
 		return nil, fmt.Errorf("attach %s: %w", id, err)
+	}
+	// From here on, a failure must also release the attached terminal copy.
+	release := func() {
+		if tio := task.IO(); tio != nil {
+			tio.Cancel()
+			tio.Close()
+		}
+		c.closePipes()
 	}
 	st, err := task.Status(ctx)
 	if err != nil {
+		release()
 		return nil, fmt.Errorf("status of %s: %w", id, err)
 	}
 	if st.Status != containerd.Running {
+		release()
 		return nil, ErrNoTask
 	}
 	if err := c.watch(ctx, task); err != nil {
+		release()
 		return nil, err
 	}
 	return c, nil
@@ -192,12 +211,20 @@ type ctrdContainer struct {
 	stdoutR *io.PipeReader
 	stdoutW *io.PipeWriter
 	done    chan struct{}
+	closing <-chan struct{} // closed by ContainerdRuntime.Close
 	delOnce sync.Once
 	delErr  error
 }
 
-func newCtrdContainer(ctr containerd.Container, cgroup string) *ctrdContainer {
-	c := &ctrdContainer{ctr: ctr, cgroup: cgroup, done: make(chan struct{})}
+// failedWait is an exit channel that reports err, so the watch loop retries.
+func failedWait(err error) <-chan containerd.ExitStatus {
+	ch := make(chan containerd.ExitStatus, 1)
+	ch <- *containerd.NewExitStatus(containerd.UnknownExitStatus, time.Time{}, err)
+	return ch
+}
+
+func newCtrdContainer(ctr containerd.Container, cgroup string, closing <-chan struct{}) *ctrdContainer {
+	c := &ctrdContainer{ctr: ctr, cgroup: cgroup, done: make(chan struct{}), closing: closing}
 	c.stdinR, c.stdinW = io.Pipe()
 	c.stdoutR, c.stdoutW = io.Pipe()
 	return c
@@ -206,13 +233,34 @@ func newCtrdContainer(ctr containerd.Container, cgroup string) *ctrdContainer {
 // watch subscribes to the task's exit before anything can start it, and closes done on exit.
 // The wait outlives ctx: a session's task lives much longer than the request that made it.
 func (c *ctrdContainer) watch(ctx context.Context, task containerd.Task) error {
-	exitCh, err := task.Wait(context.WithoutCancel(ctx))
+	wctx := context.WithoutCancel(ctx)
+	exitCh, err := task.Wait(wctx)
 	if err != nil {
 		return fmt.Errorf("wait: %w", err)
 	}
 	c.task = task
 	go func() {
-		<-exitCh
+		// A failed Wait RPC (containerd restarting, or this client closing) arrives as an
+		// ExitStatus with an error. It is not an exit: re-subscribe until the task really
+		// exits or the client is closed, so a containerd hiccup never tears labs down.
+		backoff := 100 * time.Millisecond
+		for {
+			st := <-exitCh
+			if st.Error() == nil {
+				break
+			}
+			select {
+			case <-c.closing:
+				return // labd is shutting down; the lab keeps running for the next labd
+			case <-time.After(backoff):
+			}
+			backoff = min(backoff*2, 5*time.Second)
+			if ch, err := task.Wait(wctx); err == nil {
+				exitCh = ch
+			} else {
+				exitCh = failedWait(err)
+			}
+		}
 		close(c.done)
 		// Give the terminal copy a moment to deliver the last output, then signal EOF.
 		if tio := task.IO(); tio != nil {
@@ -226,6 +274,12 @@ func (c *ctrdContainer) watch(ctx context.Context, task containerd.Task) error {
 		_ = c.stdoutW.Close()
 	}()
 	return nil
+}
+
+// closePipes ends both terminal pipes; used when the container will never be returned.
+func (c *ctrdContainer) closePipes() {
+	_ = c.stdinW.Close()
+	_ = c.stdoutW.Close()
 }
 
 func (c *ctrdContainer) ID() string { return c.ctr.ID() }

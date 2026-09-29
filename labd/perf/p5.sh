@@ -4,11 +4,11 @@
 #   labd/perf/p5.sh [--n 20] [--deadline 15]
 #
 # Starts --n sessions against a private labd, kill -9s labd, restarts it, and requires within
-# --deadline seconds of the restart: /internal/stats active == n, every original session id
+# --deadline seconds of the restart (and again after a SIGTERM stop and restart): /internal/stats active == n, every original session id
 # listed as running, and n containers in namespace labs. Then stops every session and
 # requires 0 active and 0 containers. Exit 0 only if all of that holds.
 set -euo pipefail
-# shellcheck source=lib.sh
+# shellcheck source=lib.sh disable=SC1091
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 N=20 DEADLINE=15
@@ -56,6 +56,14 @@ ms=$(( ($(date +%s%N) - t0) / 1000000 ))
 [[ "$(ctr_count)" == "$N" ]] || die "$(ctr_count) containers after recovery, want $N"
 grep -q "adopted=$N" "$LABD_LOG" || die "labd did not report adopting $N labs: $(grep reconcile "$LABD_LOG" | tail -n1)"
 say "recovered: $N of $N sessions running, $N containers, ${ms} ms from restart to all adopted (deadline ${DEADLINE}s)"
+
+say "graceful restart: SIGTERM labd with $N running labs"
+stop_labd TERM
+[[ "$(ctr_count)" == "$N" ]] || die "labs did not survive a graceful labd stop: $(ctr_count) containers"
+t1=$(date +%s%N)
+start_labd
+wait_until "$DEADLINE" "all $N sessions adopted after a graceful restart" recovered
+say "graceful restart: $N of $N adopted in $(( ($(date +%s%N) - t1) / 1000000 )) ms"
 
 say "stopping everything"
 stop_all
