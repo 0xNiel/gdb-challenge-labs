@@ -42,7 +42,7 @@ func run() int {
 		stdinF  = flag.Bool("stdin", false, "forward this process's stdin as keystrokes")
 		memMB   = flag.Int("memory-mb", def.DefaultLimits.MemoryMB, "memory limit")
 		cpuM    = flag.Int("cpu-millicores", def.DefaultLimits.CPUMillicores, "CPU quota")
-		pids    = flag.Int("pids", def.DefaultLimits.Pids, "pids limit")
+		pids    = flag.Int("pids", def.DefaultLimits.Pids, "the lab's process limit (RLIMIT_NPROC; the cgroup adds gVisor headroom)")
 	)
 	flag.Parse()
 	if *image == "" {
@@ -106,6 +106,12 @@ func run() int {
 	stats["create_ms"] = res.CreateTime.Milliseconds()
 	stats["start_ms"] = res.StartTime.Milliseconds()
 	stats["exit_code"] = res.ExitCode
+	stats["run_ms"] = res.RunTime.Milliseconds()
+	stats["cgroup_stats"] = res.Cgroup
+	if res.RunTime > 0 {
+		// Host CPU used by the whole sandbox, in cores (0.5 = half a core on average).
+		stats["cpu_cores_avg"] = float64(res.Cgroup.CPUUsageUsec) / float64(res.RunTime.Microseconds())
+	}
 	stats["timed_out"] = res.TimedOut
 	if markRE != nil {
 		stats["mark_ms"] = res.MarkAfter.Milliseconds()

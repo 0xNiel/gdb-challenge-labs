@@ -98,6 +98,20 @@ func TestBuildSpec_AppliesLimits(t *testing.T) {
 	if *r.Pids.Limit != 16 {
 		t.Errorf("pids %d", *r.Pids.Limit)
 	}
+	// With gVisor headroom: the cgroup grows, the lab's own limit (NPROC) does not.
+	p.HostPidsOverhead = RunscHostPidsOverhead
+	s3, err := BuildSpec(loadBase(t), p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := *s3.Linux.Resources.Pids.Limit; got != int64(16+RunscHostPidsOverhead) {
+		t.Errorf("cgroup pids %d, want %d", got, 16+RunscHostPidsOverhead)
+	}
+	for _, rl := range s3.Process.Rlimits {
+		if rl.Type == "RLIMIT_NPROC" && rl.Hard != 16 {
+			t.Errorf("RLIMIT_NPROC %d with overhead, want 16", rl.Hard)
+		}
+	}
 	for _, rl := range s.Process.Rlimits {
 		if rl.Type == "RLIMIT_NPROC" && rl.Hard != 16 {
 			t.Errorf("RLIMIT_NPROC %d, want 16", rl.Hard)
@@ -194,6 +208,15 @@ func TestBuildSpec_RefusesLoosenedBase(t *testing.T) {
 			s.Linux.Resources.Devices = []specs.LinuxDeviceCgroup{{Allow: true, Access: "rwm"}}
 		}, "S8"},
 		"no terminal": {func(s *specs.Spec) { s.Process.Terminal = false }, "ADR 0007"},
+		"no nproc": {func(s *specs.Spec) {
+			var keep []specs.POSIXRlimit
+			for _, r := range s.Process.Rlimits {
+				if r.Type != "RLIMIT_NPROC" {
+					keep = append(keep, r)
+				}
+			}
+			s.Process.Rlimits = keep
+		}, "RLIMIT_NPROC"},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {

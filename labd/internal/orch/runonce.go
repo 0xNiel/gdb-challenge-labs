@@ -53,6 +53,10 @@ type RunResult struct {
 	StartTime  time.Duration // task.Start
 	MarkAfter  time.Duration // since task start; 0 if Mark never matched
 	Output     []byte
+	// Cgroup is sampled every 200 ms while the task runs (peaks and the last counters).
+	Cgroup CgroupStats
+	// RunTime is task start to exit, for CPU rates (Cgroup.CPUUsageUsec / RunTime).
+	RunTime time.Duration
 }
 
 // RunOnce creates a container from BaseSpec+Params, runs it to completion with a terminal
@@ -64,6 +68,9 @@ func RunOnce(ctx context.Context, o RunOnceOpts) (RunResult, error) {
 	}
 	if o.Cols == 0 || o.Rows == 0 {
 		o.Cols, o.Rows = 200, 50
+	}
+	if o.Runtime == RuntimeRunsc && o.Params.HostPidsOverhead == 0 {
+		o.Params.HostPidsOverhead = RunscHostPidsOverhead
 	}
 	spec, err := BuildSpec(o.BaseSpec, o.Params)
 	if err != nil {
@@ -137,8 +144,43 @@ func RunOnce(ctx context.Context, o RunOnceOpts) (RunResult, error) {
 	res.StartTime = time.Since(t1)
 	out.setStart(t1)
 	_ = task.Resize(ctx, o.Cols, o.Rows)
+	cgDir := "/sys/fs/cgroup" + spec.Linux.CgroupsPath
 	if o.OnStart != nil {
-		o.OnStart(task.Pid(), "/sys/fs/cgroup"+spec.Linux.CgroupsPath)
+		o.OnStart(task.Pid(), cgDir)
+	}
+
+	// Sample the cgroup until the task exits; the runtime may remove it right after exit.
+	var (
+		cgMu    sync.Mutex
+		cgStats CgroupStats
+	)
+	sampleDone := make(chan struct{})
+	stopSampling := make(chan struct{})
+	go func() {
+		defer close(sampleDone)
+		tick := time.NewTicker(200 * time.Millisecond)
+		defer tick.Stop()
+		for {
+			if st, err := ReadCgroupStats(cgDir); err == nil {
+				cgMu.Lock()
+				cgStats.Merge(st)
+				cgMu.Unlock()
+			}
+			select {
+			case <-stopSampling:
+				return
+			case <-tick.C:
+			}
+		}
+	}()
+	finishSampling := func() {
+		close(stopSampling)
+		<-sampleDone
+		if st, err := ReadCgroupStats(cgDir); err == nil { // last reading if still there
+			cgStats.Merge(st)
+		}
+		res.Cgroup = cgStats
+		res.RunTime = time.Since(t1)
 	}
 
 	var timeout <-chan time.Time
@@ -149,16 +191,19 @@ func RunOnce(ctx context.Context, o RunOnceOpts) (RunResult, error) {
 	}
 	select {
 	case st := <-exitCh:
+		finishSampling()
 		code, _, err := st.Result()
 		if err != nil {
 			return res, fmt.Errorf("exit status: %w", err)
 		}
 		res.ExitCode = int(code)
 	case <-timeout:
+		finishSampling()
 		res.TimedOut, res.ExitCode = true, -1
 		_ = task.Kill(ctx, syscall.SIGKILL)
 		<-exitCh
 	case <-ctx.Done():
+		finishSampling()
 		_ = task.Kill(context.WithoutCancel(ctx), syscall.SIGKILL)
 		<-exitCh
 		return res, ctx.Err()

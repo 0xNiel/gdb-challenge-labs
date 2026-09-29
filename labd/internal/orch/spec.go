@@ -28,7 +28,18 @@ type SpecParams struct {
 	Args        []string          // process args; nil keeps the base spec's (/bin/sh)
 	Limits      config.Limits     // manifest limits; zero fields must be filled by the caller
 	Annotations map[string]string // lab.session_id, lab.user_id, ... (spec: container labels)
+	// HostPidsOverhead is added to Limits.Pids for the cgroup pids.max. Under gVisor the cgroup
+	// also counts the sandbox's own host processes and threads (Sentry, gofer, systrap stubs),
+	// so the lab's own limit is enforced with RLIMIT_NPROC and the cgroup gets headroom.
+	// See RunscHostPidsOverhead and docs/decisions/0009-pids-limit-under-gvisor.md.
+	HostPidsOverhead int
 }
+
+// RunscHostPidsOverhead is the cgroup pids headroom for gVisor's own host tasks (ADR 0009).
+// Measured on the arm64 dev VM, 2026-09-28: an idle sandbox uses 20 host tasks; a fork storm
+// that reaches the lab's RLIMIT_NPROC of 32 (30 children) peaks at 85. 96 over the lab's 32
+// gives a cgroup limit of 128. Re-check on x86-64 in Phase 1 and under load in Phase 4.
+const RunscHostPidsOverhead = 96
 
 var idPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,62}$`)
 
@@ -60,7 +71,10 @@ func BuildSpec(base []byte, p SpecParams) (*specs.Spec, error) {
 	quota := int64(l.CPUMillicores) * cpuPeriodUS / 1000
 	period := uint64(cpuPeriodUS)
 	s.Linux.Resources.CPU = &specs.LinuxCPU{Quota: &quota, Period: &period}
-	pids := int64(l.Pids)
+	if p.HostPidsOverhead < 0 {
+		return nil, fmt.Errorf("negative HostPidsOverhead %d", p.HostPidsOverhead)
+	}
+	pids := int64(l.Pids + p.HostPidsOverhead)
 	s.Linux.Resources.Pids = &specs.LinuxPids{Limit: &pids}
 	for i, r := range s.Process.Rlimits {
 		if r.Type == "RLIMIT_NPROC" {
@@ -212,6 +226,11 @@ func CheckInvariants(s *specs.Spec) error {
 	}
 	if v, ok := rl["RLIMIT_NOFILE"]; !ok || v == 0 || v > 256 {
 		bad("S7: RLIMIT_NOFILE must be set and <= 256")
+	}
+	if v, ok := rl["RLIMIT_NPROC"]; !ok || v == 0 || v > 256 {
+		bad("S7: RLIMIT_NPROC must be set and <= 256 (the lab's process limit)")
+	} else if r != nil && r.Pids != nil && r.Pids.Limit != nil && int64(v) > *r.Pids.Limit {
+		bad("S7: RLIMIT_NPROC %d exceeds the cgroup pids limit %d", v, *r.Pids.Limit)
 	}
 
 	// S8: no devices allowed beyond what the runtime provides for the PTY.

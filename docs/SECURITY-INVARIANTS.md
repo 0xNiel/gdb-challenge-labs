@@ -12,7 +12,7 @@ Source: spec section "Sandbox security profile" and "Terminal gateway".
 | S4 | Only writable paths are tmpfs `/tmp` and `/home/lab`, 16 MB, `noexec,nosuid,nodev` | `sandbox-base.json` mounts | spec golden test; P0 write a 20 MB file fails, `chmod +x` then exec fails |
 | S5 | Process runs as uid/gid 1000 with `noNewPrivileges: true` | `sandbox-base.json` process | spec golden test; P0 `id` prints 1000 |
 | S6 | All capabilities dropped: bounding, effective, permitted, inheritable, ambient are empty | `sandbox-base.json` | spec golden test |
-| S7 | Resource limits from manifest applied: memory (no swap), CPU quota, pids ≤ 32, `RLIMIT_FSIZE` 32 MB, `RLIMIT_NOFILE` 256 | `orch` spec builder | unit test per limit; P3 abuser profile |
+| S7 | Resource limits from manifest applied: memory (no swap), CPU quota, lab processes ≤ 32 via `RLIMIT_NPROC` with cgroup pids = lab limit + gVisor headroom (ADR 0009), `RLIMIT_FSIZE` 32 MB, `RLIMIT_NOFILE` 256 | `orch` spec builder | unit test per limit; P3 abuser profile |
 | S8 | No host bind mounts, no host `/proc`, no devices beyond the PTY | `sandbox-base.json` | spec golden test asserts mount list exactly |
 | S9 | Image has no `apk`, `wget`, `nc`, `ftpget`, `telnet`, `httpd`, `udhcpc`, `ifconfig`, `route`, and no compiler | `images/labbase/Dockerfile` | `images/labbase/test.sh` |
 | S10 | Only `labd` has access to the containerd socket; `web` never does | unix users/groups on the box | `provision.sh` sets socket group; Phase 8 checklist |
