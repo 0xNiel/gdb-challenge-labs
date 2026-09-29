@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 	"syscall"
+	"time"
 
 	"gdblabs/labd/internal/api"
 	"gdblabs/labd/internal/clock"
@@ -56,7 +57,7 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 	}
 	log.Info("reconcile done", "adopted", rep.Adopted, "removed", rep.Removed, "closed_rows", rep.ClosedRows)
 
-	rl := &reloader{path: cfgPath, current: cfg, m: m, log: log}
+	rl := &reloader{path: cfgPath, current: cfg, m: m, rt: rt, log: log}
 	srv, err := api.New(m, cfg.InternalSecret, rl.Reload, log)
 	if err != nil {
 		return err
@@ -100,6 +101,7 @@ type reloader struct {
 	path    string
 	log     *slog.Logger
 	m       *orch.Manager
+	rt      *orch.ContainerdRuntime
 	mu      sync.Mutex
 	current config.Config
 }
@@ -130,5 +132,16 @@ func (r *reloader) Reload(context.Context) (map[string]any, error) {
 	r.m.SetMaxQueue(cfg.MaxQueue)
 	r.m.SetCap(cfg.MaxSessions)
 	r.current = cfg
+	// Pre-pull images new to challenges.json (spec), in the background: a pull can take
+	// minutes and must not hold the reload request.
+	go func(images []string) {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+		defer cancel()
+		if res, err := r.rt.Pull(ctx, images); err != nil {
+			r.log.Error("reload: pre-pull failed", "err", err)
+		} else {
+			r.log.Info("reload: images ready", "images", len(res))
+		}
+	}(orch.ChallengeImages(cs))
 	return map[string]any{"max_sessions": cfg.MaxSessions, "max_queue": cfg.MaxQueue, "challenges": len(cs)}, nil
 }

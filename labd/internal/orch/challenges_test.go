@@ -32,3 +32,14 @@ func TestParseChallenges(t *testing.T) {
 		}
 	}
 }
+
+func TestChallengeImages(t *testing.T) {
+	t.Parallel()
+	got := ChallengeImages([]Challenge{
+		{Slug: "a", Image: "img2", Enabled: true}, {Slug: "b", Image: "img1", Enabled: true},
+		{Slug: "c", Image: "img2", Enabled: true}, {Slug: "d", Image: "off", Enabled: false},
+	})
+	if strings.Join(got, ",") != "img1,img2" {
+		t.Fatalf("%v", got)
+	}
+}

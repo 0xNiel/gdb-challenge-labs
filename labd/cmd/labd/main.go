@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"gdblabs/labd/internal/config"
+	"gdblabs/labd/internal/orch"
 	"gdblabs/labd/internal/store"
 )
 
@@ -38,7 +39,7 @@ func run(args []string, stdout *os.File) error {
 	cfgPath := fs.String("config", "labd.yaml", "path to labd.yaml")
 	showVersion := fs.Bool("version", false, "print version and exit")
 	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), "usage: labd [-config labd.yaml] [serve|migrate]")
+		fmt.Fprintln(fs.Output(), "usage: labd [-config labd.yaml] [serve|migrate|pull|prune]")
 		fs.PrintDefaults()
 	}
 	if err := fs.Parse(args); err != nil {
@@ -69,10 +70,74 @@ func run(args []string, stdout *os.File) error {
 		return runServe(ctx, *cfgPath, cfg, log)
 	case "migrate":
 		return migrate(ctx, cfg, stdout)
+	case "pull":
+		return pull(ctx, cfg, stdout)
+	case "prune":
+		return prune(ctx, cfg, stdout)
 	default:
 		fs.Usage()
 		return fmt.Errorf("unknown command %q", cmd)
 	}
+}
+
+// pull makes every enabled challenge image present and labels it lab.keep=true.
+func pull(ctx context.Context, cfg config.Config, stdout *os.File) error {
+	cs, err := orch.LoadChallenges(cfg.ChallengesFile)
+	if err != nil {
+		return err
+	}
+	rt, err := orch.NewContainerdRuntime(cfg.ContainerdSocket, cfg.Runtime, "")
+	if err != nil {
+		return err
+	}
+	defer rt.Close()
+	res, err := rt.Pull(ctx, orch.ChallengeImages(cs))
+	for _, r := range res {
+		switch {
+		case r.Err != "":
+			fmt.Fprintf(stdout, "pull: FAILED  %s: %s\n", r.Image, r.Err)
+		case r.Present:
+			fmt.Fprintf(stdout, "pull: present %s\n", r.Image)
+		default:
+			fmt.Fprintf(stdout, "pull: pulled  %s\n", r.Image)
+		}
+	}
+	if err != nil {
+		return fmt.Errorf("pull failed for %d of %d images (see above)", countFailed(res), len(res))
+	}
+	return nil
+}
+
+func countFailed(rs []orch.PullResult) int {
+	n := 0
+	for _, r := range rs {
+		if r.Err != "" {
+			n++
+		}
+	}
+	return n
+}
+
+// prune lists images no enabled challenge uses. Deletion and the 14-day rule are Phase 5.
+func prune(ctx context.Context, cfg config.Config, stdout *os.File) error {
+	cs, err := orch.LoadChallenges(cfg.ChallengesFile)
+	if err != nil {
+		return err
+	}
+	rt, err := orch.NewContainerdRuntime(cfg.ContainerdSocket, cfg.Runtime, "")
+	if err != nil {
+		return err
+	}
+	defer rt.Close()
+	names, err := rt.Unreferenced(ctx, orch.ChallengeImages(cs))
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(stdout, "prune: %d images not used by an enabled challenge (listing only; deletion comes in Phase 5)\n", len(names))
+	for _, n := range names {
+		fmt.Fprintln(stdout, "  ", n)
+	}
+	return nil
 }
 
 // migrate applies labd's embedded SQL migrations (ADR 0003, ADR 0011).
