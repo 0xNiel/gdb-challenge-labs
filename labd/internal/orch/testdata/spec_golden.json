@@ -131,7 +131,7 @@
         "period": 100000
       },
       "pids": {
-        "limit": 32
+        "limit": 128
       }
     },
     "cgroupsPath": "/labs/golden-1",

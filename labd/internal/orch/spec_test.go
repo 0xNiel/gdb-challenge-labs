@@ -95,27 +95,39 @@ func TestBuildSpec_AppliesLimits(t *testing.T) {
 	if *r.CPU.Quota != 25000 || *r.CPU.Period != 100000 {
 		t.Errorf("cpu quota %d period %d, want 25000/100000", *r.CPU.Quota, *r.CPU.Period)
 	}
-	if *r.Pids.Limit != 16 {
-		t.Errorf("pids %d", *r.Pids.Limit)
+	// runsc (the default): the lab limit is RLIMIT_NPROC; the cgroup gets gVisor headroom.
+	if got := *r.Pids.Limit; got != int64(16+RunscHostPidsOverhead) {
+		t.Errorf("runsc cgroup pids %d, want %d", got, 16+RunscHostPidsOverhead)
 	}
-	// With gVisor headroom: the cgroup grows, the lab's own limit (NPROC) does not.
-	p.HostPidsOverhead = RunscHostPidsOverhead
+	// runc: the cgroup is the lab limit and RLIMIT_NPROC is gone (it would count host uid 1000).
+	p.Runtime = RuntimeRunc
 	s3, err := BuildSpec(loadBase(t), p)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := *s3.Linux.Resources.Pids.Limit; got != int64(16+RunscHostPidsOverhead) {
-		t.Errorf("cgroup pids %d, want %d", got, 16+RunscHostPidsOverhead)
+	if got := *s3.Linux.Resources.Pids.Limit; got != 16 {
+		t.Errorf("runc cgroup pids %d, want 16", got)
 	}
 	for _, rl := range s3.Process.Rlimits {
-		if rl.Type == "RLIMIT_NPROC" && rl.Hard != 16 {
-			t.Errorf("RLIMIT_NPROC %d with overhead, want 16", rl.Hard)
+		if rl.Type == "RLIMIT_NPROC" {
+			t.Errorf("runc spec must not set RLIMIT_NPROC, has %d", rl.Hard)
 		}
 	}
+	p.Runtime = "kata"
+	if _, err := BuildSpec(loadBase(t), p); err == nil {
+		t.Error("unknown runtime accepted")
+	}
+	nproc := false
 	for _, rl := range s.Process.Rlimits {
-		if rl.Type == "RLIMIT_NPROC" && rl.Hard != 16 {
-			t.Errorf("RLIMIT_NPROC %d, want 16", rl.Hard)
+		if rl.Type == "RLIMIT_NPROC" {
+			nproc = true
+			if rl.Hard != 16 {
+				t.Errorf("RLIMIT_NPROC %d, want 16", rl.Hard)
+			}
 		}
+	}
+	if !nproc {
+		t.Error("runsc spec lacks RLIMIT_NPROC")
 	}
 	if s.Linux.CgroupsPath != "/labs/golden-1" {
 		t.Errorf("cgroupsPath %q", s.Linux.CgroupsPath)

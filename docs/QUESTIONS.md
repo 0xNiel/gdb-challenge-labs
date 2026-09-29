@@ -21,7 +21,9 @@ Options:
 - (b) Run an x86-64 Lima VM under emulation for gVisor checks (correct but very slow).
 - (c) Report upstream to gVisor and wait.
 
-**Default in force:** (a) plus filing (c) when convenient. Production is x86-64, so this blocks nothing if the laptop's P0 passes. If the laptop shows the same crash, this becomes a project blocker and needs a decision before Phase 2.
+**Update 2026-09-29:** the x86-64 laptop's P0 passes every gdb check under gVisor. The crash is **arm64-only**, so production is not affected.
+
+**Default in force:** (a). Mac developers use runc for gdb work, and gVisor-specific checks run on x86-64. File (c) upstream when convenient. This matters again only for the arm64 tier (post-MVP tier 6).
 
 ### Q11. Should challenge images also be built for arm64?
 

@@ -55,6 +55,21 @@ Dev VM only (arm64, not authoritative; see [metrics/capacity.md](metrics/capacit
 
 ## Log
 
+### 2026-09-29 — laptop P0: gdb works under gVisor on x86-64
+- **Laptop runsc P0:** every gdb check passes, except the two with fallbacks already in force:
+  - Hardware watchpoints are accepted but never trigger, which is worse than a refusal. The `.gdbinit` default of 0 matters.
+  - `personality(ADDR_NO_RANDOMIZE)` fails, so the stack moves; `&main` is fixed at 0x4013d2.
+- Every sandbox check passes, with the same numbers as the dev VM. Q13 is now arm64-only.
+- **Laptop single-lab (runsc):**
+  - start to prompt p50 1450 ms, p95 1507 ms (target < 2 s);
+  - memory at the gdb prompt 23.4 MiB and at a breakpoint 28.6 MiB (cgroup);
+  - Sentry RSS 42 to 46 MiB;
+  - session.gdb 3.2 s.
+- **Laptop runc** failed everywhere with `exec /usr/bin/gdb: resource temporarily unavailable`. `RLIMIT_NPROC` (ADR 0009) counts every host process of uid 1000, which is the owner's desktop user. Reproduced on the dev VM with 40 processes owned by uid 1000.
+- **Fix:** the process limit is runtime-aware. gVisor uses `RLIMIT_NPROC`; runc uses the cgroup only and sets no `RLIMIT_NPROC`. runc now passes 27 of 27 under that load. ADR 0009 amended; the golden spec now shows cgroup pids 128 for the gVisor default.
+- Also fixed: the P0 hardware-watchpoint row says "accepted but never triggered", and single-lab no longer prints an `awk` error when the cgroup vanishes at the end of a hold.
+- **Next:** the owner re-runs P0 and single-lab on the laptop so the committed files have valid runc columns, then commits and pushes `docs/metrics`.
+
 ### 2026-09-29 — first Phase 1 gate run on the laptop
 - The owner's gate run failed for reasons outside the Phase 1 code: no access to the Docker socket (permission denied), a transient proxy.golang.org error, and P0 failing only because no images existed.
 - Fixed: every image script goes through `docker_init` in `images/lib.sh`. It uses plain `docker` when the user can reach the socket, else `sudo docker` after one visible prompt with the permanent fix printed, else it says the daemon is down. Build containers run as the invoking user, so `images/out` never gets root-owned files. `doctor` reports Docker access. `run.sh test` pre-downloads Go modules with 3 retries. The gate's own P0 run now writes to a scratch directory, not `docs/metrics`.

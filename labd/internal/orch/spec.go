@@ -28,11 +28,13 @@ type SpecParams struct {
 	Args        []string          // process args; nil keeps the base spec's (/bin/sh)
 	Limits      config.Limits     // manifest limits; zero fields must be filled by the caller
 	Annotations map[string]string // lab.session_id, lab.user_id, ... (spec: container labels)
-	// HostPidsOverhead is added to Limits.Pids for the cgroup pids.max. Under gVisor the cgroup
-	// also counts the sandbox's own host processes and threads (Sentry, gofer, systrap stubs),
-	// so the lab's own limit is enforced with RLIMIT_NPROC and the cgroup gets headroom.
-	// See RunscHostPidsOverhead and docs/decisions/0009-pids-limit-under-gvisor.md.
-	HostPidsOverhead int
+	// Runtime decides how the lab's process limit is enforced (ADR 0009). Empty means runsc.
+	//   runsc: RLIMIT_NPROC = Limits.Pids (gVisor enforces it per sandbox), and the cgroup
+	//          pids.max = Limits.Pids + RunscHostPidsOverhead, because the cgroup also holds the
+	//          Sentry, gofer and systrap stubs.
+	//   runc:  cgroup pids.max = Limits.Pids (per container) and no RLIMIT_NPROC: without a
+	//          user namespace it would count every host process of uid 1000.
+	Runtime string
 }
 
 // RunscHostPidsOverhead is the cgroup pids headroom for gVisor's own host tasks (ADR 0009).
@@ -71,16 +73,29 @@ func BuildSpec(base []byte, p SpecParams) (*specs.Spec, error) {
 	quota := int64(l.CPUMillicores) * cpuPeriodUS / 1000
 	period := uint64(cpuPeriodUS)
 	s.Linux.Resources.CPU = &specs.LinuxCPU{Quota: &quota, Period: &period}
-	if p.HostPidsOverhead < 0 {
-		return nil, fmt.Errorf("negative HostPidsOverhead %d", p.HostPidsOverhead)
-	}
-	pids := int64(l.Pids + p.HostPidsOverhead)
-	s.Linux.Resources.Pids = &specs.LinuxPids{Limit: &pids}
-	for i, r := range s.Process.Rlimits {
-		if r.Type == "RLIMIT_NPROC" {
-			s.Process.Rlimits[i].Hard, s.Process.Rlimits[i].Soft = uint64(l.Pids), uint64(l.Pids)
+	var pids int64
+	switch p.Runtime {
+	case "", RuntimeRunsc:
+		pids = int64(l.Pids + RunscHostPidsOverhead)
+		found := false
+		for i, r := range s.Process.Rlimits {
+			if r.Type == "RLIMIT_NPROC" {
+				s.Process.Rlimits[i].Hard, s.Process.Rlimits[i].Soft = uint64(l.Pids), uint64(l.Pids)
+				found = true
+			}
 		}
+		if !found {
+			return nil, errors.New("S7: base spec lacks RLIMIT_NPROC, the lab's process limit under gVisor")
+		}
+	case RuntimeRunc:
+		pids = int64(l.Pids)
+		s.Process.Rlimits = slices.DeleteFunc(s.Process.Rlimits, func(r specs.POSIXRlimit) bool {
+			return r.Type == "RLIMIT_NPROC"
+		})
+	default:
+		return nil, fmt.Errorf("unknown runtime %q", p.Runtime)
 	}
+	s.Linux.Resources.Pids = &specs.LinuxPids{Limit: &pids}
 
 	s.Linux.CgroupsPath = CgroupParent + "/" + p.ID
 	if len(p.Annotations) > 0 {
@@ -227,10 +242,14 @@ func CheckInvariants(s *specs.Spec) error {
 	if v, ok := rl["RLIMIT_NOFILE"]; !ok || v == 0 || v > 256 {
 		bad("S7: RLIMIT_NOFILE must be set and <= 256")
 	}
-	if v, ok := rl["RLIMIT_NPROC"]; !ok || v == 0 || v > 256 {
-		bad("S7: RLIMIT_NPROC must be set and <= 256 (the lab's process limit)")
-	} else if r != nil && r.Pids != nil && r.Pids.Limit != nil && int64(v) > *r.Pids.Limit {
-		bad("S7: RLIMIT_NPROC %d exceeds the cgroup pids limit %d", v, *r.Pids.Limit)
+	// RLIMIT_NPROC is the lab's limit under gVisor (BuildSpec requires it there); runc specs
+	// omit it (ADR 0009). When present it must be sane and within the cgroup limit.
+	if v, ok := rl["RLIMIT_NPROC"]; ok {
+		if v == 0 || v > 256 {
+			bad("S7: RLIMIT_NPROC must be between 1 and 256")
+		} else if r != nil && r.Pids != nil && r.Pids.Limit != nil && int64(v) > *r.Pids.Limit {
+			bad("S7: RLIMIT_NPROC %d exceeds the cgroup pids limit %d", v, *r.Pids.Limit)
+		}
 	}
 
 	// S8: no devices allowed beyond what the runtime provides for the PTY.

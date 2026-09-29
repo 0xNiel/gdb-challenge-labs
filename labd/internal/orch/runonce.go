@@ -69,9 +69,7 @@ func RunOnce(ctx context.Context, o RunOnceOpts) (RunResult, error) {
 	if o.Cols == 0 || o.Rows == 0 {
 		o.Cols, o.Rows = 200, 50
 	}
-	if o.Runtime == RuntimeRunsc && o.Params.HostPidsOverhead == 0 {
-		o.Params.HostPidsOverhead = RunscHostPidsOverhead
-	}
+	o.Params.Runtime = o.Runtime
 	spec, err := BuildSpec(o.BaseSpec, o.Params)
 	if err != nil {
 		return res, err

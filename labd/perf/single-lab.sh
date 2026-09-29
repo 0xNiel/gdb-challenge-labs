@@ -79,8 +79,10 @@ hold() {
   local bg=$! i cgv=() sen=() gof=()
   sleep 3 # let gdb load (and the program reach its breakpoint)
   for ((i = 0; i < HOLD; i++)); do
-    if sudo test -r "$cg/memory.current"; then
-      cgv+=("$(sudo awk '{printf "%.1f", $1/1048576}' "$cg/memory.current")")
+    # The cgroup disappears when the container exits at the end of the hold; skip that sample.
+    local m; m="$(sudo awk '{printf "%.1f", $1/1048576}' "$cg/memory.current" 2>/dev/null || true)"
+    if [[ -n "$m" ]]; then
+      cgv+=("$m")
       if [[ "$rt" == runsc ]]; then sen+=("$(rss_mb runsc-sandbox "$id")"); gof+=("$(rss_mb runsc-gofer "$id")"); fi
     fi
     sleep 1

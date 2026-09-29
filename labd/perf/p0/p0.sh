@@ -128,6 +128,9 @@ check_gdb() {
   o="$(g -ex 'break step_loop' -ex run -ex 'set can-use-hw-watchpoints 1' -ex 'watch counter' -ex continue)"
   if has 'Hardware watchpoint [0-9]+: counter' "$o" && has 'New value' "$o"; then
     row hw-watchpoint gdb PASS "hardware watchpoints work on this host"
+  elif has 'Hardware watchpoint [0-9]+: counter' "$o"; then
+    # Worse than a refusal: gdb believes it is set, and the program runs past every write.
+    row hw-watchpoint gdb FALLBACK "hardware watchpoint accepted but never triggered" "gdbinit sets can-use-hw-watchpoints 0 (software watchpoints)"
   else
     row hw-watchpoint gdb FALLBACK "$(why "$o")" "gdbinit sets can-use-hw-watchpoints 0 (software watchpoints)"
   fi
@@ -226,10 +229,13 @@ check_sandbox() {
     row pids-limit sandbox PASS "fork stopped after $f children ($(kv error "$o")); sandbox survived; host tasks peak $(stat .cgroup_stats.pids_peak)"
   else row pids-limit sandbox FAIL "forked=${f:-?}; survived=$(has P0-SURVIVED "$o" && echo yes || echo no); exit $(stat .exit_code); host tasks peak $(stat .cgroup_stats.pids_peak)"; fi
 
+  # ADR 0009: under gVisor the lab's process limit is RLIMIT_NPROC=32; under runc it is the
+  # cgroup (checked by pids-limit) and RLIMIT_NPROC is unset, because it would count host uid 1000.
   o="$(inbox 30 /opt/perf/probe rlimits)"
-  if [[ "$(kv nofile "$o")" == 256 && "$(kv fsize "$o")" == 33554432 && "$(kv nproc "$o")" == 32 && "$(kv core "$o")" == 0 ]]; then
-    row rlimits sandbox PASS "nofile 256, fsize 32 MiB, nproc 32, core 0"
-  else row rlimits sandbox FAIL "$(first '^probe' "$o")"; fi
+  local want_nproc=32; [[ "$RT" == runc ]] && want_nproc=inf
+  if [[ "$(kv nofile "$o")" == 256 && "$(kv fsize "$o")" == 33554432 && "$(kv nproc "$o")" == "$want_nproc" && "$(kv core "$o")" == 0 ]]; then
+    row rlimits sandbox PASS "nofile 256, fsize 32 MiB, nproc $want_nproc, core 0"
+  else row rlimits sandbox FAIL "$(first '^probe' "$o") (want nproc=$want_nproc)"; fi
 
   o="$(inbox 60 /opt/perf/probe mem 200)"
   local last peak; last="$(grep -oE 'progress_mb=[0-9]+' <<<"$o" | tail -n1 | cut -d= -f2)"
