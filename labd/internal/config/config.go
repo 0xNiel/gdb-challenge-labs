@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -84,7 +85,15 @@ func Load(path string) (Config, error) {
 	if err != nil {
 		return Config{}, fmt.Errorf("read config: %w", err)
 	}
-	return Parse(raw)
+	cfg, err := Parse(raw)
+	if err != nil {
+		return Config{}, err
+	}
+	// A relative challenges_file is relative to the config file, not to the working directory.
+	if cfg.ChallengesFile != "" && !filepath.IsAbs(cfg.ChallengesFile) {
+		cfg.ChallengesFile = filepath.Join(filepath.Dir(path), cfg.ChallengesFile)
+	}
+	return cfg, nil
 }
 
 // Parse is Load without the file read; used by tests and reload.

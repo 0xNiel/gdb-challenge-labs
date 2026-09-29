@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "challenges": [
+    {
+      "slug": "perf",
+      "image": "docker.io/gdblabs/perf:dev",
+      "limits": {},
+      "enabled": true
+    }
+  ]
+}

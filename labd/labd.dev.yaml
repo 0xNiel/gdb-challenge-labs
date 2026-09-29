@@ -8,6 +8,6 @@ max_sessions: 20
 max_queue: 10
 ws_reconnect_grace_s: 60
 default_limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60, idle_minutes: 15, extend_minutes: 15}
-challenges_file: challenges.json
+challenges_file: challenges.dev.json   # relative to this file; Phase 5 generates the real one
 postgres_dsn: postgres://labd:labd@127.0.0.1:5432/labs
 metrics_flush_s: 10

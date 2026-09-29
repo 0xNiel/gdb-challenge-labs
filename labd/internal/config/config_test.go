@@ -135,3 +135,24 @@ func unwrapAll(err error) error {
 		err = u.Unwrap()
 	}
 }
+
+func TestLoad_RelativeChallengesFile(t *testing.T) {
+	dir := t.TempDir()
+	for name, want := range map[string]string{
+		"challenges_file: challenges.json\n":      filepath.Join(dir, "challenges.json"),
+		"challenges_file: /etc/labd/c.json\n":     "/etc/labd/c.json",
+		"challenges_file: ../x/challenges.json\n": filepath.Join(filepath.Dir(dir), "x", "challenges.json"),
+	} {
+		p := filepath.Join(dir, "labd.yaml")
+		if err := os.WriteFile(p, []byte(name), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		cfg, err := Load(p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if cfg.ChallengesFile != want {
+			t.Errorf("%q: got %s, want %s", name, cfg.ChallengesFile, want)
+		}
+	}
+}
