@@ -19,7 +19,8 @@ The tasks below are the original plan. Where the implementation differs, this li
 - **gdb settings** live at `/etc/lab-config/gdb/gdbinit`, read via `XDG_CONFIG_HOME` set in the sandbox spec. Alpine's gdb has no system gdbinit, and `/home/lab` is an empty tmpfs at runtime.
 - **Image tooling** is shared in `images/lib.sh`. Docker builds for the lab host's architecture, then `ctr import` loads the image into namespace `labs`.
 - **`specrun`** lives at `labd/cmd/specrun`. The containerd code is in `labd/internal/orch` (`RunOnce`, `BuildSpec`, `CheckInvariants`, `ReadCgroupStats`), because nothing outside `orch` may import containerd.
-- **P0 checks** are inline in `labd/perf/p0/p0.sh`, not separate `checks/*.gdb` files, and a `probe` binary in the perf image tests the sandbox with raw syscalls. 27 checks per runtime.
+- **Static binaries (ADR 0010):** gVisor cannot turn ASLR off, so `perf` and `probe` are built `-static -no-pie -fno-pie`, and `build.sh` rejects a binary with an `INTERP` or `DYNAMIC` segment. Code, globals and libc are fixed; the stack and heap move. `disable-randomization` and `aslr-gdb-stack` are FALLBACK rows under gVisor.
+- **P0 checks** are inline in `labd/perf/p0/p0.sh`, not separate `checks/*.gdb` files, and a `probe` binary in the perf image tests the sandbox with raw syscalls. 30 checks per runtime, including `aslr-gdb-libc`, `aslr-direct-libc` and `no-shared-libs` (ADR 0010).
 - **Measurements** are in `labd/perf/single-lab.sh` (`./run.sh perf --scenario single-lab`).
 - **Pids:** the lab limit is `RLIMIT_NPROC`; cgroup pids = limit + 96 under gVisor (ADR 0009).
 - **CPU** is judged from the host cgroup. gVisor's in-sandbox CPU clock over-reports.

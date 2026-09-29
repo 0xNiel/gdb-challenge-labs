@@ -4,18 +4,18 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
-**Phase 1 — gVisor + gdb spike.** In progress on branch `phase-1-gvisor-gdb-spike`. Tasks 1.1–1.8 are built and run on the arm64 dev VM. The gate passes every check it can on the Mac. It is waiting only for **x86-64 results from the Linux laptop**:
+**Phase 1 — gVisor + gdb spike.** In progress on branch `phase-1-gvisor-gdb-spike`. Tasks 1.1–1.8 are built. Lab binaries are now static (ADR 0010). The gate passes every check it can on the Mac. It is waiting only for **x86-64 results from the Linux laptop**, re-run with the static perf image and the runc fix. First push this branch from the Mac (`git push`; not done by the agent), then on the laptop:
 
 ```
-git pull && git checkout phase-1-gvisor-gdb-spike
-./run.sh vm up                                           # installs Go 1.26.6
-./run.sh gate --phase 1                                  # builds images, runs P0 on this host
+git pull && ./run.sh vm up
+./run.sh gate --phase 1                                  # builds images, runs P0 on this host (scratch)
 LAB_HOST=linux-laptop ./run.sh perf --scenario P0          # the authoritative P0
 LAB_HOST=linux-laptop ./run.sh perf --scenario single-lab  # ~3 minutes
 git add docs/metrics && git commit -m "[P1] metrics: x86-64 P0 and single-lab" && git push
+./run.sh gate --phase 1                                  # must now pass
 ```
 
-Then `./run.sh gate --phase 1` must pass. If gdb under gVisor fails on x86-64 the way it does on arm64, stop and decide Q13 before Phase 2.
+Expected on the laptop: runsc has no FAIL rows, and FALLBACK only for `hw-watchpoint`, `disable-randomization` and `aslr-gdb-stack`; runc has no FAIL rows. If any new ASLR row (`aslr-gdb-libc`, `aslr-direct-libc`, `no-shared-libs`) fails, stop: ADR 0010 does not hold on x86-64.
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -34,7 +34,7 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | Phase | Name | State | Gate result | Date |
 | --- | --- | --- | --- | --- |
 | 0 | Bootstrap: repo, toolchain, dev VM | done (0.9 open, non-blocking) | passed on Mac and laptop | 2026-09-28 |
-| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | in progress: needs x86-64 P0 | Mac: all local checks pass | 2026-09-29 | — | — |
+| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | in progress: needs x86-64 P0 and single-lab | Mac: all local checks pass | 2026-09-29 |
 | 2 | labd core (sessions, semaphore, reconciler) | blocked on 1 | — | — |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | blocked on 2 | — | — |
 | 4 | Perf suite and measured capacity | blocked on 3 | — | — |
@@ -54,6 +54,34 @@ States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`.
 Dev VM only (arm64, not authoritative; see [metrics/capacity.md](metrics/capacity.md) "Dev VM observations"). gVisor idle lab 14 MiB, gdb at prompt 23 MiB, start to prompt p95 513 ms warm, CPU quota exact. Every capacity estimate still stands until the laptop's x86-64 numbers arrive.
 
 ## Log
+
+### 2026-09-29 — static lab binaries (ADR 0010)
+- **Decision (owner):** gVisor cannot turn ASLR off: `personality(ADDR_NO_RANDOMIZE)` returns EINVAL, and host sysctls do not reach the sandbox. Every lab binary is now linked `-static -no-pie -fno-pie`, so code, globals and libc are fixed. Stack and heap still move; no exercise may depend on them. ADR 0010 lists the rejected options. CONVENTIONS and the Phase 5 plan now require `-static`. The spec is unchanged; the ADR overrides it.
+- **perf image:** `perf` and `probe` are static. `build.sh` rejects a binary with an `INTERP` or `DYNAMIC` segment (tested against a dynamic build). Both binaries still build byte-identical twice. Measured size cost on arm64: text 4.8 KB → 48.7 KB, file 78 KB → 366 KB.
+- **P0:** 3 new rows. `aslr-gdb-libc` and `aslr-direct-libc` check that `&printf` is identical over 3 runs, under gdb and run directly. `no-shared-libs` checks that `/proc/self/maps` has no `ld-musl` or `.so` mapping. All three pass under runsc and runc on the dev VM. `disable-randomization` and `aslr-gdb-stack` stay FALLBACK and cite ADR 0010.
+- **Bug found by the static build:** `session.gdb` never stepped the `sum_scores` loop. In a dynamic binary, `display i` in `main` bound silently to a global `i` in `/lib/ld-musl-aarch64.so.1`, so the session passed by accident. It now `continue`s into `sum_scores` first and ends with `report key=42`.
+- **Dev VM P0** (arm64, explicit run, committed as `docs/metrics/p0-2026-09-29-dev-vm.*`): runc 30 PASS, 0 FAIL. runsc 20 PASS, 3 FALLBACK, 7 FAIL, up from 14 PASS and 10 FAIL.
+- **arm64 gdb under gVisor:** static binaries removed the loader crash, but 7 checks still fail. Three gVisor arm64 ptrace gaps were hiding behind the loader crash: stepping over a breakpoint (displaced stepping) crashes the program, the FP/SIMD register read returns EINVAL, and with displaced stepping off `next` runs to the end. Q13 updated; its default stands (Mac developers use runc for gdb work).
+- **Gate on the Mac:** everything passes except the two x86-64 checks (output below). The gate's own P0 went to `.scratch/` and was not committed. `./run.sh check`, `./run.sh lint`: pass.
+- Not re-run: the dev-VM single-lab. Its "at a breakpoint" memory under runsc may now be reachable on arm64, but only the laptop's numbers count.
+- **Next:** the owner runs the laptop steps above. Then `capacity.md` gets the measured rows and Phase 1 is marked done.
+
+Phase 1 gate on the Mac:
+```
+==> gate for phase 1 — 2026-09-29T16:36Z — macbook.local
+==> [gate 1] images
+  PASS  labbase builds
+  PASS  labbase contents (images/labbase/test.sh)
+  PASS  perf image builds; binaries reproducible
+==> [gate 1] unit tests (spec golden file, invariants, cgroup parsing)
+  PASS  run.sh test --all
+==> [gate 1] P0 and single-lab run on this host
+  PASS  P0 completes (runsc and runc)
+==> [gate 1] authoritative results (x86-64, ADR 0001)
+  FAIL  no P0 from an x86-64 host yet: on the laptop run LAB_HOST=linux-laptop ./run.sh perf --scenario P0, commit docs/metrics
+  FAIL  no single-lab measurement from an x86-64 host yet: LAB_HOST=linux-laptop ./run.sh perf --scenario single-lab
+==> GATE 1 FAILED. Fix the FAIL lines above; do not start the next phase.
+```
 
 ### 2026-09-29 — laptop P0: gdb works under gVisor on x86-64
 - **Laptop runsc P0:** every gdb check passes, except the two with fallbacks already in force:

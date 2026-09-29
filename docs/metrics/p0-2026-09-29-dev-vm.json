@@ -2,23 +2,23 @@
   "host": "dev-vm",
   "arch": "aarch64",
   "kernel": "6.8.0-142-generic",
-  "date": "2026-09-29T02:14:53Z",
+  "date": "2026-09-29T16:35:18Z",
   "runsc": "runsc version release-20260921.0",
   "containerd": "v2.4.1",
   "image": "docker.io/gdblabs/perf:dev",
   "summary": [
     {
       "runtime": "runc",
-      "pass": 27,
+      "pass": 30,
       "fallback": 0,
       "fail": 0,
       "info": 4
     },
     {
       "runtime": "runsc",
-      "pass": 14,
+      "pass": 20,
       "fallback": 3,
-      "fail": 10,
+      "fail": 7,
       "info": 4
     }
   ],
@@ -27,8 +27,8 @@
       "check": "breakpoint",
       "category": "gdb",
       "runtime": "runsc",
-      "status": "FAIL",
-      "detail": "Program received signal SIGSEGV, Segmentation fault.",
+      "status": "PASS",
+      "detail": "stops in sum_scores; bt shows main",
       "fallback": ""
     },
     {
@@ -52,7 +52,7 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "FAIL",
-      "detail": "Program received signal SIGSEGV, Segmentation fault.",
+      "detail": "Thread 1 \"perf\" received signal SIGSEGV, Segmentation fault.",
       "fallback": ""
     },
     {
@@ -60,7 +60,7 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "FAIL",
-      "detail": "Program received signal SIGSEGV, Segmentation fault.",
+      "detail": "Unable to fetch vFP/SIMD registers: Invalid argument.",
       "fallback": ""
     },
     {
@@ -68,7 +68,7 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "FAIL",
-      "detail": "Program received signal SIGSEGV, Segmentation fault.",
+      "detail": "Thread 1 \"perf\" received signal SIGSEGV, Segmentation fault.",
       "fallback": ""
     },
     {
@@ -76,7 +76,7 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "FAIL",
-      "detail": "Program received signal SIGSEGV, Segmentation fault.",
+      "detail": "Unable to fetch vFP/SIMD registers: Invalid argument.",
       "fallback": ""
     },
     {
@@ -84,7 +84,7 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "FAIL",
-      "detail": "Program received signal SIGSEGV, Segmentation fault.",
+      "detail": "Thread 1 \"perf\" received signal SIGSEGV, Segmentation fault.",
       "fallback": ""
     },
     {
@@ -92,23 +92,23 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "FALLBACK",
-      "detail": "Program received signal SIGSEGV, Segmentation fault.",
+      "detail": "Thread 1 \"perf\" received signal SIGSEGV, Segmentation fault.",
       "fallback": "gdbinit sets can-use-hw-watchpoints 0 (software watchpoints)"
     },
     {
       "check": "threads",
       "category": "gdb",
       "runtime": "runsc",
-      "status": "FAIL",
-      "detail": "info threads shows 1 threads; Program received signal SIGSEGV, Segmentation fault.",
+      "status": "PASS",
+      "detail": "info threads shows 4 threads; workers in bt",
       "fallback": ""
     },
     {
       "check": "signal",
       "category": "gdb",
       "runtime": "runsc",
-      "status": "FAIL",
-      "detail": "Program received signal SIGSEGV, Segmentation fault.",
+      "status": "PASS",
+      "detail": "SIGUSR1 delivered; handler ran",
       "fallback": ""
     },
     {
@@ -124,7 +124,15 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "PASS",
-      "detail": "&main=0x400bec in 3 runs",
+      "detail": "&main=0x4005bc in 3 runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-gdb-libc",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "&printf=0x402eb0 in 3 runs",
       "fallback": ""
     },
     {
@@ -133,22 +141,30 @@
       "runtime": "runsc",
       "status": "FALLBACK",
       "detail": "gdb: personality(ADDR_NO_RANDOMIZE) fails (EINVAL)",
-      "fallback": "binaries are -no-pie so code and globals are fixed; challenges must not depend on stack or heap addresses"
+      "fallback": "ADR 0010: binaries are -static -no-pie, so code, globals and libc are fixed; stack and heap move, and challenges must not depend on them"
     },
     {
       "check": "aslr-gdb-stack",
       "category": "gdb",
       "runtime": "runsc",
       "status": "FALLBACK",
-      "detail": "$sp varies: 0xfdfff2bb7a90 0xfdffcd090a90 0xfdffda965a90",
-      "fallback": "challenges must not depend on stack addresses"
+      "detail": "$sp varies: 0xfdffda84aad0 0xfdfff33afad0 0xfdffd2764ad0",
+      "fallback": "ADR 0010: challenges must not depend on stack or heap addresses; lessons say they change on every run"
     },
     {
       "check": "aslr-direct-main",
       "category": "gdb",
       "runtime": "runsc",
       "status": "PASS",
-      "detail": "&main=0x400bec in 3 direct runs",
+      "detail": "&main=0x4005bc in 3 direct runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-direct-libc",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "&printf=0x402eb0 in 3 direct runs",
       "fallback": ""
     },
     {
@@ -156,7 +172,15 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "INFO",
-      "detail": "stack randomized without gdb (expected): 0xfdffe28b7d5c 0xfdffe762bd5c 0xfdffd659bd5c",
+      "detail": "stack randomized without gdb (expected): 0xfdffc6d4fd54 0xfdffde9bfd54 0xfdffe4009d54",
+      "fallback": ""
+    },
+    {
+      "check": "no-shared-libs",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "/proc/self/maps: 10 mappings, none from a loader or shared library",
       "fallback": ""
     },
     {
@@ -180,7 +204,7 @@
       "category": "gdb",
       "runtime": "runsc",
       "status": "FAIL",
-      "detail": "Program received signal SIGSEGV, Segmentation fault.",
+      "detail": "  x29 at 0xfdffcc645ad0, x30 at 0xfdffcc645ad8/opt/perf/session.gdb:18: Error in sourced command file:",
       "fallback": ""
     },
     {
@@ -228,7 +252,7 @@
       "category": "sandbox",
       "runtime": "runsc",
       "status": "PASS",
-      "detail": "fork stopped after 30 children (EAGAIN); sandbox survived; host tasks peak 85",
+      "detail": "fork stopped after 30 children (EAGAIN); sandbox survived; host tasks peak 86",
       "fallback": ""
     },
     {
@@ -252,7 +276,7 @@
       "category": "sandbox",
       "runtime": "runsc",
       "status": "PASS",
-      "detail": "host CPU 0.51 cores for a busy loop (quota 0.5); in-sandbox view 0.82",
+      "detail": "host CPU 0.51 cores for a busy loop (quota 0.5); in-sandbox view 0.86",
       "fallback": ""
     },
     {
@@ -260,7 +284,7 @@
       "category": "sandbox",
       "runtime": "runsc",
       "status": "INFO",
-      "detail": "idle shell: cgroup memory peak 14 MiB, host tasks 20, create 32 ms, start 23 ms",
+      "detail": "idle shell: cgroup memory peak 15 MiB, host tasks 19, create 32 ms, start 23 ms",
       "fallback": ""
     },
     {
@@ -316,7 +340,7 @@
       "category": "gdb",
       "runtime": "runc",
       "status": "PASS",
-      "detail": "skipped line 140",
+      "detail": "skipped line 156",
       "fallback": ""
     },
     {
@@ -372,7 +396,15 @@
       "category": "gdb",
       "runtime": "runc",
       "status": "PASS",
-      "detail": "&main=0x400bec in 3 runs",
+      "detail": "&main=0x4005bc in 3 runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-gdb-libc",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "&printf=0x402eb0 in 3 runs",
       "fallback": ""
     },
     {
@@ -388,7 +420,7 @@
       "category": "gdb",
       "runtime": "runc",
       "status": "PASS",
-      "detail": "$sp=0xfffffffffcb0 in 3 runs",
+      "detail": "$sp=0xfffffffffaa0 in 3 runs",
       "fallback": ""
     },
     {
@@ -396,7 +428,15 @@
       "category": "gdb",
       "runtime": "runc",
       "status": "PASS",
-      "detail": "&main=0x400bec in 3 direct runs",
+      "detail": "&main=0x4005bc in 3 direct runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-direct-libc",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "&printf=0x402eb0 in 3 direct runs",
       "fallback": ""
     },
     {
@@ -404,7 +444,15 @@
       "category": "gdb",
       "runtime": "runc",
       "status": "INFO",
-      "detail": "stack randomized without gdb (expected): 0xffffc5fed15c 0xfffff87d675c 0xffffcb61760c",
+      "detail": "stack randomized without gdb (expected): 0xffffc2daea94 0xffffe6c1e2a4 0xfffff1b99474",
+      "fallback": ""
+    },
+    {
+      "check": "no-shared-libs",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "/proc/self/maps: 9 mappings, none from a loader or shared library",
       "fallback": ""
     },
     {
@@ -484,7 +532,7 @@
       "category": "sandbox",
       "runtime": "runc",
       "status": "PASS",
-      "detail": "nofile 256, fsize 32 MiB, nproc 32, core 0",
+      "detail": "nofile 256, fsize 32 MiB, nproc inf, core 0",
       "fallback": ""
     },
     {
@@ -500,7 +548,7 @@
       "category": "sandbox",
       "runtime": "runc",
       "status": "PASS",
-      "detail": "host CPU 0.50 cores for a busy loop (quota 0.5); in-sandbox view 0.50",
+      "detail": "host CPU 0.51 cores for a busy loop (quota 0.5); in-sandbox view 0.51",
       "fallback": ""
     },
     {
@@ -508,7 +556,7 @@
       "category": "sandbox",
       "runtime": "runc",
       "status": "INFO",
-      "detail": "idle shell: cgroup memory peak 3 MiB, host tasks 6, create 29 ms, start 3 ms",
+      "detail": "idle shell: cgroup memory peak 2 MiB, host tasks 6, create 29 ms, start 3 ms",
       "fallback": ""
     },
     {

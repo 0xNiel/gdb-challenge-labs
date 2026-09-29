@@ -23,6 +23,16 @@ Options:
 
 **Update 2026-09-29:** the x86-64 laptop's P0 passes every gdb check under gVisor. The crash is **arm64-only**, so production is not affected.
 
+**Update 2026-09-29, static binaries (ADR 0010):** the loader crash is gone, because there is no loader. arm64 gVisor now passes 20 checks instead of 14. It still fails 7, from three gVisor arm64 ptrace gaps that the loader crash used to hide (tested by hand on the dev VM):
+
+| Symptom | Checks it breaks | Test that isolates it |
+| --- | --- | --- |
+| Stepping over an inserted breakpoint crashes the program (SIGSEGV, corrupted frame pointer). gdb does this with displaced stepping on aarch64 | `next`, `continue` from a breakpoint, watchpoints, `jump`, `set var` then `continue` | `break f`, `run`, `continue` crashes. Adding `delete` first, or `set displaced-stepping off`, makes it run to the end. Plain `stepi` works |
+| Reading the FP/SIMD register set fails: `Unable to fetch vFP/SIMD registers: Invalid argument` | `return`, `call`, `info frame` (so `session.gdb`) | `break f`, `run`, `return` |
+| With displaced stepping off, `next` runs the program to the end instead of stopping on the next line | `next`, `step`, `finish` | `set displaced-stepping off`, `break f`, `run`, `next` |
+
+Checks that stop and inspect without resuming past a breakpoint pass: breakpoint and `bt`, `print`/`x`/`ptype`, threads, `signal` (it deletes the breakpoint first), core files, and every ASLR row. The dev-VM P0 in `docs/metrics/p0-2026-09-29-dev-vm.md` records this. The lab gdbinit is unchanged: `set displaced-stepping off` would only trade one arm64 failure for another, and production is x86-64.
+
 **Default in force:** (a). Mac developers use runc for gdb work, and gVisor-specific checks run on x86-64. File (c) upstream when convenient. This matters again only for the arm64 tier (post-MVP tier 6).
 
 ### Q14. Keep `set disable-randomization on` in the lab gdbinit?
