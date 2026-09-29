@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"gdblabs/labd/internal/config"
+	"gdblabs/labd/internal/store"
 )
 
 // version is set at build time with -ldflags "-X main.version=...".
@@ -38,6 +39,10 @@ func run(args []string, stdout *os.File) error {
 	fs := flag.NewFlagSet("labd", flag.ContinueOnError)
 	cfgPath := fs.String("config", "labd.yaml", "path to labd.yaml")
 	showVersion := fs.Bool("version", false, "print version and exit")
+	fs.Usage = func() {
+		fmt.Fprintln(fs.Output(), "usage: labd [-config labd.yaml] [serve|migrate]")
+		fs.PrintDefaults()
+	}
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -45,21 +50,55 @@ func run(args []string, stdout *os.File) error {
 		fmt.Fprintln(stdout, "labd", version)
 		return nil
 	}
+	cmd := "serve"
+	if fs.NArg() > 0 {
+		cmd = fs.Arg(0)
+	}
+	if fs.NArg() > 1 {
+		return fmt.Errorf("unexpected arguments after %s: %v", cmd, fs.Args()[1:])
+	}
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	cfg, err := config.Load(*cfgPath)
 	if err != nil {
 		return err
 	}
-
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	ln, err := net.Listen("tcp", cfg.ListenInternal)
-	if err != nil {
-		return fmt.Errorf("listen %s: %w", cfg.ListenInternal, err)
+	switch cmd {
+	case "serve":
+		ln, err := net.Listen("tcp", cfg.ListenInternal)
+		if err != nil {
+			return fmt.Errorf("listen %s: %w", cfg.ListenInternal, err)
+		}
+		return serve(ctx, ln, log)
+	case "migrate":
+		return migrate(ctx, cfg, stdout)
+	default:
+		fs.Usage()
+		return fmt.Errorf("unknown command %q", cmd)
 	}
-	return serve(ctx, ln, log)
+}
+
+// migrate applies labd's embedded SQL migrations (ADR 0003, ADR 0011).
+func migrate(ctx context.Context, cfg config.Config, stdout *os.File) error {
+	db, err := store.OpenPostgres(ctx, cfg.PostgresDSN)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	applied, err := db.Migrate(ctx)
+	if err != nil {
+		return err
+	}
+	if len(applied) == 0 {
+		fmt.Fprintln(stdout, "migrate: up to date")
+	}
+	for _, v := range applied {
+		fmt.Fprintln(stdout, "migrate: applied", v)
+	}
+	return nil
 }
 
 // serve runs the internal HTTP server on ln until ctx is cancelled, then drains.

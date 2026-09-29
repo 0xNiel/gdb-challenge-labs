@@ -4,6 +4,8 @@ go 1.26.6
 
 require (
 	github.com/containerd/containerd/v2 v2.4.1
+	github.com/containerd/errdefs v1.0.0
+	github.com/jackc/pgx/v5 v5.11.0
 	github.com/opencontainers/runtime-spec v1.3.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -15,7 +17,6 @@ require (
 	github.com/containerd/cgroups/v3 v3.1.3 // indirect
 	github.com/containerd/containerd/api v1.12.0 // indirect
 	github.com/containerd/continuity v0.5.0 // indirect
-	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/fifo v1.1.0 // indirect
 	github.com/containerd/log v0.2.0 // indirect
@@ -29,6 +30,9 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/moby/locker v1.0.1 // indirect

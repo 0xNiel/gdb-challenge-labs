@@ -16,7 +16,7 @@ Go module `gdblabs/labd`: the orchestrator, terminal gateway, metrics sampler an
 | `internal/perf/` | Profiles, virtual users, collector, report | 4 |
 | `internal/flag/` | Flag derivation (ADR 0005) | 5 |
 | `sandbox/` | `sandbox-base.json` OCI spec and its README | 1 |
-| `migrations/` | `NNNN_*.sql` applied by `labd migrate` | 2 |
+| `internal/store/migrations/` | `NNNN_*.sql`, embedded, applied by `labd migrate` and at boot (ADR 0011) | 2 |
 | `perf/` | Shell wrappers: `p0/`, `p1.sh`, `p4lite.sh`, `p5.sh`, `p7.sh`, `p9.sh`, `runall.sh` | 1–4 |
 | `testpage/` | Dev-only xterm.js page and vendored assets | 3 |
 | `integration/` | `//go:build integration` tests against real containerd (run in the VM) | 2, 3 |
