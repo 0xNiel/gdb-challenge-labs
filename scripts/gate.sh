@@ -111,7 +111,27 @@ phase_1() {
     fail "x86-64 single-lab lacks runsc start latency or at-breakpoint memory ($(basename "$sl"))"
   fi
 }
-phase_2() { not_wired; }   # Phase 2, task 2.13
+phase_2() {
+  say "unit tests (go vet, go test -race)"
+  check "run.sh test --go" "$RUN" test --go
+  say "integration tests (real containerd, runsc, Postgres)"
+  check "run.sh test --integration" "$RUN" test --integration
+  say "P4-lite and P5-lite on this host"
+  # Scratch output, as in phase 1: committed numbers come from an explicit
+  # `LAB_HOST=<label> ./run.sh perf --scenario P4-lite --hold 10m` run (docs/STATUS.md).
+  local scratch="$ROOT/.scratch/gate-p2"
+  mkdir -p "$scratch"
+  check "P4-lite: 10 min churn at cap 20, no leak" "$RUN" perf --scenario P4-lite --hold 10m --out "$scratch"
+  rm -rf "$scratch"
+  check "P5-lite: kill -9 labd at 20 labs, all adopted within 15 s" "$RUN" perf --scenario P5-lite
+  check_no_containers
+  say "recorded create latency (x86-64, ADR 0001)"
+  check_file "create-latency report" "$ROOT/docs/metrics/create-latency-*.md"
+  local cl
+  cl="$(newest_json create-latency '.arch == "x86_64" and .host != "dev-vm"')"
+  if [[ -n "$cl" ]]; then pass "x86-64 create latency recorded ($(basename "$cl"))"
+  else fail "no create latency from an x86-64 host yet: on the laptop run LAB_HOST=linux-laptop ./run.sh perf --scenario P4-lite --hold 10m, commit docs/metrics"; fi
+}
 phase_3() { not_wired; }   # Phase 3, task 3.11
 phase_4() { not_wired; }   # Phase 4, task 4.13
 phase_5() { not_wired; }   # Phase 5, task 5.15

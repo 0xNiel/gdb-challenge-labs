@@ -11,6 +11,23 @@
 
 `labd` creates, tracks and destroys lab containers through containerd with the sandbox spec from Phase 1, enforces the concurrency cap, per-user cap, queue, idle and hard timeouts, survives its own restart without leaking a container, and exposes the internal HTTP API. No WebSocket yet: the PTY is created but only a test harness reads it.
 
+## As built (2026-09-29) — read this before the design below
+
+Where the implementation differs from the text below, this list wins:
+
+- **labd runs as a non-root user in the `containerd` group** (S10). With its own FIFO directory (`$RUNTIME_DIRECTORY/fifo` under systemd, else `$TMPDIR/labd-<uid>/fifo`), containerd needs nothing else. Integration tests and the perf scripts run the same way through `scripts/with-containerd-group.sh`.
+- **`Runtime`** also has `Remove(ctx, id)` for the reconciler. `Container.Done()` (closed on exit) replaces `Wait`. The runsc options file (`/etc/containerd/runsc.toml`) is not passed: systrap is gVisor's default platform, and passing it would need gVisor's Go module.
+- **Semaphore**: a counter under the Manager's mutex, not a buffered channel, so the cap can shrink without killing. There is no dispatcher goroutine: whoever frees a slot admits the queue head. The queue lives in `manager.go`; its tests are in `queue_test.go`.
+- **Slots**: a session holds its slot from admission until its container is deleted, so the container count never exceeds `active`. The one exception: if containerd fails to delete a container, the slot is freed anyway (holding it would shrink capacity until a restart), and the reconciler removes the leftover on the next boot.
+- **Shutdown**: on SIGTERM labd closes the Manager first. From then on no timer fires, no lab is torn down, and a failed containerd `Wait` is retried rather than read as an exit, so every lab survives a graceful restart or a containerd restart. P5-lite checks both `kill -9` and SIGTERM restarts.
+- **Hard TTL** counts from admission, which is also the container's `lab.created_at`. Containers also carry `lab.ttl_minutes` and `lab.idle_minutes`, so the reconciler needs nothing else to rebuild timers.
+- **Extend** makes the idle window `extend_minutes` longer for the rest of the session; the hard TTL does not move. There is no API route yet; web's "extend" button arrives with Phase 3 or 6.
+- **End reasons** beyond the spec's: `task_exited`, `queue_timeout`, `create_failed`, `reconciled`.
+- **Terminal**: the output is always drained into a 64 KiB scrollback (`Manager.Output`) with subscribers, and `Manager.WriteInput` counts as activity. Phase 3 builds on both.
+- **Store** (ADR 0011): `sessions.challenge_slug` instead of `challenge_id`, plus `image` and `extended`. Migrations are in `labd/internal/store/migrations/`.
+- **Sandbox spec**: compiled into labd by `labd/sandbox/embed.go`, so no config key points at it.
+- **P4-lite** ramps to the cap and then, every 2 s, starts one session and stops a random running one. It asserts active and containers stay at or under the cap, containers == active once quiet, and no containers or goroutines are left at the end. It then measures labd at exactly 20 sessions. **P5-lite** has no API for terminal I/O yet, so `integration/attach_test.go` checks that keystrokes and output flow through a terminal re-attached after its creator died. Both run via `./run.sh perf --scenario P4-lite|P5-lite`.
+
 ## Design fixed by this document
 
 - **Packages**: `internal/config` (Phase 0), `internal/orch` (sessions, semaphore, queue, reconciler, spec builder), `internal/store` (Postgres via pgx; `sessions`, `events`, `samples` writes; embedded SQL migrations), `internal/api` (internal HTTP), `internal/clock` (interface `Now()`, `NewTimer()`, `After()` with a fake for tests).
@@ -105,9 +122,9 @@ Unit (host): spec golden + structural, manager, queue, timers, reload, reconcile
 ```
 1. `go vet ./... && go test -race ./...` in `labd/`.
 2. `./run.sh test --integration` green in the VM.
-3. `labd/perf/p4lite.sh` and `labd/perf/p5.sh` exit 0.
+3. `labd/perf/p4lite.sh` and `labd/perf/p5.sh` exit 0 (`./run.sh perf --scenario P4-lite --hold 10m` and `--scenario P5-lite`; the gate's own P4-lite writes to `.scratch/`).
 4. `ctr -n labs c ls -q | wc -l` is `0` after the run.
-5. `docs/metrics/create-latency-*.md` exists.
+5. `docs/metrics/create-latency-*.md` exists, and one `create-latency-*.json` comes from an x86-64 host (ADR 0001: container work is verified on x86-64 before a gate).
 
 ## Metrics to record
 

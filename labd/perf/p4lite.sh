@@ -129,7 +129,7 @@ jq -n --arg host "$host" --arg arch "$(uname -m)" --arg kernel "$(uname -r)" --a
   echo
   echo "| Metric | Value |"
   echo "| --- | --- |"
-  echo "| Sessions started / stopped during churn | $STARTS / $STOPS |"
+  echo "| Sessions started / stopped by the script (churn plus top-up) | $STARTS / $STOPS |"
   echo "| Create to running (slot acquired to task running), n | $n_lat |"
   echo "| Create to running p50 / p95 / max (ms) | $p50 / $p95 / $mx |"
   echo "| POST /internal/sessions response p50 / p95 (ms) | $h50 / $h95 |"
