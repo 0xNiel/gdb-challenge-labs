@@ -3,9 +3,11 @@
  * Not a challenge: it has one of each thing gdb needs to handle, and markers the P0
  * script finds by grepping this file (lines containing "P0-").
  *
- * Build: gcc -O0 -g -no-pie -fno-pie -fno-stack-protector -pthread (images/perf/build.sh)
+ * Build: gcc -O0 -g -static -no-pie -fno-pie -fno-stack-protector -pthread
+ *        (images/perf/build.sh; static because gVisor cannot turn ASLR off, ADR 0010)
  * Usage: perf            normal run; prints main address, totals, report line
  *        perf addr       print addresses and exit (ASLR check without gdb)
+ *        perf maps       print /proc/self/maps and exit (no loader or shared library)
  *        perf crash      NULL dereference (used to generate perf.core)
  */
 #include <pthread.h>
@@ -106,7 +108,21 @@ int main(int argc, char **argv)
 	void *heap = malloc(64);
 
 	if (argc > 1 && strcmp(argv[1], "addr") == 0) {
-		printf("addr main=%p stack=%p heap=%p\n", (void *)main, (void *)&local, heap);
+		printf("addr main=%p libc=%p stack=%p heap=%p\n", (void *)main, (void *)printf,
+		       (void *)&local, heap);
+		return 0;
+	}
+	if (argc > 1 && strcmp(argv[1], "maps") == 0) {
+		FILE *f = fopen("/proc/self/maps", "r");
+		char line[512];
+		if (!f) {
+			perror("maps");
+			return 1;
+		}
+		while (fgets(line, sizeof line, f))
+			printf("maps %s", line);
+		fclose(f);
+		printf("maps end\n");
 		return 0;
 	}
 	if (argc > 1 && strcmp(argv[1], "crash") == 0)

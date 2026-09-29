@@ -24,6 +24,9 @@ print sizeof(struct account)
 x/5dw scores
 
 # profile: stepper
+# Into sum_scores (breakpoint 2), where `i` exists. With a dynamic binary, `display i` in
+# main silently bound to a global `i` in the musl loader; static binaries have none (ADR 0010).
+continue
 next
 next
 step

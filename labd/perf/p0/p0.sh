@@ -83,6 +83,7 @@ inbox() {
 stat() { sed -n 's/^specrun-stats: //p' "$STATS_FILE" | tail -n1 | jq -r "$1 // empty"; }
 g() { inbox 60 gdb -batch "$@" /opt/perf/perf; }            # gdb on perf
 has() { grep -qE -- "$1" <<<"$2"; }
+same3() { [[ -n "$1" && "$1" == "$2" && "$2" == "$3" ]]; }     # three identical, non-empty values
 first() { grep -m1 -E -- "$1" <<<"$2" | cut -c1-160 || true; } # first matching line, for details
 why() { # short reason for a failed gdb check; the ASLR warning is reported by its own row
   local o r
@@ -149,40 +150,54 @@ check_gdb() {
   if has 'SIGSEGV' "$o" && has 'crash' "$o"; then row core-file gdb PASS "core loads; bt shows crash()"
   else row core-file gdb FAIL "$(why "$o")"; fi
 
-  # ASLR. Code and globals must be fixed (-no-pie); the stack is only fixed if gdb's
-  # personality(ADDR_NO_RANDOMIZE) works under this runtime.
-  local mains=() sps=() warn=""
+  # ASLR (ADR 0010). gVisor cannot turn it off, so binaries are -static -no-pie: code, globals
+  # and libc must be fixed. The stack is only fixed where gdb's personality(ADDR_NO_RANDOMIZE)
+  # works (runc); under gVisor it moves, which is the documented fallback.
+  local mains=() libcs=() sps=() warn=""
   for _ in 1 2 3; do
     # shellcheck disable=SC2016  # $sp is a gdb register, not a shell variable
-    o="$(g -ex 'break main' -ex run -ex 'printf "P0 main=%p sp=%p\n", &main, $sp')"
+    o="$(g -ex 'break main' -ex run -ex 'printf "P0 main=%p libc=%p sp=%p\n", &main, (void *)&printf, $sp')"
     mains+=("$(sed -n 's/^P0 main=\([^ ]*\) .*/\1/p' <<<"$o")")
-    sps+=("$(sed -n 's/.* sp=\(.*\)$/\1/p' <<<"$o")")
+    libcs+=("$(sed -n 's/^P0 .* libc=\([^ ]*\) .*/\1/p' <<<"$o")")
+    sps+=("$(sed -n 's/^P0 .* sp=\(.*\)$/\1/p' <<<"$o")")
     has 'Error disabling address space randomization' "$o" && warn=yes
   done
-  if [[ -n "${mains[0]}" && "${mains[0]}" == "${mains[1]}" && "${mains[1]}" == "${mains[2]}" ]]; then
-    row aslr-gdb-main gdb PASS "&main=${mains[0]} in 3 runs"
+  if same3 "${mains[@]}"; then row aslr-gdb-main gdb PASS "&main=${mains[0]} in 3 runs"
   else row aslr-gdb-main gdb FAIL "&main varies: ${mains[*]:-none}"; fi
+  if same3 "${libcs[@]}"; then row aslr-gdb-libc gdb PASS "&printf=${libcs[0]} in 3 runs"
+  else row aslr-gdb-libc gdb FAIL "&printf varies (binary not static? ADR 0010): ${libcs[*]:-none}"; fi
   if [[ -n "$warn" ]]; then
     row disable-randomization gdb FALLBACK "gdb: personality(ADDR_NO_RANDOMIZE) fails (EINVAL)" \
-      "binaries are -no-pie so code and globals are fixed; challenges must not depend on stack or heap addresses"
+      "ADR 0010: binaries are -static -no-pie, so code, globals and libc are fixed; stack and heap move, and challenges must not depend on them"
   else row disable-randomization gdb PASS "gdb disabled ASLR without warnings"; fi
-  if [[ -n "${sps[0]}" && "${sps[0]}" == "${sps[1]}" && "${sps[1]}" == "${sps[2]}" ]]; then
+  if same3 "${sps[@]}"; then
     row aslr-gdb-stack gdb PASS "\$sp=${sps[0]} in 3 runs"
   else
-    row aslr-gdb-stack gdb FALLBACK "\$sp varies: ${sps[*]:-none}" "challenges must not depend on stack addresses"
+    row aslr-gdb-stack gdb FALLBACK "\$sp varies: ${sps[*]:-none}" "ADR 0010: challenges must not depend on stack or heap addresses; lessons say they change on every run"
   fi
 
-  local am=() as=()
+  local am=() al=() as=()
   for _ in 1 2 3; do
     o="$(inbox 30 /opt/perf/perf addr)"
     am+=("$(sed -n 's/^addr main=\([^ ]*\) .*/\1/p' <<<"$o")")
-    as+=("$(sed -n 's/.* stack=\([^ ]*\) .*/\1/p' <<<"$o")")
+    al+=("$(sed -n 's/^addr .* libc=\([^ ]*\) .*/\1/p' <<<"$o")")
+    as+=("$(sed -n 's/^addr .* stack=\([^ ]*\) .*/\1/p' <<<"$o")")
   done
-  if [[ -n "${am[0]}" && "${am[0]}" == "${am[1]}" && "${am[1]}" == "${am[2]}" ]]; then
-    row aslr-direct-main gdb PASS "&main=${am[0]} in 3 direct runs"
+  if same3 "${am[@]}"; then row aslr-direct-main gdb PASS "&main=${am[0]} in 3 direct runs"
   else row aslr-direct-main gdb FAIL "&main varies: ${am[*]:-none}"; fi
-  if [[ "${as[0]}" == "${as[1]}" && "${as[1]}" == "${as[2]}" ]]; then row aslr-direct-stack gdb INFO "stack fixed without gdb: ${as[0]}"
+  if same3 "${al[@]}"; then row aslr-direct-libc gdb PASS "&printf=${al[0]} in 3 direct runs"
+  else row aslr-direct-libc gdb FAIL "&printf varies (binary not static? ADR 0010): ${al[*]:-none}"; fi
+  if same3 "${as[@]}"; then row aslr-direct-stack gdb INFO "stack fixed without gdb: ${as[0]}"
   else row aslr-direct-stack gdb INFO "stack randomized without gdb (expected): ${as[*]}"; fi
+
+  # ADR 0010: a lab process maps only its own binary and anonymous memory: no loader, no .so.
+  o="$(inbox 30 /opt/perf/perf maps)"
+  local libs
+  libs="$(grep '^maps ' <<<"$o" | grep -E 'ld-musl|\.so([.[:space:]]|$)' | awk '{print $NF}' | sort -u | tr '\n' ' ' || true)"
+  if has '^maps end' "$o" && has '^maps .*/opt/perf/perf' "$o" && [[ -z "$libs" ]]; then
+    row no-shared-libs gdb PASS "/proc/self/maps: $(grep -c '^maps [0-9a-f]' <<<"$o") mappings, none from a loader or shared library"
+  elif [[ -n "$libs" ]]; then row no-shared-libs gdb FAIL "shared objects mapped: $libs"
+  else row no-shared-libs gdb FAIL "$(why "$o")"; fi
 
   o="$(g -ex 'shell wget http://1.1.1.1/' -ex 'shell nc 1.1.1.1 80' -ex 'python print(12345)')"
   if has 'wget: not found' "$o" && has 'nc: not found' "$o"; then row gdb-shell-tools gdb PASS "wget and nc not found from gdb's shell"
