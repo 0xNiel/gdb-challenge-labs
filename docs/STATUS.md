@@ -4,18 +4,7 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
-**Phase 1 — gVisor + gdb spike.** In progress on branch `phase-1-gvisor-gdb-spike`. Tasks 1.1–1.8 are built. Lab binaries are now static (ADR 0010). The gate passes every check it can on the Mac. It is waiting only for **x86-64 results from the Linux laptop**, re-run with the static perf image and the runc fix. First push this branch from the Mac (`git push`; not done by the agent), then on the laptop:
-
-```
-git pull && ./run.sh vm up
-./run.sh gate --phase 1                                  # builds images, runs P0 on this host (scratch)
-LAB_HOST=linux-laptop ./run.sh perf --scenario P0          # the authoritative P0
-LAB_HOST=linux-laptop ./run.sh perf --scenario single-lab  # ~3 minutes
-git add docs/metrics && git commit -m "[P1] metrics: x86-64 P0 and single-lab" && git push
-./run.sh gate --phase 1                                  # must now pass
-```
-
-Expected on the laptop: runsc has no FAIL rows, and FALLBACK only for `hw-watchpoint`, `disable-randomization` and `aslr-gdb-stack`; runc has no FAIL rows. If any new ASLR row (`aslr-gdb-libc`, `aslr-direct-libc`, `no-shared-libs`) fails, stop: ADR 0010 does not hold on x86-64.
+**Phase 1 — gVisor + gdb spike: done.** The gate passed on the x86-64 laptop on 2026-09-29 (output in the log below). The branch `phase-1-gvisor-gdb-spike` waits for the owner's review. Do not merge to `main` or start Phase 2 until the owner decides.
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -34,11 +23,11 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | Phase | Name | State | Gate result | Date |
 | --- | --- | --- | --- | --- |
 | 0 | Bootstrap: repo, toolchain, dev VM | done (0.9 open, non-blocking) | passed on Mac and laptop | 2026-09-28 |
-| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | in progress: needs x86-64 P0 and single-lab | Mac: all local checks pass | 2026-09-29 |
-| 2 | labd core (sessions, semaphore, reconciler) | blocked on 1 | — | — |
+| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; awaiting owner review before merge | passed on the laptop (x86-64) | 2026-09-29 |
+| 2 | labd core (sessions, semaphore, reconciler) | not started (owner review of Phase 1 first) | — | — |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | blocked on 2 | — | — |
 | 4 | Perf suite and measured capacity | blocked on 3 | — | — |
-| 5 | Challenge pipeline and tier 1 content | blocked on 1 | — | — |
+| 5 | Challenge pipeline and tier 1 content | not started (owner review of Phase 1 first) | — | — |
 | 6 | Django web app | blocked on 3, 5 | — | — |
 | 7 | Metrics, rollups, admin live view | blocked on 6 | — | — |
 | 8 | Production on the VPS, tiers 2–3, beta | blocked on 4, 7 | — | — |
@@ -51,9 +40,51 @@ States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`.
 
 ## Measured numbers so far
 
-Dev VM only (arm64, not authoritative; see [metrics/capacity.md](metrics/capacity.md) "Dev VM observations"). gVisor idle lab 14 MiB, gdb at prompt 23 MiB, start to prompt p95 513 ms warm, CPU quota exact. Every capacity estimate still stands until the laptop's x86-64 numbers arrive.
+x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, rows in [metrics/capacity.md](metrics/capacity.md)):
+- **Memory:** gVisor 25.8 MiB cgroup p95 at a breakpoint, against the spec's estimate of ~130 MB. runc uses 13.1 MiB.
+- **Start latency:** container to gdb prompt, p95 1543 ms (target < 2 s).
+- **Base image:** 28.4 MiB.
+
+Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-09-29 — Phase 1 gate passed on the x86-64 laptop
+- **Laptop P0** (`docs/metrics/p0-2026-09-29-linux-laptop.*`, static perf image):
+  - runsc: 27 PASS, 3 FALLBACK, 0 FAIL. The FALLBACKs are `hw-watchpoint`, `disable-randomization` and `aslr-gdb-stack`, all documented.
+  - runc: 30 PASS, 0 FAIL.
+  - Every ADR 0010 row passes on x86-64: `&main` 0x401342 and `&printf` 0x403aae are fixed under gdb and run directly, and no shared library is mapped.
+- **Laptop single-lab** (`docs/metrics/single-lab-2026-09-29-linux-laptop.*`):
+
+  | Metric | runsc | runc |
+  | --- | --- | --- |
+  | Start to gdb prompt p50 / p95 | 1463 / 1543 ms | 312 / 466 ms |
+  | cgroup memory p95, at a breakpoint | 25.8 MiB | 13.1 MiB |
+  | Sentry RSS p95 | 45.5 MiB (includes shared pages) | n/a |
+  | session.gdb wall | 2723 ms | 425 ms |
+- **capacity.md:** the rows Phase 1 measures now carry these numbers and cite their source files. They cover memory per lab, Sentry RSS, total per lab, start latency, base image size, and gVisor memory and start overhead. Still *est.*:
+  - `step` latency, which Phase 4 measures per command. The whole session is 6.4× slower under gVisor, which is an early warning against the < 2× target.
+  - The 200-challenge image total (Phase 5).
+  - `max_sessions` (Phase 4).
+- The single-lab JSON fields end in `_mb`, but the values are MiB; capacity.md says so. Renaming the fields can wait until Phase 4 rewrites the report schema.
+- **Next:** the owner reviews the branch and decides whether to merge it and when to start Phase 2 or Phase 5.
+
+Phase 1 gate on the Linux laptop:
+```
+==> gate for phase 1 — 2026-09-29T17:14Z — linux-laptop
+==> [gate 1] images
+  PASS  labbase builds
+  PASS  labbase contents (images/labbase/test.sh)
+  PASS  perf image builds; binaries reproducible
+==> [gate 1] unit tests (spec golden file, invariants, cgroup parsing)
+  PASS  run.sh test --all
+==> [gate 1] P0 and single-lab run on this host
+  PASS  P0 completes (runsc and runc)
+==> [gate 1] authoritative results (x86-64, ADR 0001)
+  PASS  x86-64 P0 has no runsc FAIL rows (p0-2026-09-29-linux-laptop.json)
+  PASS  x86-64 single-lab has runsc start latency and at-breakpoint memory (single-lab-2026-09-29-linux-laptop.json)
+==> GATE 1 PASSED. Paste this output into docs/STATUS.md.
+```
 
 ### 2026-09-29 — static lab binaries (ADR 0010)
 - **Decision (owner):** gVisor cannot turn ASLR off: `personality(ADDR_NO_RANDOMIZE)` returns EINVAL, and host sysctls do not reach the sandbox. Every lab binary is now linked `-static -no-pie -fno-pie`, so code, globals and libc are fixed. Stack and heap still move; no exercise may depend on them. ADR 0010 lists the rejected options. CONVENTIONS and the Phase 5 plan now require `-static`. The spec is unchanged; the ADR overrides it.
