@@ -52,7 +52,7 @@ gdb Challenge Labs — ./run.sh <command> [flags]
 
   images labbase|perf|build|all
   images challenge <dir> [--push]
-  perf --scenario P0|single-lab|P1..P9 [--n N] [--hold 20m] [--ramp 5] [--runtime runsc|runc|both] [--out DIR]
+  perf --scenario P0|single-lab|P4-lite|P5-lite|P1..P9 [--n N] [--hold 20m] [--ramp 5] [--runtime runsc|runc|both] [--out DIR]
                                P0 and single-lab default to --runtime both. Label results with LAB_HOST
                                (e.g. LAB_HOST=linux-laptop); default: dev-vm in Lima, else the hostname
   gate --phase N               exit test for phase N (scripts/gate.sh)
@@ -488,6 +488,15 @@ cmd_images() {
   esac
 }
 
+# duration_s 10m|90s|600 — seconds.
+duration_s() {
+  case "$1" in
+    *m) echo $(( ${1%m} * 60 )) ;;
+    *s) echo "${1%s}" ;;
+    *) echo "$1" ;;
+  esac
+}
+
 cmd_perf() {
   local scenario="" n=10 hold="20m" ramp=5 runtime="" out="$METRICS_DIR"
   while [[ $# -gt 0 ]]; do
@@ -503,6 +512,12 @@ cmd_perf() {
         run_linux bash "$LABD_DIR/perf/p0/p0.sh" --runtime "${runtime:-both}" --out "$out" ${LAB_HOST:+--host "$LAB_HOST"} ;;
     single-lab)
         run_linux bash "$LABD_DIR/perf/single-lab.sh" --runtime "${runtime:-both}" --out "$out" ${LAB_HOST:+--host "$LAB_HOST"} ;;
+    # Phase 2: churn at cap 20 (--hold is the churn time, e.g. 10m) and crash recovery at 20.
+    P4-lite)
+        local secs; secs="$(duration_s "${hold}")"
+        run_linux env ${LAB_HOST:+LAB_HOST="$LAB_HOST"} bash "$LABD_DIR/perf/p4lite.sh" --duration "$secs" --out "$out" ;;
+    P5-lite)
+        run_linux bash "$LABD_DIR/perf/p5.sh" ;;
     P1|P2|P3|P4|P5|P6|P7|P8|P9)
         [[ -x "$LABD_DIR/bin/labd-perf" ]] || cmd_build
         run_linux "$LABD_DIR/bin/labd-perf" run --scenario "$scenario" --n "$n" --hold "$hold" \
