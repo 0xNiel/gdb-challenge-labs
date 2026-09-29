@@ -30,7 +30,7 @@ What becomes easier, what becomes harder, what to revisit and when.
 | spec | `objdump`/`readelf`/`nm` in every tier | accepted | spec |
 | spec | Every command line captured, 90-day raw retention | accepted | spec |
 | spec | One Go daemon for orchestrator and gateway | accepted | spec |
-| spec | ASLR off by two mechanisms; hardware watchpoints off by default | accepted | spec |
+| spec | ASLR off by two mechanisms; hardware watchpoints off by default | ASLR part superseded by 0010 | spec |
 | spec | No Kubernetes, no Docker daemon on the VPS, containerd + runsc directly | accepted | spec |
 | [0001](0001-dev-environment.md) | Dev on arm64 Lima VM; authoritative numbers on x86-64 Linux | accepted | scaffold |
 | [0002](0002-python-django-versions.md) | Django 5.2 LTS on Python 3.13 via uv | accepted | scaffold |
@@ -41,3 +41,4 @@ What becomes easier, what becomes harder, what to revisit and when.
 | [0009](0009-pids-limit-under-gvisor.md) | Lab process limit via RLIMIT_NPROC; cgroup pids gets gVisor headroom | accepted | Phase 1 finding |
 | [0008](0008-no-github-actions.md) | No GitHub Actions until the owner asks; all checks run locally | accepted | owner, 2026-09-27 |
 | [0007](0007-gvisor-terminal-io-only.md) | Start gVisor containers in terminal mode only; non-terminal I/O hangs | accepted | Phase 0 finding |
+| [0010](0010-aslr-under-gvisor-static-linking.md) | gVisor cannot turn off ASLR; every lab binary is `-static -no-pie -fno-pie` | accepted | owner, 2026-09-29 |

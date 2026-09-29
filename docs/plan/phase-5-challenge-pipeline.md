@@ -15,14 +15,15 @@ Five tier-1 challenges exist as source, lesson, manifest, oracle and solution; a
 
 - **Flag derivation** (ADR 0005): `flag = "LAB{" + base32_std_nopad(HMAC_SHA256(key=DEPLOY_SECRET, msg=slug))[:24] + "}"`. Base32 is RFC 4648 standard alphabet, uppercase, padding stripped, first 24 characters. `DEPLOY_SECRET` is UTF-8 bytes; `slug` is the manifest slug as UTF-8. Implemented in Go (`labd/internal/flag`) and Python (`web/progress/flag.py`), both tested against `challenges/schema/flag_vectors.json` (10 vectors with a fixed test secret).
 - **Flag embedding**: `tools/flagblob` (Go, `labd/cmd/flagblob`) takes the flag and a `key_expr` description from the manifest and emits `flag_blob.h`: `static const unsigned char FLAG_BLOB[N]`, `static const unsigned FLAG_SEED_MIX` and an inline `flag_decode(unsigned key, char *out)` that runs a 32-bit xorshift PRNG seeded with `key ^ FLAG_SEED_MIX` and XORs the blob. The challenge's `report(unsigned key)` calls it and prints `out`. With the wrong key it prints 28 bytes of garbage. `key_expr` in the manifest documents what runtime value is the key (e.g. `total`), and `solve.gdb` reaches it.
+- **Addresses** (ADR 0010): code, globals and libc are at fixed addresses; the stack and the heap move on every `run`. No flag, `key_expr`, `solve.gdb` line or hint may depend on a stack or heap address. `solve.gdb` reaches things by name (`&users[2]`, `frame 1`, `$sp + 8`). Lesson 1 says that addresses change between runs and explains the `Error disabling address space randomization` warning in one sentence.
 - **Manifest schema** `challenges/schema/manifest.schema.json`: exactly the spec's YAML keys, plus `key_expr` (string) and `build.flags` (string) and `build.entry` (binary name). `image` must match `^ghcr\.io/[a-z0-9-]+/lab-[a-z0-9-]+@sha256:[a-f0-9]{64}$` once set; empty allowed before first build.
 - **Build script** `scripts/challenge-build.sh <challenge-dir> [--push] [--secret-env DEPLOY_SECRET]`:
   1. Lint manifest with the schema (`check-jsonschema` via `uv tool run`, or a Go validator in `labd/cmd/manifestlint`; choose the Go one to avoid a Python dependency in CI images).
   2. Compute flag; generate `flag_blob.h` into a temp build dir.
-  3. Build in `images/build` container with the manifest flags plus mandatory `-no-pie -fno-pie`, `SOURCE_DATE_EPOCH=0`. Build twice; hashes must match.
+  3. Build in `images/build` container with the manifest flags plus mandatory `-static -no-pie -fno-pie` (ADR 0010), `SOURCE_DATE_EPOCH=0`. Build twice; hashes must match. Reject the binary if `readelf -l` shows an `INTERP` program header (it is not static).
   4. `strings -n 4 binary | grep -c 'LAB{'` must be 0. Also grep for the flag body without braces.
   5. Oracle: run `gdb -batch -x solve.gdb binary` under `runsc` with the sandbox spec; stdout must contain the flag. Run `gdb -batch -ex run binary` (no fix); stdout must not contain the flag.
-  6. Assert `&main` identical across 3 runs (`gdb -batch -ex 'print &main'`).
+  6. Assert `&main` and `&printf` identical across 3 runs (`gdb -batch -ex 'print &main' -ex 'print &printf'`). Stack and heap addresses are not checked: under gVisor they move on every run (ADR 0010).
   7. Build image `FROM labbase` copying `src/`, binary and `README.md` into `/opt/lab/`, `WORKDIR /opt/lab`, `USER lab`. Tag `lab-<slug>:<git-sha>`. Never copy `solve.gdb`, `solution.md`, `manifest.yaml`, `flag_blob.h`.
   8. With `--push`: push to `ghcr.io/$GHCR_NAMESPACE/lab-<slug>`, read the digest, write it into `manifest.yaml` `image:`.
   9. Without `--push` (dev): import into containerd namespace `labs` and write `image:` as `local/lab-<slug>@sha256:<digest>` — accepted by the schema only when `ALLOW_LOCAL_IMAGES=1`.
@@ -88,7 +89,7 @@ Add `scripts/challenges-changed.sh [<base-ref>]`: lists challenge dirs changed s
 **Done when:** touching one challenge's `src/main.c` makes the helper build only that challenge, and touching `images/labbase/Dockerfile` makes it build all five.
 
 ### 5.14 Authoring guide
-`challenges/README.md`: the five design rules from the spec, hint ladder, how to write `solve.gdb`, how to run the oracle locally, how to test in the dev page, what never goes into the image.
+`challenges/README.md`: the five design rules from the spec, the address rule from ADR 0010, hint ladder, how to write `solve.gdb`, how to run the oracle locally, how to test in the dev page, what never goes into the image.
 **Done when:** a new challenge scaffolded with `challenge-new.sh` and written by following only the README passes the build script (do this with a sixth throwaway challenge, then delete it).
 
 ### 5.15 Wire the gate
@@ -96,7 +97,7 @@ Add `scripts/challenges-changed.sh [<base-ref>]`: lists challenge dirs changed s
 
 ## Tests
 
-Go unit: flag vectors, manifestlint cases, pull/prune. Integration: flagblob compile test, build script on TEMPLATE and on all five. Content: oracle solve/no-solve per challenge, leak check, `&main` stability, reproducible hash. Human: each lab played once.
+Go unit: flag vectors, manifestlint cases, pull/prune. Integration: flagblob compile test, build script on TEMPLATE and on all five. Content: oracle solve/no-solve per challenge, leak check, static binary, `&main` and `&printf` stability, reproducible hash. Human: each lab played once.
 
 ## Gate
 

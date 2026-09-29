@@ -25,6 +25,12 @@ Options:
 
 **Default in force:** (a). Mac developers use runc for gdb work, and gVisor-specific checks run on x86-64. File (c) upstream when convenient. This matters again only for the arm64 tier (post-MVP tier 6).
 
+### Q14. Keep `set disable-randomization on` in the lab gdbinit?
+
+Under gVisor it cannot work (ADR 0010), and gdb prints `warning: Error disabling address space randomization: Invalid argument` on every `run`. Under runc it works, but production never uses runc. Dropping the line silences the warning; keeping it matches the spec's `.gdbinit` list and does no harm.
+
+**Default in force:** keep it. Lesson 1 explains the warning in one sentence. Recommendation: drop it before the beta if learners report the warning as confusing; that is a one-line change and a `labbase` rebuild.
+
 ### Q11. Should challenge images also be built for arm64?
 
 Multi-arch challenge images would let a Mac developer play the labs inside the arm64 VM. But the lessons teach x86 registers and stack layouts, the oracle is x86-specific, and the perf numbers are x86-only anyway.

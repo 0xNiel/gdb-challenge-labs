@@ -47,7 +47,7 @@ These apply to every phase. A phase document may add rules; it may not relax the
 
 - Every image is pinned by digest, never by tag, once it leaves the dev machine.
 - `challenges/<tier>/<NN-slug>/` is the only place challenge content lives. Nothing is built on the VPS.
-- Build flags for every tier include `-no-pie -fno-pie`. `SOURCE_DATE_EPOCH` is set. Builds are reproducible: building twice yields the same binary hash, and the gate checks it.
+- Build flags for every tier include `-static -no-pie -fno-pie` (ADR 0010: gVisor cannot turn off ASLR, so libc must not be a shared library). Stack and heap addresses still change on every run; no exercise may depend on them. `SOURCE_DATE_EPOCH` is set. Builds are reproducible: building twice yields the same binary hash, and the gate checks it.
 
 ## Documentation
 

@@ -16,7 +16,7 @@ The base of every lab image. Build with `images/labbase/build.sh` (Docker on you
 
 | Setting | Value | Reason |
 | --- | --- | --- |
-| `disable-randomization` | on | ASLR off is a hard requirement for early tiers; binaries are also `-no-pie` |
+| `disable-randomization` | on | Works under runc only. gVisor refuses it (EINVAL) and gdb warns on every `run`; fixed addresses come from `-static -no-pie` builds instead (ADR 0010, QUESTIONS Q14) |
 | `can-use-hw-watchpoints` | 0 | Debug registers may not be available under gVisor; software watchpoints behave the same everywhere. P0 records whether hardware ones work |
 | `pagination` | off | Terminal is in a browser |
 | `confirm` | off | No y/n prompts |

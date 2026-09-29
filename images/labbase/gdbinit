@@ -2,7 +2,8 @@
 # because the sandbox sets XDG_CONFIG_HOME=/etc/lab-config. It cannot live in ~/.gdbinit:
 # /home/lab is an empty tmpfs at runtime. Alpine's gdb has no system-wide gdbinit.
 
-# ASLR off (spec: hard requirement for early tiers; binaries are also -no-pie).
+# ASLR off. gVisor refuses this (gdb warns on every run); lab binaries are -static -no-pie,
+# so code, globals and libc are fixed anyway. Stack and heap still move (ADR 0010).
 set disable-randomization on
 # Hardware watchpoints depend on debug registers gVisor may not expose; software everywhere.
 set can-use-hw-watchpoints 0
