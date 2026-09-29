@@ -1,0 +1,571 @@
+{
+  "host": "linux-laptop",
+  "arch": "x86_64",
+  "kernel": "7.0.0-34-generic",
+  "date": "2026-09-29T17:11:42Z",
+  "runsc": "runsc version release-20260921.0",
+  "containerd": "v2.4.1",
+  "image": "docker.io/gdblabs/perf:dev",
+  "summary": [
+    {
+      "runtime": "runc",
+      "pass": 30,
+      "fallback": 0,
+      "fail": 0,
+      "info": 4
+    },
+    {
+      "runtime": "runsc",
+      "pass": 27,
+      "fallback": 3,
+      "fail": 0,
+      "info": 4
+    }
+  ],
+  "rows": [
+    {
+      "check": "breakpoint",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "stops in sum_scores; bt shows main",
+      "fallback": ""
+    },
+    {
+      "check": "next-step-finish",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "finish reports the return value",
+      "fallback": ""
+    },
+    {
+      "check": "print-display-x",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "x/5dw, print struct, ptype",
+      "fallback": ""
+    },
+    {
+      "check": "set-var",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "set var changed the argument",
+      "fallback": ""
+    },
+    {
+      "check": "return",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "forced return value reached main",
+      "fallback": ""
+    },
+    {
+      "check": "jump",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "skipped line 156",
+      "fallback": ""
+    },
+    {
+      "check": "call",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "call report(7)",
+      "fallback": ""
+    },
+    {
+      "check": "sw-watchpoint",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "software watchpoint triggers with old/new values",
+      "fallback": ""
+    },
+    {
+      "check": "hw-watchpoint",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "FALLBACK",
+      "detail": "hardware watchpoint accepted but never triggered",
+      "fallback": "gdbinit sets can-use-hw-watchpoints 0 (software watchpoints)"
+    },
+    {
+      "check": "threads",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "info threads shows 4 threads; workers in bt",
+      "fallback": ""
+    },
+    {
+      "check": "signal",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "SIGUSR1 delivered; handler ran",
+      "fallback": ""
+    },
+    {
+      "check": "core-file",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "core loads; bt shows crash()",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-gdb-main",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "&main=0x401342 in 3 runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-gdb-libc",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "&printf=0x403aae in 3 runs",
+      "fallback": ""
+    },
+    {
+      "check": "disable-randomization",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "FALLBACK",
+      "detail": "gdb: personality(ADDR_NO_RANDOMIZE) fails (EINVAL)",
+      "fallback": "ADR 0010: binaries are -static -no-pie, so code, globals and libc are fixed; stack and heap move, and challenges must not depend on them"
+    },
+    {
+      "check": "aslr-gdb-stack",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "FALLBACK",
+      "detail": "$sp varies: 0x7eb43626dad0 0x7eb62a765ad0 0x7ead4bd90ad0",
+      "fallback": "ADR 0010: challenges must not depend on stack or heap addresses; lessons say they change on every run"
+    },
+    {
+      "check": "aslr-direct-main",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "&main=0x401342 in 3 direct runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-direct-libc",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "&printf=0x403aae in 3 direct runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-direct-stack",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "INFO",
+      "detail": "stack randomized without gdb (expected): 0x7ec3f8cebd44 0x7eaba27fcd44 0x7eb8b4e4cd44",
+      "fallback": ""
+    },
+    {
+      "check": "no-shared-libs",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "/proc/self/maps: 13 mappings, none from a loader or shared library",
+      "fallback": ""
+    },
+    {
+      "check": "gdb-shell-tools",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "wget and nc not found from gdb's shell",
+      "fallback": ""
+    },
+    {
+      "check": "gdb-python",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "INFO",
+      "detail": "gdb's python works (expected until task 1.9 builds gdb without Python)",
+      "fallback": ""
+    },
+    {
+      "check": "session-gdb",
+      "category": "gdb",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "scripted session ran to the end",
+      "fallback": ""
+    },
+    {
+      "check": "user-caps",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "uid/gid 1000, CapEff 0, no_new_privs",
+      "fallback": ""
+    },
+    {
+      "check": "no-network",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "interfaces=0 tcp=ENETUNREACH udp=ENETUNREACH",
+      "fallback": ""
+    },
+    {
+      "check": "read-only-root",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "create in /: EACCES, in /etc: EACCES",
+      "fallback": ""
+    },
+    {
+      "check": "tmp-noexec",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "exec from /tmp: EACCES",
+      "fallback": ""
+    },
+    {
+      "check": "tmpfs-cap",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "/tmp full at 16 MiB (ENOSPC)",
+      "fallback": ""
+    },
+    {
+      "check": "pids-limit",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "fork stopped after 30 children (EAGAIN); sandbox survived; host tasks peak 85",
+      "fallback": ""
+    },
+    {
+      "check": "rlimits",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "nofile 256, fsize 32 MiB, nproc 32, core 0",
+      "fallback": ""
+    },
+    {
+      "check": "memory-limit",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "killed after 112 MiB of 200; cgroup peak 128 MiB (limit 128 MiB)",
+      "fallback": ""
+    },
+    {
+      "check": "cpu-quota",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "PASS",
+      "detail": "host CPU 0.51 cores for a busy loop (quota 0.5); in-sandbox view 0.88",
+      "fallback": ""
+    },
+    {
+      "check": "idle-footprint",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "INFO",
+      "detail": "idle shell: cgroup memory peak 14 MiB, host tasks 19, create 134 ms, start 48 ms",
+      "fallback": ""
+    },
+    {
+      "check": "sysfs-view",
+      "category": "sandbox",
+      "runtime": "runsc",
+      "status": "INFO",
+      "detail": "/sys shows: block     bus       class     dev       devices   firmware  fs        kernel    module    power ",
+      "fallback": ""
+    },
+    {
+      "check": "breakpoint",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "stops in sum_scores; bt shows main",
+      "fallback": ""
+    },
+    {
+      "check": "next-step-finish",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "finish reports the return value",
+      "fallback": ""
+    },
+    {
+      "check": "print-display-x",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "x/5dw, print struct, ptype",
+      "fallback": ""
+    },
+    {
+      "check": "set-var",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "set var changed the argument",
+      "fallback": ""
+    },
+    {
+      "check": "return",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "forced return value reached main",
+      "fallback": ""
+    },
+    {
+      "check": "jump",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "skipped line 156",
+      "fallback": ""
+    },
+    {
+      "check": "call",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "call report(7)",
+      "fallback": ""
+    },
+    {
+      "check": "sw-watchpoint",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "software watchpoint triggers with old/new values",
+      "fallback": ""
+    },
+    {
+      "check": "hw-watchpoint",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "hardware watchpoints work on this host",
+      "fallback": ""
+    },
+    {
+      "check": "threads",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "info threads shows 4 threads; workers in bt",
+      "fallback": ""
+    },
+    {
+      "check": "signal",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "SIGUSR1 delivered; handler ran",
+      "fallback": ""
+    },
+    {
+      "check": "core-file",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "core loads; bt shows crash()",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-gdb-main",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "&main=0x401342 in 3 runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-gdb-libc",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "&printf=0x403aae in 3 runs",
+      "fallback": ""
+    },
+    {
+      "check": "disable-randomization",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "gdb disabled ASLR without warnings",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-gdb-stack",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "$sp=0x7fffffffeaa0 in 3 runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-direct-main",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "&main=0x401342 in 3 direct runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-direct-libc",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "&printf=0x403aae in 3 direct runs",
+      "fallback": ""
+    },
+    {
+      "check": "aslr-direct-stack",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "INFO",
+      "detail": "stack randomized without gdb (expected): 0x7ffe1d420f34 0x7ffd17ede294 0x7ffc5c00dd84",
+      "fallback": ""
+    },
+    {
+      "check": "no-shared-libs",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "/proc/self/maps: 13 mappings, none from a loader or shared library",
+      "fallback": ""
+    },
+    {
+      "check": "gdb-shell-tools",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "wget and nc not found from gdb's shell",
+      "fallback": ""
+    },
+    {
+      "check": "gdb-python",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "INFO",
+      "detail": "gdb's python works (expected until task 1.9 builds gdb without Python)",
+      "fallback": ""
+    },
+    {
+      "check": "session-gdb",
+      "category": "gdb",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "scripted session ran to the end",
+      "fallback": ""
+    },
+    {
+      "check": "user-caps",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "uid/gid 1000, CapEff 0, no_new_privs",
+      "fallback": ""
+    },
+    {
+      "check": "no-network",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "interfaces=3 tcp=ENETUNREACH udp=ENETUNREACH",
+      "fallback": ""
+    },
+    {
+      "check": "read-only-root",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "create in /: EROFS, in /etc: EROFS",
+      "fallback": ""
+    },
+    {
+      "check": "tmp-noexec",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "exec from /tmp: EACCES",
+      "fallback": ""
+    },
+    {
+      "check": "tmpfs-cap",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "/tmp full at 16 MiB (ENOSPC)",
+      "fallback": ""
+    },
+    {
+      "check": "pids-limit",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "fork stopped after 30 children (EAGAIN); sandbox survived; host tasks peak 32",
+      "fallback": ""
+    },
+    {
+      "check": "rlimits",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "nofile 256, fsize 32 MiB, nproc inf, core 0",
+      "fallback": ""
+    },
+    {
+      "check": "memory-limit",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "killed after 112 MiB of 200; cgroup peak 128 MiB (limit 128 MiB)",
+      "fallback": ""
+    },
+    {
+      "check": "cpu-quota",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "PASS",
+      "detail": "host CPU 0.50 cores for a busy loop (quota 0.5); in-sandbox view 0.50",
+      "fallback": ""
+    },
+    {
+      "check": "idle-footprint",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "INFO",
+      "detail": "idle shell: cgroup memory peak 3 MiB, host tasks 6, create 84 ms, start 10 ms",
+      "fallback": ""
+    },
+    {
+      "check": "sysfs-view",
+      "category": "sandbox",
+      "runtime": "runc",
+      "status": "INFO",
+      "detail": "/sys shows:  ls: /sys/fs/cgroup: No such file or directory ",
+      "fallback": ""
+    }
+  ]
+}

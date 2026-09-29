@@ -1,0 +1,87 @@
+{
+  "host": "linux-laptop",
+  "arch": "x86_64",
+  "kernel": "7.0.0-34-generic",
+  "date": "2026-09-29T17:14:36Z",
+  "runsc": "runsc version release-20260921.0",
+  "image": "docker.io/gdblabs/perf:dev",
+  "image_size": "28.4 MiB",
+  "runtimes": [
+    {
+      "runtime": "runsc",
+      "start_to_prompt_ms": {
+        "runs": 10,
+        "p50": 1463,
+        "p95": 1543,
+        "max": 1543
+      },
+      "at_prompt": {
+        "samples": 30,
+        "cgroup_mem_mb": {
+          "p50": 22.6,
+          "p95": 23.5,
+          "max": 23.6
+        },
+        "sentry_rss_mb": {
+          "p50": 42.5,
+          "p95": 42.5,
+          "max": 42.5
+        },
+        "gofer_rss_mb": {
+          "p50": 22.4,
+          "max": 22.4
+        }
+      },
+      "at_breakpoint": {
+        "samples": 30,
+        "cgroup_mem_mb": {
+          "p50": 24.3,
+          "p95": 25.8,
+          "max": 25.9
+        },
+        "sentry_rss_mb": {
+          "p50": 45.5,
+          "p95": 45.5,
+          "max": 45.5
+        },
+        "gofer_rss_mb": {
+          "p50": 22.0,
+          "max": 22.0
+        }
+      },
+      "session_gdb": {
+        "runs": 3,
+        "wall_ms_p50": 2723
+      }
+    },
+    {
+      "runtime": "runc",
+      "start_to_prompt_ms": {
+        "runs": 10,
+        "p50": 312,
+        "p95": 466,
+        "max": 466
+      },
+      "at_prompt": {
+        "samples": 30,
+        "cgroup_mem_mb": {
+          "p50": 11.2,
+          "p95": 12.7,
+          "max": 12.7
+        }
+      },
+      "at_breakpoint": {
+        "samples": 30,
+        "cgroup_mem_mb": {
+          "p50": 12.0,
+          "p95": 13.1,
+          "max": 13.1
+        }
+      },
+      "session_gdb": {
+        "runs": 3,
+        "wall_ms_p50": 425
+      }
+    }
+  ]
+}
