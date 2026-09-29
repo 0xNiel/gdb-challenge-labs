@@ -1,0 +1,267 @@
+package orch
+
+import (
+	"context"
+	"errors"
+	"io"
+	"log/slog"
+	"testing"
+	"time"
+
+	"gdblabs/labd/internal/clock"
+	"gdblabs/labd/internal/config"
+	"gdblabs/labd/internal/store"
+)
+
+var epoch = time.Date(2026, 9, 29, 12, 0, 0, 0, time.UTC)
+
+type harness struct {
+	m   *Manager
+	rt  *fakeRuntime
+	st  *store.Memory
+	clk *clock.Fake
+}
+
+func newHarness(t *testing.T, maxSessions, maxQueue int) *harness {
+	t.Helper()
+	h := &harness{rt: newFakeRuntime(), st: store.NewMemory(), clk: clock.NewFake(epoch)}
+	h.m = NewManager(ManagerConfig{
+		BaseSpec: loadBase(t), MaxSessions: maxSessions, MaxQueue: maxQueue,
+		DefaultLimits: config.Default().DefaultLimits,
+		Challenges: []Challenge{
+			{Slug: "perf", Image: "docker.io/gdblabs/perf:dev", Enabled: true},
+			{Slug: "broken", Image: "missing", Enabled: true},
+			{Slug: "off", Image: "x", Enabled: false},
+		},
+	}, h.rt, h.st, h.clk, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	t.Cleanup(h.m.Close)
+	return h
+}
+
+func (h *harness) start(t *testing.T, user int64) SessionInfo {
+	t.Helper()
+	in, err := h.m.Start(context.Background(), StartReq{UserID: user, ChallengeSlug: "perf"})
+	if err != nil {
+		t.Fatalf("start user %d: %v", user, err)
+	}
+	return in
+}
+
+func (h *harness) state(t *testing.T, id string) State {
+	t.Helper()
+	if in, err := h.m.Get(id); err == nil {
+		return in.State
+	}
+	row, ok := h.st.Session(id)
+	if !ok {
+		t.Fatalf("session %s unknown to manager and store", id)
+	}
+	return State(row.State)
+}
+
+func TestManager_CapAdmitsTwoQueuesThird(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 2, 10)
+	a, b, c := h.start(t, 1), h.start(t, 2), h.start(t, 3)
+	h.m.Settle()
+	if a.State != StateCreating || b.State != StateCreating {
+		t.Fatalf("first two: %s, %s; want creating", a.State, b.State)
+	}
+	if c.State != StateQueued || c.QueuePosition != 1 {
+		t.Fatalf("third: %s at %d; want queued at 1", c.State, c.QueuePosition)
+	}
+	if h.state(t, a.ID) != StateRunning || h.state(t, b.ID) != StateRunning {
+		t.Fatal("admitted sessions did not reach running")
+	}
+	if got := len(h.rt.ids()); got != 2 {
+		t.Fatalf("%d containers, want 2", got)
+	}
+	st := h.m.Stats()
+	if st.Active != 2 || st.Running != 2 || st.Queued != 1 || st.SlotsFree != 0 {
+		t.Fatalf("stats %+v", st)
+	}
+}
+
+func TestManager_SameUserGetsSameSession(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 2, 10)
+	a := h.start(t, 7)
+	h.m.Settle()
+	b := h.start(t, 7)
+	if a.ID != b.ID {
+		t.Fatalf("second start made a new session: %s != %s", a.ID, b.ID)
+	}
+	if b.State != StateRunning {
+		t.Fatalf("second start state %s, want running", b.State)
+	}
+	if got := len(h.rt.ids()); got != 1 {
+		t.Fatalf("%d containers, want 1", got)
+	}
+}
+
+func TestManager_StopAdmitsQueuedInFIFOOrder(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 10)
+	first := h.start(t, 1)
+	q1, q2 := h.start(t, 2), h.start(t, 3)
+	h.m.Settle()
+	if q1.QueuePosition != 1 || q2.QueuePosition != 2 {
+		t.Fatalf("positions %d, %d", q1.QueuePosition, q2.QueuePosition)
+	}
+
+	if _, err := h.m.Stop(context.Background(), first.ID, ReasonUserStop); err != nil {
+		t.Fatal(err)
+	}
+	h.m.Settle()
+	if got := h.state(t, first.ID); got != StateEnded {
+		t.Fatalf("stopped session is %s", got)
+	}
+	if got := h.state(t, q1.ID); got != StateRunning {
+		t.Fatalf("queue head is %s, want running", got)
+	}
+	in, _ := h.m.Get(q2.ID)
+	if in.State != StateQueued || in.QueuePosition != 1 {
+		t.Fatalf("second in queue: %s at %d; want queued at 1", in.State, in.QueuePosition)
+	}
+	if ids := h.rt.ids(); len(ids) != 1 || ids[0] != "lab-"+q1.ID {
+		t.Fatalf("containers %v, want only the queue head's", ids)
+	}
+	row, _ := h.st.Session(first.ID)
+	if row.State != "ended" || row.EndReason != ReasonUserStop || row.EndedAt.IsZero() {
+		t.Fatalf("row %+v", row)
+	}
+}
+
+func TestManager_StopUnknown(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 1)
+	if _, err := h.m.Stop(context.Background(), "nope", ReasonUserStop); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("err %v, want ErrNotFound", err)
+	}
+}
+
+func TestManager_CreateFailureReleasesSlot(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 5)
+	h.rt.FailCreateFor("broken")
+	bad, err := h.m.Start(context.Background(), StartReq{UserID: 1, ChallengeSlug: "broken"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	next := h.start(t, 2) // queued behind the failing one
+	h.m.Settle()
+	if got := h.state(t, bad.ID); got != StateFailed {
+		t.Fatalf("failing session is %s, want failed", got)
+	}
+	row, _ := h.st.Session(bad.ID)
+	if row.EndReason != ReasonCreateFailed {
+		t.Fatalf("end reason %q", row.EndReason)
+	}
+	if got := h.state(t, next.ID); got != StateRunning {
+		t.Fatalf("queued session is %s after the failure; want running", got)
+	}
+	if st := h.m.Stats(); st.Active != 1 {
+		t.Fatalf("active %d, want 1", st.Active)
+	}
+	// The user whose lab failed can try again.
+	again, err := h.m.Start(context.Background(), StartReq{UserID: 1, ChallengeSlug: "perf"})
+	if err != nil || again.ID == bad.ID {
+		t.Fatalf("retry after failure: %+v, %v", again, err)
+	}
+}
+
+func TestManager_UnknownOrDisabledChallenge(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 1)
+	for _, slug := range []string{"nope", "off"} {
+		if _, err := h.m.Start(context.Background(), StartReq{UserID: 1, ChallengeSlug: slug}); !errors.Is(err, ErrUnknownChallenge) {
+			t.Fatalf("%s: err %v", slug, err)
+		}
+	}
+}
+
+func TestManager_StopWhileCreating(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 1)
+	gate := make(chan struct{})
+	h.rt.gate = gate
+	s := h.start(t, 1)
+	in, err := h.m.Stop(context.Background(), s.ID, ReasonUserStop)
+	if err != nil || in.State != StateCreating {
+		t.Fatalf("stop during create: %+v, %v", in, err)
+	}
+	close(gate)
+	h.m.Settle()
+	if got := h.state(t, s.ID); got != StateEnded {
+		t.Fatalf("state %s, want ended", got)
+	}
+	if ids := h.rt.ids(); len(ids) != 0 {
+		t.Fatalf("containers left: %v", ids)
+	}
+	if st := h.m.Stats(); st.Active != 0 {
+		t.Fatalf("active %d", st.Active)
+	}
+}
+
+func TestManager_TaskExitEndsSession(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 1)
+	s := h.start(t, 1)
+	h.m.Settle()
+	h.rt.get("lab-" + s.ID).stop()
+	waitFor(t, func() bool { return h.m.Stats().Active == 0 })
+	row, _ := h.st.Session(s.ID)
+	if row.State != "ended" || row.EndReason != ReasonTaskExited {
+		t.Fatalf("row %+v", row)
+	}
+}
+
+func TestManager_TerminalIO(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 1)
+	s := h.start(t, 1)
+	h.m.Settle()
+	out, err := h.m.Output(s.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := h.m.WriteInput(s.ID, []byte("hello\n")); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, func() bool { return string(out.Snapshot()) == "hello\n" })
+}
+
+func TestManager_EventsAndLabels(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 1)
+	s := h.start(t, 42)
+	h.m.Settle()
+	c := h.rt.get("lab-" + s.ID)
+	for k, want := range map[string]string{
+		LabelSessionID: s.ID, LabelUserID: "42", LabelChallenge: "perf",
+		LabelCreatedAt: epoch.Format(time.RFC3339Nano), LabelTTLMinutes: "60", LabelIdleMinutes: "15",
+	} {
+		if c.labels[k] != want {
+			t.Errorf("label %s = %q, want %q", k, c.labels[k], want)
+		}
+	}
+	var types []string
+	for _, e := range h.st.Events() {
+		types = append(types, e.Type)
+	}
+	if len(types) != 2 || types[0] != "lab_requested" || types[1] != "lab_started" {
+		t.Fatalf("events %v", types)
+	}
+}
+
+// waitFor polls cond for up to 2 s (for effects of real goroutines, not timers).
+func waitFor(t *testing.T, cond func() bool) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for !cond() {
+		if time.Now().After(deadline) {
+			t.Fatal("condition not met within 2 s")
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+}
