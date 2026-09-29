@@ -10,8 +10,10 @@ set -euo pipefail
 
 PERF="$IMAGES_ROOT/perf"
 STAGE="$IMAGES_ROOT/out/perf-context"
+# -static -no-pie -fno-pie: code, globals and libc at fixed addresses; gVisor cannot turn
+# ASLR off, so a shared libc or loader would move on every run (ADR 0010).
 # -fdebug-prefix-map: sources are compiled from /src but live at /opt/perf in the image.
-CFLAGS="-O0 -g -no-pie -fno-pie -fno-stack-protector -fdebug-prefix-map=/src=/opt/perf"
+CFLAGS="-O0 -g -static -no-pie -fno-pie -fno-stack-protector -fdebug-prefix-map=/src=/opt/perf"
 
 docker_init
 bash "$IMAGES_ROOT/build/build.sh"
@@ -39,6 +41,13 @@ for b in perf probe; do
   [[ "$ha" == "$hb" ]] || img_die "$b is not reproducible: $ha != $hb"
   img_say "$b reproducible: sha256 $ha"
 done
+# ADR 0010: a static binary has no INTERP program header (no loader) and no DYNAMIC segment.
+# shellcheck disable=SC2016  # $b expands inside the build container
+"${DOCKER[@]}" run --rm --platform "$platform" "${AS_ME[@]}" -v "$IMAGES_ROOT/out/perf-a:/out:ro" gdblabs/build:dev sh -ec '
+  for b in perf probe; do
+    if readelf -lW "/out/$b" | grep -qE "INTERP|DYNAMIC"; then echo "error: $b is not static" >&2; exit 1; fi
+  done' || img_die "perf or probe is dynamically linked; build flags must include -static (ADR 0010)"
+img_say "perf and probe are static (no INTERP or DYNAMIC segment)"
 
 img_say "generating perf.core (perf crash, under gdb in the build container)"
 "${DOCKER[@]}" run --rm --platform "$platform" "${AS_ME[@]}" -v "$IMAGES_ROOT/out/perf-a:/out" -w /out gdblabs/build:dev \

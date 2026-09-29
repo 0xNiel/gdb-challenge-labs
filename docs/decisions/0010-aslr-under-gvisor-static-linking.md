@@ -46,6 +46,6 @@ Measured under gVisor with the Phase 1 perf binary (dynamically linked, `-no-pie
 
 **Platform:**
 
-- Static binaries do not share libc pages between labs. musl's static libc adds tens of KB per binary (*est.*; P0's perf binary size shows the real number), so memory per lab should not change measurably.
+- Static binaries do not share libc pages between labs. Measured on the perf program (arm64, 2026-09-29, `size` in the build image): text grows from 4.8 KB to 48.7 KB, and the file from 78 KB to 366 KB, mostly symbols and debug info that are never paged in. Memory per lab should not change measurably; the laptop's single-lab run confirms it.
 - The arm64 gdb crash in QUESTIONS Q13 happened inside the musl loader. Static binaries have no loader, so P0 re-tests it on the dev VM.
 - Revisit if gVisor ever implements `ADDR_NO_RANDOMIZE`: P0's `disable-randomization` row would turn PASS.
