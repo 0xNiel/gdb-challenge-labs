@@ -4,7 +4,15 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
-**Phase 1 — gVisor + gdb spike: done.** The gate passed on the x86-64 laptop on 2026-09-29 (output in the log below). The branch `phase-1-gvisor-gdb-spike` waits for the owner's review. Do not merge to `main` or start Phase 2 until the owner decides.
+**Phase 2 — labd core.** In progress on branch `phase-2-labd-core` (Phase 1 merged into `main` locally on 2026-09-29; not pushed). Tasks 2.1–2.13 are built and pass on the arm64 dev VM. The gate also needs x86-64 results (ADR 0001). First push this branch from the Mac, then on the laptop:
+
+```
+git pull && git checkout phase-2-labd-core && ./run.sh vm up
+./run.sh test --integration                                          # real containerd, runsc, Postgres
+LAB_HOST=linux-laptop ./run.sh perf --scenario P4-lite --hold 10m    # ~11 minutes
+git add docs/metrics && git commit -m "[P2] metrics: x86-64 create latency" && git push
+./run.sh gate --phase 2                                              # ~13 minutes
+```
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -23,8 +31,8 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | Phase | Name | State | Gate result | Date |
 | --- | --- | --- | --- | --- |
 | 0 | Bootstrap: repo, toolchain, dev VM | done (0.9 open, non-blocking) | passed on Mac and laptop | 2026-09-28 |
-| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; awaiting owner review before merge | passed on the laptop (x86-64) | 2026-09-29 |
-| 2 | labd core (sessions, semaphore, reconciler) | not started (owner review of Phase 1 first) | — | — |
+| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; merged to `main` (local) | passed on the laptop (x86-64) | 2026-09-29 |
+| 2 | labd core (sessions, semaphore, reconciler) | in progress: needs x86-64 run | Mac: all local checks pass | 2026-09-29 |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | blocked on 2 | — | — |
 | 4 | Perf suite and measured capacity | blocked on 3 | — | — |
 | 5 | Challenge pipeline and tier 1 content | not started (owner review of Phase 1 first) | — | — |
@@ -48,6 +56,37 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-09-29 — Phase 2 built: sessions, queue, timers, reconciler, store, internal API
+- **Phase 1** fast-forwarded into `main` locally at the owner's request. Nothing pushed.
+- **Built** (tasks 2.1–2.13): clock with fake; containerd `Runtime`; the session manager (slot cap, per-user cap, FIFO queue with a 2-minute timeout, idle and hard timers, extend once, runtime cap changes); the Postgres store with embedded migrations and `labd migrate`; the reconciler; the internal API with SIGHUP and `/internal/reload`; `labd pull` and a listing-only `labd prune`; the P4-lite and P5-lite scripts; the gate. Deviations are listed in the plan's new "As built" section.
+- **ADR 0011:** `sessions` stores `challenge_slug` instead of web's `challenge_id`, because labd never knows that id. It also adds `image` and `extended`.
+- **Finding: labd does not need root.** With its own FIFO directory, a user in the `containerd` group can create, run and delete gVisor labs (S10). Tests and the perf scripts run that way (`scripts/with-containerd-group.sh`).
+- **Code review** (a separate agent) found a real bug: a failed containerd `Wait` was read as the lab exiting. A containerd restart or a graceful labd stop would therefore have torn down, or later removed, every live lab. Fixed, along with the shutdown ordering, a user left pointing at a stopped-while-creating lab, and pipe leaks on error paths. After the fix, a containerd restart with 3 labs running leaves all 3 running.
+- **Dev VM numbers** (arm64, runsc; `docs/metrics/create-latency-2026-09-29-dev-vm.md`):
+  - P4-lite, 10 min at cap 20: 302 sessions; create to running p50 70 ms, p95 115 ms, max 175 ms; containers never above 20 and equal to active once quiet; 0 left at the end.
+  - labd: 22.5 MiB and 13 goroutines idle; 33.2 MiB and 133 goroutines at 20 sessions; back to 13 after.
+  - P5-lite: all 20 labs adopted 462 ms after `kill -9` and 464 ms after a SIGTERM restart (deadline 15 s).
+  - A terminal re-attached after its creator died still carries keystrokes and output (`integration/attach_test.go`).
+- **API fields left for later phases:** `ws_token` is always `""` until Phase 3. There is no extend route yet (`Manager.Extend` exists). Web's button for it comes with Phase 3 or 6.
+- **Next:** the owner runs the laptop steps above; then the gate output goes here and Phase 2 is marked done.
+
+Phase 2 gate on the Mac (everything passes except the x86-64 result):
+```
+==> gate for phase 2 — 2026-09-29T19:14Z — macbook.local
+==> [gate 2] unit tests (go vet, go test -race)
+  PASS  run.sh test --go
+==> [gate 2] integration tests (real containerd, runsc, Postgres)
+  PASS  run.sh test --integration
+==> [gate 2] P4-lite and P5-lite on this host
+  PASS  P4-lite: 10 min churn at cap 20, no leak
+  PASS  P5-lite: kill -9 labd at 20 labs, all adopted within 15 s
+  PASS  no containers left in namespace labs
+==> [gate 2] recorded create latency (x86-64, ADR 0001)
+  PASS  create-latency report (create-latency-2026-09-29-dev-vm.md)
+  FAIL  no create latency from an x86-64 host yet: on the laptop run LAB_HOST=linux-laptop ./run.sh perf --scenario P4-lite --hold 10m, commit docs/metrics
+==> GATE 2 FAILED. Fix the FAIL lines above; do not start the next phase.
+```
 
 ### 2026-09-29 — Phase 1 gate passed on the x86-64 laptop
 - **Laptop P0** (`docs/metrics/p0-2026-09-29-linux-laptop.*`, static perf image):
