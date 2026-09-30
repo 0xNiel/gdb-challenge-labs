@@ -11,6 +11,19 @@
 
 A browser can open a WebSocket to `labd`, authenticate with a short-lived HMAC token, and get a live gdb session bridged to the container's PTY, with resize, extend, TTL frames, rate limits, reconnect grace and command capture. A scripted Go client can do the same, which is the seed of the Phase 4 load driver. The first full single-session profile (P1) is measured.
 
+## As built (2026-09-30) — read this before the design below
+
+The protocol as implemented is in `labd/internal/term/README.md`. Where the implementation differs from the text below:
+
+- **Token** (ADR 0012): the payload also carries a random nonce, so two tokens minted in the same second differ. The plan's format made the second one fail as "reused". `POST /internal/sessions` returns a fresh token on every call, which is how a client reconnects until web mints its own (Phase 6).
+- **Handshake order**: Origin (403), then the token (401), then the session (404). A wrong Origin therefore cannot burn a token. The token's user must also own the session (401).
+- **Output**: frames of at most 32 KiB (the output burst). Delivery to the socket is backpressured: the lab's terminal waits while the 256-frame buffer is full. A buffer full for 10 s closes the socket with 1008. On attach, up to 64 KiB of scrollback is replayed first. Closing waits up to 5 s for the writer to flush, so a client that never reads cannot pin the connection.
+- **Frames**: a `ttl` frame is also sent on attach. `queued` frames go out when the position changes (checked every second).
+- **Grace** lives in the Manager (`ClientAttached`/`ClientDetached` with a connection generation). Labs adopted after a labd restart start inside the grace.
+- **Capture**: the plan's example `"ne\x7fxt\n" → next` contradicts its own backspace rule; the code follows the rule (`nxt`). `seq` and the input bucket are per session, so they survive reconnects.
+- **Config**: `site_host` (the full origin, for example `https://labs.example.com`), `dev_allow_no_origin`, `dev_testpage`. `WS_TOKEN_KEY` comes from the environment; labd refuses to start without it.
+- **Files**: the scripted client's test is `internal/term/client_test.go`, in package `term`, so it can use the fake server. The dev page is embedded by `labd/testpage/embed.go`. P1 runs through `./run.sh perf --scenario P1-lite --hold 10m`.
+
 ## Design fixed by this document
 
 - Package `internal/term`. WebSocket library `github.com/coder/websocket` (ADR 0004). One handler `GET /ws/term/{session_id}?t=<token>` on `listen_ws`.
@@ -91,7 +104,7 @@ Unit: token, frames, bridge, limiter, capture, grace/TTL, client. Integration: r
 ```
 1. `go test -race ./...` green.
 2. `./run.sh test --integration` green including `term_test.go`.
-3. `labd/perf/p1.sh` exits 0 and `docs/metrics/p1-*.json` exists with `echo_latency_ms.p95` present.
+3. `labd/perf/p1.sh` exits 0 (the gate runs 2 minutes into `.scratch/`), and a 10-minute `docs/metrics/p1-*.json` from an x86-64 host (ADR 0001) has `echo_latency_ms.p95`: `LAB_HOST=linux-laptop ./run.sh perf --scenario P1-lite --hold 10m`.
 4. STATUS.md contains a line `Phase 3 human check: <date> <who> OK`.
 5. Zero containers left in namespace `labs`.
 

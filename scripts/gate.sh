@@ -132,7 +132,24 @@ phase_2() {
   if [[ -n "$cl" ]]; then pass "x86-64 create latency recorded ($(basename "$cl"))"
   else fail "no create latency from an x86-64 host yet: on the laptop run LAB_HOST=linux-laptop ./run.sh perf --scenario P4-lite --hold 10m, commit docs/metrics"; fi
 }
-phase_3() { not_wired; }   # Phase 3, task 3.11
+phase_3() {
+  say "unit tests (go vet, go test -race)"
+  check "run.sh test --go" "$RUN" test --go
+  say "integration tests (includes real gdb over the WebSocket)"
+  check "run.sh test --integration" "$RUN" test --integration
+  say "P1 runs on this host (2 min, scratch output)"
+  local scratch="$ROOT/.scratch/gate-p3"
+  mkdir -p "$scratch"
+  check "P1-lite: one session replaying session.gdb over the socket" "$RUN" perf --scenario P1-lite --hold 2m --out "$scratch"
+  rm -rf "$scratch"
+  check_no_containers
+  say "recorded P1 (x86-64, ADR 0001) and the human check"
+  local p1
+  p1="$(newest_json p1 '.arch == "x86_64" and .host != "dev-vm" and .echo_latency_ms.p95 != null and .duration_s >= 540')"
+  if [[ -n "$p1" ]]; then pass "x86-64 P1 with echo latency p95 recorded ($(basename "$p1"))"
+  else fail "no 10-minute P1 from an x86-64 host yet: on the laptop run LAB_HOST=linux-laptop ./run.sh perf --scenario P1-lite --hold 10m, commit docs/metrics"; fi
+  check_status_line "Phase 3 human check"
+}
 phase_4() { not_wired; }   # Phase 4, task 4.13
 phase_5() { not_wired; }   # Phase 5, task 5.15
 phase_6() { not_wired; }   # Phase 6, task 6.13
