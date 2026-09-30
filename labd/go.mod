@@ -3,10 +3,12 @@ module gdblabs/labd
 go 1.26.6
 
 require (
+	github.com/coder/websocket v1.8.15
 	github.com/containerd/containerd/v2 v2.4.1
 	github.com/containerd/errdefs v1.0.0
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/opencontainers/runtime-spec v1.3.0
+	golang.org/x/time v0.16.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

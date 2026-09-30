@@ -5,6 +5,7 @@ package term
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
@@ -28,10 +29,15 @@ var (
 
 var b64 = base64.RawURLEncoding
 
-// Mint returns base64url(session_id|user_id|exp_unix) "." base64url(HMAC-SHA256(key, payload)).
-// web mints with the same key (WS_TOKEN_KEY) from Phase 6 on (S12).
+// Mint returns base64url(session_id|user_id|exp_unix|nonce) "." base64url(HMAC-SHA256(key,
+// payload)). The nonce (8 random bytes, base64url) keeps two tokens minted in the same second
+// distinct, so both can be used once (ADR 0012). web mints with the same key (WS_TOKEN_KEY)
+// from Phase 6 on (S12).
 func Mint(key []byte, sessionID string, userID int64, exp time.Time) string {
-	payload := sessionID + "|" + strconv.FormatInt(userID, 10) + "|" + strconv.FormatInt(exp.Unix(), 10)
+	var nonce [8]byte
+	_, _ = rand.Read(nonce[:])
+	payload := sessionID + "|" + strconv.FormatInt(userID, 10) + "|" + strconv.FormatInt(exp.Unix(), 10) +
+		"|" + b64.EncodeToString(nonce[:])
 	return b64.EncodeToString([]byte(payload)) + "." + b64.EncodeToString(sign(key, []byte(payload)))
 }
 
@@ -56,7 +62,7 @@ func parse(key []byte, token string) (sessionID string, userID int64, exp time.T
 		return "", 0, exp, ErrTokenSignature
 	}
 	f := strings.Split(string(payload), "|")
-	if len(f) != 3 {
+	if len(f) != 4 || f[3] == "" {
 		return "", 0, exp, ErrTokenMalformed
 	}
 	uid, err1 := strconv.ParseInt(f[1], 10, 64)

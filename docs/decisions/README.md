@@ -43,3 +43,4 @@ What becomes easier, what becomes harder, what to revisit and when.
 | [0007](0007-gvisor-terminal-io-only.md) | Start gVisor containers in terminal mode only; non-terminal I/O hangs | accepted | Phase 0 finding |
 | [0010](0010-aslr-under-gvisor-static-linking.md) | gVisor cannot turn off ASLR; every lab binary is `-static -no-pie -fno-pie` | accepted | owner, 2026-09-29 |
 | [0011](0011-sessions-table-columns.md) | `sessions` stores `challenge_slug`, not web's `challenge_id`; adds `image`, `extended` | accepted | Phase 2 |
+| [0012](0012-ws-token-nonce.md) | WebSocket tokens carry a random nonce, so two per second are distinct | accepted | Phase 3 |

@@ -39,12 +39,26 @@ func TestToken(t *testing.T) {
 			p, _, _ := strings.Cut(tokens.Mint("s1", 43, t0), ".")
 			return p + "." + sig
 		}(), "s1", t0, ErrTokenSignature},
-		"no dot":    {"abc", "s1", t0, ErrTokenMalformed},
-		"bad b64":   {"!!.!!", "s1", t0, ErrTokenMalformed},
-		"two parts": {Mint(key, "s1|x", 1, t0) /* 4 fields */, "s1|x", t0, ErrTokenMalformed},
+		"no dot":      {"abc", "s1", t0, ErrTokenMalformed},
+		"bad b64":     {"!!.!!", "s1", t0, ErrTokenMalformed},
+		"extra field": {Mint(key, "s1|x", 1, t0) /* 5 fields */, "s1|x", t0, ErrTokenMalformed},
 	} {
 		if _, err := tokens.Verify(c.token, c.session, c.at); !errors.Is(err, c.want) {
 			t.Errorf("%s: %v, want %v", name, err, c.want)
+		}
+	}
+}
+
+func TestToken_SameSecondTokensAreDistinct(t *testing.T) {
+	t.Parallel()
+	tokens := NewTokens([]byte("k"))
+	a, b := tokens.Mint("s", 1, t0), tokens.Mint("s", 1, t0)
+	if a == b {
+		t.Fatal("two tokens minted in the same second are identical (ADR 0012)")
+	}
+	for _, tok := range []string{a, b} {
+		if _, err := tokens.Verify(tok, "s", t0); err != nil {
+			t.Fatalf("each token must verify once: %v", err)
 		}
 	}
 }
