@@ -12,6 +12,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -189,6 +190,61 @@ func profiles(args []string) error {
 	return nil
 }
 
+// report merges the newest run of each scenario for --host into perf-report-<date>-<host>.json
+// (the spec's schema) and rewrites the generated block of capacity.md.
 func report(args []string) error {
-	return fmt.Errorf("report: not built yet (task 4.10)")
+	fs := flag.NewFlagSet("report", flag.ExitOnError)
+	in := fs.String("in", "docs/metrics", "directory with run-*.json")
+	host := fs.String("host", "", "host label of the runs (e.g. linux-laptop)")
+	out := fs.String("out", "", "report path (default <in>/perf-report-<date>-<host>.json)")
+	md := fs.String("md", "", "capacity.md to update (default <in>/capacity.md; \"-\" skips it)")
+	_ = fs.Parse(args)
+	if *host == "" {
+		return fmt.Errorf("--host is required")
+	}
+	runs, err := perf.LoadRuns(*in, *host)
+	if err != nil {
+		return err
+	}
+	if len(runs) == 0 {
+		return fmt.Errorf("no run-P*-*-%s*.json in %s", *host, *in)
+	}
+	rep, missing := perf.BuildReport(runs)
+	date := time.Now().UTC().Format("2006-01-02")
+	if len(rep.Meta.Date) >= 10 {
+		date = rep.Meta.Date[:10]
+	}
+	if *out == "" {
+		*out = filepath.Join(*in, fmt.Sprintf("perf-report-%s-%s.json", date, *host))
+	}
+	b, err := json.MarshalIndent(rep, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(*out, append(b, '\n'), 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintf(os.Stderr, "labd-perf: wrote %s from %d runs\n", *out, len(runs))
+	for _, m := range missing {
+		fmt.Fprintf(os.Stderr, "  not measured: %s\n", m)
+	}
+	if *md == "-" {
+		return nil
+	}
+	if *md == "" {
+		*md = filepath.Join(*in, "capacity.md")
+	}
+	cur, err := os.ReadFile(*md)
+	if err != nil {
+		return err
+	}
+	next, err := perf.ReplaceBlock(string(cur), perf.RenderCapacity(rep, runs, missing))
+	if err != nil {
+		return fmt.Errorf("%s: %w", *md, err)
+	}
+	if err := os.WriteFile(*md, []byte(next), 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintf(os.Stderr, "labd-perf: updated %s\n", *md)
+	return nil
 }
