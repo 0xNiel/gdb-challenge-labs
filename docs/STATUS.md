@@ -6,7 +6,24 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 Phase 3 human check: 2026-09-30 <OG> OK
 
-**Phase 3 — Terminal gateway: done.** Gate passed on the x86-64 laptop on 2026-09-30 and merged into `main`. **Phase 4 (perf suite) has not started**; it waits for the owner's go-ahead.
+**Phase 4 — Perf suite: in progress** on branch `phase-4-perf-suite`. The driver, the report and the gate are built (tasks 4.1–4.6 and the code for 4.8–4.10 and 4.13), and the smoke runs pass on the dev VM. The numbers must come from the x86-64 laptop, and that needs the owner:
+
+1. **Prepare (task 4.7), on the laptop:**
+   ```
+   git pull && git checkout phase-4-perf-suite
+   ./run.sh vm verify                       # must print runsc ok
+   ./run.sh labs preflight                  # must say preflight ok; also warns about orphaned sandboxes
+   ls images/out/gdblabs_perf_dev_amd64.tar images/out/gdblabs_labbase_dev_amd64.tar   # P7 needs both; else ./run.sh images perf
+   lscpu | grep 'Model name'                # add it to docs/metrics/environment-linux-laptop.md (still missing)
+   ```
+2. **Run the suite (tasks 4.8–4.10), about 5 hours.** Leave the laptop otherwise idle: other work there changes the host memory and CPU numbers. sudo asks once at the start.
+   ```
+   LAB_HOST=linux-laptop ./run.sh perf --scenario all
+   ```
+   It runs P1 P2 P3 P6 P4 P5 P7 P8 P9 (P9 alone is 2 hours), then P1 and P2 on the KVM platform, then the runc reference P1–P3, then `labd-perf report`. That writes `docs/metrics/perf-report-<date>-linux-laptop.json` and fills the generated block of `capacity.md`. At about 40 MB per lab, 100 labs fit the laptop's 15 GB with 25 % headroom, so nothing should be partial. If a scenario fails, the rest still run and the end lists it; rerun it with `--only`, for example `labd/perf/runall.sh --only P5,report` (with `LAB_HOST=linux-laptop`).
+3. **Commit and push:** `git add docs/metrics && git commit -m "[P4] metrics: laptop P1-P9" && git push`. Send the last lines of the output (the PASS/MISS lines of each scenario).
+
+Then the agent does 4.10–4.12: removes the "Still estimated" rows the report replaced, writes the `max_sessions` ADR, updates `deploy/labd.prod.yaml`, and writes a decision line for every missed criterion. Then the gate: `./run.sh gate --phase 4`.
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -28,7 +45,7 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-29 |
 | 2 | labd core (sessions, semaphore, reconciler) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
-| 4 | Perf suite and measured capacity | not started (waiting for the owner) | — | — |
+| 4 | Perf suite and measured capacity | in progress: driver built, dev-VM smoke passes; needs the laptop suite | Mac: fails only on the laptop results | 2026-09-30 |
 | 5 | Challenge pipeline and tier 1 content | not started (owner review of Phase 1 first) | — | — |
 | 6 | Django web app | blocked on 3, 5 | — | — |
 | 7 | Metrics, rollups, admin live view | blocked on 6 | — | — |
@@ -50,6 +67,18 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-09-30 — Phase 4 driver built; dev VM smoke passes
+- **Built:** `labd-perf run|report|profiles` and `internal/perf` (percentiles, the spec-schema report, profiles from `session.gdb` with a jittered pacer, virtual users over the real API and WebSocket, the host collector, the scenario runner, criteria, the report builder). Also `labd/perf/scenario.sh` (private labd from `labd.perf.yaml`; P5 kill, P7 image flush, disk sampling, runc and KVM switches), `disk.sh`, and `runall.sh`, reached as `./run.sh perf --scenario all`. Gate 4 is wired. What differs from the plan is in the phase document's "As built" section.
+- **Findings while building:**
+  - Each lab's containerd shim (about 24 MiB RSS) runs outside the lab's cgroup, so the cgroup understates a lab's cost. `max_sessions` uses the larger of the cgroup p95 and the host's (used − idle) / labs. On the dev VM, one lab is 25.3 MiB cgroup but 39.4 MB on the host.
+  - labd reconciles before it listens, so P5 measures from the SIGKILL, not from labd answering.
+  - A reader can sit idle longer than the 60 s reconnect grace, so users now reattach as soon as the socket drops.
+  - The dev VM has nine orphaned gVisor sandboxes from Phase 0/1 experiments (`verify-5994`, `dbg1`, `c-*`), invisible to containerd. `./run.sh labs ls` and `preflight` now warn about such orphans. They were left alone; the warning prints the command that removes one.
+- **Dev VM smoke** (task 4.6, arm64, cap 20; validates the driver, not the capacity): P1, P6, P4 and P5 pass every criterion. P6: 20 admitted, 10 queued in order, FIFO drain. P4: 140 sessions, containers equal to active, no leak. P5: all 20 labs running again 305 ms after SIGKILL, 20 of 20 users back on their own lab. Files: `docs/metrics/run-P{1,4,5,6}-2026-09-30-dev-vm.json`.
+- **capacity.md** is restructured: the Phases 1 and 3 single-lab rows are hand-written; a block generated by `labd-perf report` sits between markers; the remaining estimates are listed under "Still estimated" until the laptop runs replace them.
+- **Checks on the Mac:** `./run.sh check`, `test --all` and `lint` pass (`internal/perf` included, `-race`); staticcheck in the VM is clean. `./run.sh gate --phase 4` fails only on the laptop results: no x86-64 perf report, estimates left, no `max_sessions` ADR yet.
+- **Next:** the owner runs the laptop steps at the top of this file.
 
 ### 2026-09-30 — Phase 3 gate passed on the x86-64 laptop
 - **Laptop P1** (`docs/metrics/p1-2026-09-30-linux-laptop.md`, runsc, 10 min at 20 commands/min):
