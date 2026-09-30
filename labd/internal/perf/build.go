@@ -162,7 +162,8 @@ func BuildReport(runs map[string]LoadedRun) (Report, []string) {
 		rep.Leaks.FIFOs = max(rep.Leaks.FIFOs, l.FIFOs)
 	}
 	if lr, ok := runs["P5"]; ok {
-		rep.Extra["p5"] = map[string]any{"adopted_ms": lr.Run.Extra["adopted_ms"], "down_ms": lr.Run.Extra["down_ms"], "file": lr.File}
+		rep.Extra["p5"] = map[string]any{"recovered_ms": lr.Run.Extra["recovered_ms"], "down_ms": lr.Run.Extra["down_ms"],
+			"adopted_ms": lr.Run.Extra["adopted_ms"], "file": lr.File}
 	}
 	if lr, ok := runs["P6"]; ok {
 		rep.Extra["p6"] = lr.Run.Extra["p6"]

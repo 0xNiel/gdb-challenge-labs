@@ -560,6 +560,11 @@ func (r *runner) recovery(ctx context.Context) error {
 		r.mark(fmt.Sprintf("all %d labs running again %.0f ms after labd answered", r.cfg.N, ms(adopted.Sub(up))))
 	}
 	r.extra["down_ms"] = ms(up.Sub(down))
+	if !adopted.IsZero() {
+		// labd reconciles before it listens, so adoption is done by the time it answers: the
+		// number that matters is from the kill to every lab running again.
+		r.extra["recovered_ms"] = ms(adopted.Sub(down))
+	}
 	_ = sleepCtx(ctx, r.cfg.Hold)
 	r.hold[1] = r.now()
 	stop()

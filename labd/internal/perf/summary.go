@@ -225,8 +225,8 @@ func (r *runner) criteria(s RunSummary) []Criterion {
 		noLeaks()
 		noErrors()
 	case "P5":
-		adopted, _ := r.extra["adopted_ms"].(float64)
-		add(adopted >= 0 && adopted < 15000 && r.extra["adopted_ms"] != nil, "all containers reconciled in < 15 s", "%.0f ms from labd answering to every lab running", adopted)
+		rec, ok := r.extra["recovered_ms"].(float64)
+		add(ok && rec < 15000, "all containers reconciled in < 15 s", "%.0f ms from SIGKILL to every lab running again (labd restarted at once)", rec)
 		re := 0
 		for _, u := range r.users {
 			if u.Reconnects > 0 && u.Err == "" {
