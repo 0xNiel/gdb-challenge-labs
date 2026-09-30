@@ -59,7 +59,7 @@ gdb Challenge Labs — ./run.sh <command> [flags]
   perf --scenario P0|single-lab|P1-lite|P4-lite|P5-lite|P1..P9 [--n N] [--hold 20m] [--ramp 5] [--runtime runsc|runc|both] [--out DIR]
        [--cap 100] [--platform kvm] [--partial WHY]
                                P0 and single-lab default to --runtime both. P1..P9 default to the spec
-                               table (labd/perf/scenario.sh). Label results with LAB_HOST
+                               table (labd/perf/scenario.sh); `all` runs the suite (labd/perf/runall.sh). Label results with LAB_HOST
                                (e.g. LAB_HOST=linux-laptop); default: dev-vm in Lima, else the hostname
   gate --phase N               exit test for phase N (scripts/gate.sh)
   deploy                       production deploy on the VPS (Phase 8)
@@ -533,6 +533,8 @@ cmd_perf() {
     P1-lite)
         local p1s; p1s="$(duration_s "${hold:-20m}")"
         run_linux env ${LAB_HOST:+LAB_HOST="$LAB_HOST"} bash "$LABD_DIR/perf/p1.sh" --duration "$p1s" --out "$out" ;;
+    # Phase 4: the whole suite (about 5 hours), then the report.
+    all) run_linux env ${LAB_HOST:+LAB_HOST="$LAB_HOST"} bash "$LABD_DIR/perf/runall.sh" --out "$out" ;;
     # Phase 4: labd-perf against a private labd (labd/perf/scenario.sh). --n and --hold default
     # to the spec table (P2: 100 readers for 20 min); runall.sh runs them all.
     P1|P2|P3|P4|P5|P6|P7|P8|P9)

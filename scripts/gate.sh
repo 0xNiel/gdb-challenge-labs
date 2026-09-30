@@ -164,7 +164,46 @@ phase_3() {
   else fail "no 10-minute P1 from an x86-64 host yet: on the laptop run LAB_HOST=linux-laptop ./run.sh perf --scenario P1-lite --hold 10m, commit docs/metrics"; fi
   check_status_line "Phase 3 human check"
 }
-phase_4() { not_wired; }   # Phase 4, task 4.13
+phase_4() {
+  say "unit tests (includes internal/perf)"
+  check "run.sh test --go" "$RUN" test --go
+  say "perf report from an x86-64 host (ADR 0001)"
+  local rep host
+  rep="$(newest_json perf-report '.meta.arch == "x86_64" and .meta.host != "dev-vm"')"
+  if [[ -z "$rep" ]]; then
+    fail "no perf-report from an x86-64 host: on the laptop run LAB_HOST=linux-laptop ./run.sh perf --scenario all, commit docs/metrics"
+  else
+    host="$(jq -r .meta.host "$rep")"
+    pass "perf report $(basename "$rep") (host $host)"
+    # Every value of the spec's schema measured; leaks may be zero.
+    local zero
+    zero="$(jq -r '[paths(numbers) as $p | select(($p[0] != "leaks") and ($p[0] != "meta") and ($p[0] != "extra"))
+      | select(getpath($p) <= 0) | $p | map(tostring) | join(".")] | join(", ")' "$rep")"
+    if [[ -z "$zero" ]]; then pass "every spec value measured"; else fail "zero or missing in the report: $zero"; fi
+    local sc missing=()
+    for sc in 1 2 3 4 5 6 7 8 9; do
+      compgen -G "$ROOT/docs/metrics/run-P$sc-*-$host.json" >/dev/null || missing+=("P$sc")
+    done
+    if ((${#missing[@]} == 0)); then pass "run-P1..P9 recorded for $host"; else fail "no run file for $host: ${missing[*]}"; fi
+    # Partial runs (not enough RAM for 100) need their follow-up in "Failures and decisions".
+    if [[ "$(jq '.meta.partial // [] | length' "$rep")" != 0 ]]; then
+      if grep -q "8\.8" "$ROOT/docs/metrics/capacity.md"; then pass "partial runs have their Phase 8 follow-up"
+      else fail "partial runs ($(jq -r '.meta.partial | join("; ")' "$rep")) need a decision naming Phase 8 task 8.8"; fi
+    fi
+    # Every missed criterion has a decision line: "· <scenario> · <criterion>".
+    local line missed=()
+    while IFS=$'\t' read -r sc line; do
+      [[ -z "$sc" ]] && continue
+      grep -qF "· $sc · $line" "$ROOT/docs/metrics/capacity.md" || missed+=("$sc: $line")
+    done < <(jq -r '.extra.criteria_missed // {} | to_entries[] | .key as $k | .value[] | [$k, .criterion] | @tsv' "$rep")
+    if ((${#missed[@]} == 0)); then pass "every missed criterion has a decision line"
+    else fail "no decision line in capacity.md for: ${missed[*]}"; fi
+  fi
+  say "capacity table and max_sessions"
+  if grep -q "est\." "$ROOT/docs/metrics/capacity.md"; then fail "capacity.md still has an est. value: $(grep -c 'est\.' "$ROOT/docs/metrics/capacity.md") lines"
+  else pass "capacity.md has no est. value"; fi
+  check_file "max_sessions ADR" "$ROOT/docs/decisions/*-max-sessions.md"
+}
 phase_5() { not_wired; }   # Phase 5, task 5.15
 phase_6() { not_wired; }   # Phase 6, task 6.13
 phase_7() { not_wired; }   # Phase 7, task 7.9

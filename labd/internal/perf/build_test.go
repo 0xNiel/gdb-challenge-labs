@@ -35,7 +35,7 @@ func TestReport_FromRuns(t *testing.T) {
 	old.Summary.LabMemMB.P95 = 999
 	writeRun(t, dir, "run-P2-2026-10-01-lap.json", old) // older: ignored
 	writeRun(t, dir, "run-P3-2026-10-02-lap.json", RunFile{Meta: meta("P3", 100, "2026-10-02T11:00:00Z"),
-		Summary: RunSummary{EchoMS: Pctl{P50: 3, P95: 9}, HostCPUPct: P50P95Max{P50: 30}},
+		Summary:  RunSummary{EchoMS: Pctl{P50: 3, P95: 9}, HostCPUPct: P50P95Max{P50: 30}},
 		Criteria: []Criterion{{Criterion: "x", Pass: false}}})
 	writeRun(t, dir, "run-P8-2026-10-02-lap.json", RunFile{Meta: meta("P8", 60, "2026-10-02T12:00:00Z"),
 		Summary: RunSummary{WSBpsIn: 4, WSBpsOut: 60, WSBpsOutAggregate: 3600}})
