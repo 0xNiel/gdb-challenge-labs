@@ -4,6 +4,8 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
+Phase 3 human check: 2026-09-30 <OG> OK
+
 **Phase 3 — Terminal gateway.** In progress on branch `phase-3-terminal-gateway`. Tasks 3.1–3.11 are built and pass on the arm64 dev VM. Two things remain, both the owner's: the human check and the x86-64 P1.
 
 The owner's first laptop attempt (2026-09-30) failed because the steps ran out of order. The dev labd was still running when P1 started, and the dev session's lab was still there when the gate counted leftovers. labd did not hang: it exits about 0.1 s after Ctrl-C. It just logged nothing after "shutting down". Now it logs every connection and ends with `labd stopped; labs keep running`. The gate and the perf scripts check first and stop at once with what to do.
