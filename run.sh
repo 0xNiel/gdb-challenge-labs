@@ -52,7 +52,7 @@ gdb Challenge Labs — ./run.sh <command> [flags]
 
   images labbase|perf|build|all
   images challenge <dir> [--push]
-  perf --scenario P0|single-lab|P4-lite|P5-lite|P1..P9 [--n N] [--hold 20m] [--ramp 5] [--runtime runsc|runc|both] [--out DIR]
+  perf --scenario P0|single-lab|P1-lite|P4-lite|P5-lite|P1..P9 [--n N] [--hold 20m] [--ramp 5] [--runtime runsc|runc|both] [--out DIR]
                                P0 and single-lab default to --runtime both. Label results with LAB_HOST
                                (e.g. LAB_HOST=linux-laptop); default: dev-vm in Lima, else the hostname
   gate --phase N               exit test for phase N (scripts/gate.sh)
@@ -518,6 +518,10 @@ cmd_perf() {
         run_linux env ${LAB_HOST:+LAB_HOST="$LAB_HOST"} bash "$LABD_DIR/perf/p4lite.sh" --duration "$secs" --out "$out" ;;
     P5-lite)
         run_linux bash "$LABD_DIR/perf/p5.sh" ;;
+    # Phase 3: one session replaying session.gdb over the WebSocket (--hold is its length).
+    P1-lite)
+        local p1s; p1s="$(duration_s "${hold}")"
+        run_linux env ${LAB_HOST:+LAB_HOST="$LAB_HOST"} bash "$LABD_DIR/perf/p1.sh" --duration "$p1s" --out "$out" ;;
     P1|P2|P3|P4|P5|P6|P7|P8|P9)
         [[ -x "$LABD_DIR/bin/labd-perf" ]] || cmd_build
         run_linux "$LABD_DIR/bin/labd-perf" run --scenario "$scenario" --n "$n" --hold "$hold" \
