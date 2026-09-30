@@ -138,6 +138,16 @@ func (c *Client) Expect(re *regexp.Regexp, timeout time.Duration) (string, error
 	}
 }
 
+// Discard drops the output not yet consumed by Expect and returns it. Used after bursts
+// (a paste) whose many prompts would otherwise satisfy the next Expect early.
+func (c *Client) Discard() string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	s := c.out.String()
+	c.out.Reset()
+	return s
+}
+
 // WaitControl waits for the next control frame of type typ that arrived after the last one
 // consumed, and consumes it.
 func (c *Client) WaitControl(typ string, timeout time.Duration) (map[string]any, error) {
