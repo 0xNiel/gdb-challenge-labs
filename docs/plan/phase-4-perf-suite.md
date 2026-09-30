@@ -11,6 +11,22 @@
 
 This is the phase the project exists for. `labd-perf` drives `labd` through its real API and WebSocket with N scripted users, runs scenarios P1–P9, and writes `perf-report.json`. When this phase ends, every *est.* in `docs/metrics/capacity.md` is replaced by a measured number, and `max_sessions` for production is a derived value, not a guess.
 
+## As built (2026-09-30) — read this before the design below
+
+Where the implementation differs from or adds to the text below:
+
+- **Wrapper**: one script, `labd/perf/scenario.sh`, runs every scenario against a private labd started from `labd/labd.perf.yaml` (cap 100, queue 50) through `lib.sh` (preflight, own ports, containerd group). It does the host actions itself: P5 SIGKILLs and restarts labd, P7 removes the images, and P2, P4 and P9 sample disk with `labd/perf/disk.sh`. There is no separate `p5.sh`/`p7.sh`/`p9.sh` for Phase 4, because `p5.sh` is Phase 2's P5-lite and gate 2 uses it. `./run.sh perf --scenario P1..P9` goes through `scenario.sh`; `./run.sh perf --scenario all` runs `labd/perf/runall.sh`.
+- **Files**: `internal/perf` has `percentile.go`, `report.go` (the spec schema), `profile.go`, `vuser.go`, `collector.go`, `run.go` and `summary.go` (scenarios, summary, criteria), `build.go` (report from runs) and `capacity.go` (the generated capacity block).
+- **Profiles**: every profile first sends `set confirm off` and `set pagination off`, so gdb never waits on a question. stepper cycles every section of `session.gdb` except reader: the Phase 3 P1 workload, with the one watch. The abuser uses `/opt/perf/probe fork` and `probe fill` (raw syscalls; no dependency on which shell tools labbase kept). After its actions it sends `print 1` once a minute, because otherwise the 15-minute idle timeout would end its lab, and its CPU loop, mid-hold.
+- **Vuser test** uses its own fake labd (API plus a shell-with-gdb terminal) and a virtual clock. The Phase 3 fake server lives in term's test files and cannot be imported.
+- **Hold window**: user i holds (N−1−i)/ramp longer, so all finish together. "At N" is from all running (+30 s) to the first user finishing.
+- **Per-lab memory for `max_sessions`**: the larger of the lab cgroup p95 and the host's (peak used − idle) / labs. Each lab's containerd shim (about 24 MiB RSS) runs outside the lab's cgroup, so the cgroup alone understates the cost. "Idle" is the lower of the host before the run and after teardown.
+- **OOM kills** come from `/proc/vmstat oom_kill` (no root or dmesg needed).
+- **P7**: the perf image is local only, so the timed "pull" is a re-import from `images/out` (both images removed first). The real GHCR pull is measured in Phase 8. A start without the image must fail: labd never pulls at request time (S20).
+- **P8**: the aggregate is the sum of per-session WebSocket payload rates; behind Caddy add about 5 % for TLS framing (Phase 8 re-measures).
+- **capacity.md**: `labd-perf report` rewrites only the block between its markers. Single-lab numbers from Phases 1 and 3 stay hand-written above it, and "Failures and decisions" below it. Remaining estimates sit in a "Still estimated" table that is removed once the block measures them.
+- **200-challenge images**: labbase + 200 × the perf program layer, from image sizes recorded by `disk.sh`. Phase 5 measures real challenge layers.
+
 ## Design fixed by this document
 
 - `labd/cmd/labd-perf` is a single binary with subcommands `run --scenario P2 --n 100 --ramp 5 --hold 20m --runtime runsc --out docs/metrics/`, `report --in <dir> --out perf-report.json --md capacity.md`, and `profiles` (prints the three profiles).
@@ -95,6 +111,7 @@ Unit: percentiles, report golden, profiles pacing, vuser against fake server, co
 ```
 ./run.sh gate --phase 4
 ```
+The results come from `LAB_HOST=linux-laptop ./run.sh perf --scenario all` on the laptop (about 5 hours), then committing `docs/metrics`. A missed criterion's decision line has the form `YYYY-MM-DD · <scenario> · <criterion as the run file words it> · measured · decision · link`; the gate matches `· <scenario> · <criterion>`.
 1. `go test ./...` green (includes `internal/perf`).
 2. `docs/metrics/perf-report-*-<host>.json` exists for an x86-64 host (not `dev-vm`), with every key of the spec schema non-zero where a value is expected (`leaks.*` may be zero). Scenarios run below N=100 for lack of RAM are marked `partial` and listed in "Failures and decisions" with the follow-up "repeat on VPS, Phase 8 task 8.8".
 3. `docs/metrics/run-P{1..9}-*-<host>.json` all exist for that host.
