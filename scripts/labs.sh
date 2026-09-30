@@ -39,6 +39,26 @@ label() { # ID KEY
   sudo ctr -n "$NS" containers info "$1" 2>/dev/null | jq -r --arg k "$2" '.Labels[$k] // "-"'
 }
 
+# orphans — gVisor sandboxes of namespace labs whose container containerd no longer lists
+# (debris from a killed shim or a hand-run experiment). They hold memory and CPU outside any
+# lab, which skews host measurements; no labd will ever adopt or remove them.
+orphans() {
+  local known ids id
+  known="$(containers | tr '\n' ' ')"
+  ids="$(pgrep -a -f 'runsc-sandbox .*runtime\.v2\.task/labs/' 2>/dev/null \
+    | grep -oE 'runtime\.v2\.task/labs/[^/]+/' | cut -d/ -f3 | sort -u || true)"
+  for id in $ids; do [[ " $known " == *" $id "* ]] || echo "$id"; done
+}
+
+warn_orphans() {
+  local o
+  o="$(orphans | tr '\n' ' ')"
+  [[ -z "$o" ]] && return 0
+  printf 'warning: gVisor sandboxes running with no container in namespace %s: %s\n' "$NS" "$o" >&2
+  printf '         They use memory and CPU outside any lab. Remove each with:\n' >&2
+  printf '         sudo pkill -KILL -f -- "-id <id>$"; sudo pkill -KILL -f "/labs/<id>/"\n' >&2
+}
+
 list() {
   local ids id
   ids="$(containers)"
@@ -58,7 +78,7 @@ Labs outlive labd on purpose; after it stops, ./run.sh labs clean removes what i
 EOF
 }
 
-cmd_ls() { sudo_once; list; }
+cmd_ls() { sudo_once; list; warn_orphans; }
 
 cmd_clean() {
   local yes=0 pids ids id n=0 st i
@@ -103,6 +123,7 @@ cmd_preflight() {
     printf 'After labd has stopped, remove them: ./run.sh labs clean\n' >&2
     bad=1
   fi
+  warn_orphans
   [[ $bad == 0 ]] || exit 1
   say "preflight ok: no labd running, namespace $NS empty"
 }
