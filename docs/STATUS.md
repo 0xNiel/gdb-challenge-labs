@@ -57,7 +57,7 @@ Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than
   - echo p50 3.2 ms, p95 5.5 ms, max 9.6 ms;
   - lab cgroup 28.0 MiB p50, 29.4 MiB max; Sentry RSS 47.8 MiB p50;
   - CPU 0.53 % of a core; WebSocket 3.6 B/s in, 57 B/s out; 201 commands, 0 errors.
-- **capacity.md:** the "CPU: during step loops" and "Bandwidth per active terminal" rows now carry these numbers. Both are far below the spec's estimates (5–20 % of a core; 0.5–5 KB/s). The echo latency row is still *est.* and can take the 5.5 ms p95 from the same file if the owner agrees.
+- **capacity.md:** the "CPU: during step loops" and "Bandwidth per active terminal" rows now carry these numbers. Both are far below the spec's estimates (5–20 % of a core; 0.5–5 KB/s). At the owner's request, the echo latency row also takes its number from the same file (p95 5.5 ms, target < 100 ms).
 - **Start latency miss, recorded:** 2296 ms against a p95 < 2 s target, from a single start that includes the client starting gdb. The container-to-prompt p95 is 1543 ms. Recorded under "Failures and decisions" in capacity.md; Phase 4 (P2) measures it properly. Not a gate failure (the phase document requires the number).
 - The owner's human check passed on the laptop (the line at the top of "Current phase"). Phase 3 is merged into `main` (fast-forward) and pushed.
 

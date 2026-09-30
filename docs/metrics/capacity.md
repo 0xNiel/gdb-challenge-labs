@@ -16,7 +16,7 @@ Memory values from `single-lab-*.json` are MiB (2^20 bytes), although the JSON f
 | Disk: writable snapshot per session | *est.* ~1 MB | — | spec |
 | Bandwidth: WS bytes/s per active terminal | 57 B/s out (terminal output), 3.6 B/s in (keystrokes), averaged over 600 s at 20 commands/min: 34162 and 2135 bytes. Against the spec's *est.* 0.5–5 KB/s. Payload only, no WebSocket or TLS framing | linux-laptop | `p1-2026-09-30-linux-laptop.json` |
 | Start latency: create to prompt p95 | 1543 ms (p50 1463 ms, 10 runs); target < 2 s met. Container create to gdb's first prompt, not browser click to prompt | linux-laptop | `single-lab-2026-09-29-linux-laptop.json` |
-| Echo latency p95 | *est.* < 100 ms (target) | — | spec |
+| Echo latency p95 | 5.5 ms (p50 3.2 ms, max 9.6 ms; 201 commands over 600 s): command sent to the first byte back over the WebSocket, one lab, loopback. Target < 100 ms met. Phase 4 re-measures at N labs | linux-laptop | `p1-2026-09-30-linux-laptop.json` |
 
 ## Host at 100 labs
 
