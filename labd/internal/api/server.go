@@ -44,6 +44,9 @@ type Server struct {
 	log      *slog.Logger
 	// ReadRSS returns a lab's cgroup memory in MiB; replaceable in tests.
 	ReadRSS func(cgroupPath string) float64
+	// MintToken returns a fresh ws_token for a session (term.Tokens.Mint). web mints its own
+	// from Phase 6 on; until then this field fills the spec's ws_token. nil leaves it "".
+	MintToken func(sessionID string, userID int64) string
 }
 
 // New returns a Server. An empty secret is refused: the API must never run unauthenticated.
@@ -99,7 +102,7 @@ type startBody struct {
 	ChallengeSlug string `json:"challenge_slug"`
 }
 
-// startResp is the spec's response. ws_token is filled by the gateway in Phase 3.
+// startResp is the spec's response.
 type startResp struct {
 	SessionID     string     `json:"session_id"`
 	WSToken       string     `json:"ws_token"`
@@ -134,7 +137,12 @@ func (s *Server) startSession(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "internal", err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, startResp{SessionID: in.ID, State: in.State, QueuePosition: in.QueuePosition})
+	resp := startResp{SessionID: in.ID, State: in.State, QueuePosition: in.QueuePosition}
+	if s.MintToken != nil {
+		// A fresh token on every call, so a reconnecting browser can POST again for one.
+		resp.WSToken = s.MintToken(in.ID, in.UserID)
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func (s *Server) stopSession(w http.ResponseWriter, r *http.Request) {

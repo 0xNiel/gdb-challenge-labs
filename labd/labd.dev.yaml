@@ -11,3 +11,6 @@ default_limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60,
 challenges_file: challenges.dev.json   # relative to this file; Phase 5 generates the real one
 postgres_dsn: postgres://labd:labd@127.0.0.1:5432/labs
 metrics_flush_s: 10
+site_host: http://127.0.0.1:8082   # the dev test page is served by labd itself
+dev_allow_no_origin: true           # Go client and perf scripts send no Origin
+dev_testpage: true                  # /dev/term on listen_ws

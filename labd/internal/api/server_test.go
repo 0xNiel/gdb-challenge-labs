@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -90,6 +91,7 @@ func newTestServer(t *testing.T, reload ReloadFunc) *httptest.Server {
 		t.Fatal(err)
 	}
 	srv.ReadRSS = func(string) float64 { return 23.5 }
+	srv.MintToken = func(id string, uid int64) string { return fmt.Sprintf("tok-%s-%d", id, uid) }
 	ts := httptest.NewServer(srv.Handler())
 	t.Cleanup(ts.Close)
 	return ts
@@ -138,6 +140,9 @@ func TestAPI_StartSameUserStop(t *testing.T) {
 	code, a := call(t, ts, "POST", "/internal/sessions", `{"user_id":1,"challenge_slug":"perf"}`, secret)
 	if code != 200 || a["state"] != "creating" || a["session_id"] == "" {
 		t.Fatalf("start: %d %v", code, a)
+	}
+	if a["ws_token"] != "tok-"+a["session_id"].(string)+"-1" {
+		t.Fatalf("ws_token %v", a["ws_token"])
 	}
 	for _, k := range []string{"session_id", "ws_token", "state", "queue_position"} {
 		if _, ok := a[k]; !ok {

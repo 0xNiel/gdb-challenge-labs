@@ -1,0 +1,84 @@
+<!doctype html>
+<!-- labd dev test page (Phase 3, task 3.8). Served at /dev/term only when dev_testpage is on.
+     It is the reference implementation of the client protocol for the Phase 6 lab page. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>labd terminal (dev)</title>
+<link rel="stylesheet" href="/dev/vendor/xterm-5.5.0.css">
+<style>
+  body { margin: 0; font: 14px system-ui, sans-serif; background: #111; color: #ddd; }
+  #bar { display: flex; gap: 1em; align-items: center; padding: 6px 10px; background: #222; }
+  #term { position: absolute; top: 36px; bottom: 0; left: 0; right: 0; padding: 4px; }
+  #extend { display: none; }
+  .warn { color: #f5a623; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <strong>labd dev terminal</strong>
+  <span id="state">connecting…</span>
+  <span id="ttl"></span>
+  <button id="extend">Extend</button>
+  <span id="msg" class="warn"></span>
+</div>
+<div id="term"></div>
+<script src="/dev/vendor/xterm-5.5.0.js"></script>
+<script src="/dev/vendor/addon-fit-0.10.0.js"></script>
+<script>
+"use strict";
+const q = new URLSearchParams(location.search);
+const session = q.get("session"), token = q.get("t");
+const $ = (id) => document.getElementById(id);
+const term = new Terminal({ cursorBlink: true, scrollback: 5000 });
+const fit = new FitAddon.FitAddon();
+term.loadAddon(fit);
+term.open($("term"));
+fit.fit();
+
+if (!session || !token) {
+  $("state").textContent = "missing ?session=<id>&t=<ws_token> (POST /internal/sessions returns both)";
+  throw new Error("no session");
+}
+
+const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/term/${session}?t=${encodeURIComponent(token)}`);
+ws.binaryType = "arraybuffer";
+const enc = new TextEncoder();
+const send = (obj) => ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify(obj));
+const resize = () => { fit.fit(); send({ type: "resize", cols: term.cols, rows: term.rows }); };
+
+// Countdown between ttl frames (the server sends one every 30 s).
+let idleLeft = 0, hardLeft = 0, canExtend = false;
+setInterval(() => {
+  idleLeft = Math.max(idleLeft - 1, 0); hardLeft = Math.max(hardLeft - 1, 0);
+  const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  $("ttl").textContent = hardLeft ? `idle ${mmss(idleLeft)} · session ${mmss(hardLeft)}` : "";
+  $("extend").style.display = canExtend && idleLeft <= 120 ? "inline" : "none";
+}, 1000);
+setInterval(() => send({ type: "ping" }), 25000);
+
+ws.onopen = () => { $("state").textContent = "connected"; resize(); };
+ws.onmessage = (ev) => {
+  if (typeof ev.data !== "string") { term.write(new Uint8Array(ev.data)); return; }
+  const f = JSON.parse(ev.data);
+  switch (f.type) {
+    case "queued": $("state").textContent = `queued: position ${f.position}`; break;
+    case "state":
+      $("state").textContent = f.state + (f.reason ? ` (${f.reason})` : "");
+      if (f.state === "running") { resize(); term.focus(); }
+      break;
+    case "ttl":
+      idleLeft = f.idle_remaining_s; hardLeft = f.hard_remaining_s; canExtend = f.extend_available; break;
+    case "warn":
+      $("msg").textContent = f.message; setTimeout(() => { $("msg").textContent = ""; }, 3000); break;
+    case "extend":
+      $("msg").textContent = f.ok ? "extended" : "already extended"; canExtend = false; break;
+  }
+};
+ws.onclose = (ev) => { $("state").textContent = `closed: ${ev.code} ${ev.reason || ""}`; };
+term.onData((d) => ws.readyState === WebSocket.OPEN && ws.send(enc.encode(d)));
+window.addEventListener("resize", resize);
+$("extend").onclick = () => send({ type: "extend" });
+</script>
+</body>
+</html>

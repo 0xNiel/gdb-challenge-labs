@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,15 +44,27 @@ type Config struct {
 	PostgresDSN       string `yaml:"postgres_dsn"`
 	MetricsFlushS     int    `yaml:"metrics_flush_s"`
 
+	// SiteHost is the site's origin (scheme and host, e.g. https://labs.example.com): the only
+	// Origin the WebSocket gateway accepts (S12).
+	SiteHost string `yaml:"site_host"`
+	// DevAllowNoOrigin accepts WebSocket requests without an Origin header (Go client, perf
+	// scripts). DevTestpage serves the xterm.js test page at /dev/term. Both dev only.
+	DevAllowNoOrigin bool `yaml:"dev_allow_no_origin"`
+	DevTestpage      bool `yaml:"dev_testpage"`
+
 	// InternalSecret is the bearer token web uses on the internal API (S11).
 	// Environment only: LABD_INTERNAL_SECRET. Never read from the file.
 	InternalSecret string `yaml:"-"`
+	// WSTokenKey is the HMAC key for WebSocket tokens, shared with web (S12).
+	// Environment only: WS_TOKEN_KEY.
+	WSTokenKey string `yaml:"-"`
 }
 
 // Environment variable names.
 const (
 	EnvPostgresDSN    = "LABD_POSTGRES_DSN"
 	EnvInternalSecret = "LABD_INTERNAL_SECRET"
+	EnvWSTokenKey     = "WS_TOKEN_KEY"
 )
 
 // Default returns the spec's defaults.
@@ -75,6 +88,7 @@ func Default() Config {
 		ChallengesFile: "/etc/labd/challenges.json",
 		PostgresDSN:    "postgres://labd@localhost/labs",
 		MetricsFlushS:  10,
+		SiteHost:       "https://labs.example.com",
 	}
 }
 
@@ -117,6 +131,7 @@ func (c *Config) applyEnv() {
 		c.PostgresDSN = v
 	}
 	c.InternalSecret = os.Getenv(EnvInternalSecret)
+	c.WSTokenKey = os.Getenv(EnvWSTokenKey)
 }
 
 // Validate enforces invariants that must hold before labd binds anything.
@@ -142,6 +157,10 @@ func (c Config) Validate() error {
 	}
 	if c.MetricsFlushS <= 0 {
 		errs = append(errs, errors.New("metrics_flush_s must be > 0"))
+	}
+	if u, err := url.Parse(c.SiteHost); err != nil || (u.Scheme != "https" && u.Scheme != "http") ||
+		u.Host == "" || (u.Path != "" && u.Path != "/") || u.RawQuery != "" {
+		errs = append(errs, fmt.Errorf("site_host %q must be an origin like https://labs.example.com", c.SiteHost))
 	}
 	if strings.TrimSpace(c.Runtime) == "" {
 		errs = append(errs, errors.New("runtime must be set"))

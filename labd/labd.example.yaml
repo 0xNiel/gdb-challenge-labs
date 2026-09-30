@@ -12,3 +12,4 @@ default_limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60,
 challenges_file: /etc/labd/challenges.json
 postgres_dsn: postgres://labd@localhost/labs
 metrics_flush_s: 10
+site_host: https://labs.example.com   # the only Origin the WebSocket gateway accepts (S12)

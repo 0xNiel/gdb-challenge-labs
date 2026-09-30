@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -16,7 +18,9 @@ import (
 	"gdblabs/labd/internal/config"
 	"gdblabs/labd/internal/orch"
 	"gdblabs/labd/internal/store"
+	"gdblabs/labd/internal/term"
 	"gdblabs/labd/sandbox"
+	"gdblabs/labd/testpage"
 )
 
 // runServe is `labd serve`: migrate, load challenges, connect to containerd, reconcile,
@@ -24,6 +28,9 @@ import (
 func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.Logger) error {
 	if cfg.InternalSecret == "" {
 		return fmt.Errorf("%s is not set; the internal API refuses to run without it (S11)", config.EnvInternalSecret)
+	}
+	if cfg.WSTokenKey == "" {
+		return fmt.Errorf("%s is not set; the terminal gateway refuses to run without it (S12)", config.EnvWSTokenKey)
 	}
 	db, err := store.OpenPostgres(ctx, cfg.PostgresDSN)
 	if err != nil {
@@ -48,6 +55,7 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 	m := orch.NewManager(orch.ManagerConfig{
 		BaseSpec: sandbox.Base, Runtime: cfg.Runtime, MaxSessions: cfg.MaxSessions,
 		MaxQueue: cfg.MaxQueue, DefaultLimits: cfg.DefaultLimits, Challenges: challenges,
+		WSGrace: cfg.WSReconnectGrace(),
 	}, rt, db, clock.Real{}, log)
 	defer m.Close()
 	rep, err := m.Reconcile(ctx)
@@ -62,8 +70,29 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 	if err != nil {
 		return err
 	}
-	ln, err := api.Listen(cfg.ListenInternal)
+	tokens := term.NewTokens([]byte(cfg.WSTokenKey))
+	srv.MintToken = func(id string, uid int64) string { return tokens.Mint(id, uid, time.Now()) }
+	rec := term.NewRecorder(db, clock.Real{}, log)
+	defer rec.Close()
+	gw := term.New(term.Options{
+		Sessions: m, Tokens: tokens, Recorder: rec, Log: log,
+		SiteOrigin: strings.TrimSuffix(cfg.SiteHost, "/"), AllowNoOrigin: cfg.DevAllowNoOrigin,
+	})
+	wsMux := http.NewServeMux()
+	wsMux.Handle("/ws/", gw.Handler())
+	if cfg.DevTestpage {
+		log.Warn("dev_testpage is on: /dev/term serves the xterm.js test page (never in production)")
+		wsMux.Handle("GET /dev/term", testpage.Handler())
+		wsMux.Handle("GET /dev/vendor/", testpage.Handler())
+	}
+
+	lnAPI, err := api.Listen(cfg.ListenInternal)
 	if err != nil {
+		return err
+	}
+	lnWS, err := api.Listen(cfg.ListenWS)
+	if err != nil {
+		lnAPI.Close()
 		return err
 	}
 
@@ -71,10 +100,14 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 	signal.Notify(hup, syscall.SIGHUP)
 	defer signal.Stop(hup)
 	go func() {
+		sweep := time.NewTicker(time.Minute)
+		defer sweep.Stop()
 		for {
 			select {
 			case <-ctx.Done():
 				return
+			case now := <-sweep.C:
+				tokens.Sweep(now)
 			case <-hup:
 				if sum, err := rl.Reload(ctx); err != nil {
 					log.Error("SIGHUP reload failed; keeping the previous config", "err", err)
@@ -84,7 +117,19 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 			}
 		}
 	}()
-	return serveHTTP(ctx, ln, srv.Handler(), log)
+
+	// If either server fails, stop the other too.
+	sctx, stop := context.WithCancel(ctx)
+	defer stop()
+	errc := make(chan error, 2)
+	go func() { errc <- serveHTTP(sctx, lnWS, wsMux, log) }()
+	go func() { errc <- serveHTTP(sctx, lnAPI, srv.Handler(), log) }()
+	err = <-errc
+	stop()
+	if err2 := <-errc; err == nil {
+		err = err2
+	}
+	return err
 }
 
 // fifoDir is where labd keeps the terminal FIFOs: systemd's RuntimeDirectory in production,
@@ -130,6 +175,7 @@ func (r *reloader) Reload(context.Context) (map[string]any, error) {
 	r.m.SetDefaultLimits(cfg.DefaultLimits)
 	r.m.SetChallenges(cs)
 	r.m.SetMaxQueue(cfg.MaxQueue)
+	r.m.SetWSGrace(cfg.WSReconnectGrace())
 	r.m.SetCap(cfg.MaxSessions)
 	r.current = cfg
 	// Pre-pull images new to challenges.json (spec), in the background: a pull can take

@@ -156,3 +156,15 @@ func TestLoad_RelativeChallengesFile(t *testing.T) {
 		}
 	}
 }
+
+func TestSiteHost(t *testing.T) {
+	for v, ok := range map[string]bool{
+		"https://labs.example.com": true, "http://127.0.0.1:8082": true, "https://labs.example.com/": true,
+		"labs.example.com": false, "ftp://x": false, "https://x/path": false, "https://": false, "https://x?a=1": false,
+	} {
+		_, err := Parse([]byte("site_host: " + v + "\n"))
+		if (err == nil) != ok {
+			t.Errorf("site_host %q: err %v, want ok=%v", v, err, ok)
+		}
+	}
+}

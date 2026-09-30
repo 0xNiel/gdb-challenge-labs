@@ -536,9 +536,17 @@ func TestWS_SlowConsumerClosed1008(t *testing.T) {
 		time.Sleep(50 * time.Millisecond)
 		return stalled
 	})
-	for range 12 {
+	// Advance until the watchdog has decided (the session shows no client attached).
+	deadline := time.Now().Add(30 * time.Second)
+	for {
+		if in, _ := h.m.Get(id); !in.Attached {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("slow consumer never detected")
+		}
 		h.fake.Advance(time.Second)
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 	}
 	// Resume reading: the backlog drains and the close frame follows it.
 	var code websocket.StatusCode
@@ -684,12 +692,9 @@ func TestWS_StuckClientIsReleased(t *testing.T) {
 		time.Sleep(50 * time.Millisecond)
 		return stalled
 	})
-	for range 12 {
-		h.fake.Advance(time.Second)
-		time.Sleep(10 * time.Millisecond)
-	}
-	// Never read. The gateway must still detach within flushWait plus the close timeout.
-	deadline := time.Now().Add(20 * time.Second)
+	// Never read. Advance the clock until the watchdog gives up on the client; the gateway
+	// must then release it within flushWait plus the close timeout.
+	deadline := time.Now().Add(30 * time.Second)
 	for {
 		if in, _ := h.m.Get(id); !in.Attached {
 			break
@@ -697,7 +702,8 @@ func TestWS_StuckClientIsReleased(t *testing.T) {
 		if time.Now().After(deadline) {
 			t.Fatal("connection to a stuck client never released")
 		}
-		time.Sleep(50 * time.Millisecond)
+		h.fake.Advance(time.Second)
+		time.Sleep(20 * time.Millisecond)
 	}
 	// The lab's output is flowing again (nobody is subscribed).
 	before := pty.emitted.Load()
