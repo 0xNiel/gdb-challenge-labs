@@ -1,0 +1,36 @@
+{
+  "host": "linux-laptop",
+  "arch": "x86_64",
+  "kernel": "7.0.0-34-generic",
+  "date": "2026-09-30T01:14:43Z",
+  "runtime": "io.containerd.runsc.v1",
+  "runsc": "runsc version release-20260921.0",
+  "scenario": "P4-lite",
+  "cap": 20,
+  "duration_s": 600,
+  "interval_s": 2,
+  "starts": 300,
+  "stops": 280,
+  "create_to_running_ms": {
+    "n": 300,
+    "p50": 223,
+    "p95": 277,
+    "max": 312
+  },
+  "api_start_response_ms": {
+    "p50": 6,
+    "p95": 7
+  },
+  "labd": {
+    "goroutines_idle": 13,
+    "goroutines_at_cap": 133,
+    "goroutines_after": 13,
+    "rss_mib_idle": 24.9,
+    "rss_mib_at_cap": 37.5
+  },
+  "lab_cgroup_mib_p50_at_cap": 11,
+  "leaks": {
+    "containers": 0,
+    "goroutines": 0
+  }
+}
