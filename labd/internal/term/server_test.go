@@ -177,21 +177,21 @@ func (h *harness) dialAs(t *testing.T, id string, user int64, org string) (*webs
 	return websocket.Dial(ctx, h.url(id)+"?t="+tok, &websocket.DialOptions{HTTPHeader: hdr})
 }
 
-func (h *harness) dial(t *testing.T, id string, user int64) *client {
+func (h *harness) dial(t *testing.T, id string, user int64) *wsClient {
 	t.Helper()
 	ws, _, err := h.dialAs(t, id, user, origin)
 	if err != nil {
 		t.Fatalf("dial: %v", err)
 	}
 	ws.SetReadLimit(4 << 20)
-	c := &client{ws: ws, frames: make(chan frame, 1024)}
+	c := &wsClient{ws: ws, frames: make(chan frame, 1024)}
 	go c.read()
 	t.Cleanup(func() { ws.CloseNow() })
 	return c
 }
 
-// client reads frames in the background so tests can wait for specific ones.
-type client struct {
+// wsClient reads frames in the background so tests can wait for specific ones.
+type wsClient struct {
 	ws     *websocket.Conn
 	frames chan frame
 	err    atomic.Value
@@ -203,7 +203,7 @@ type frame struct {
 	bin  []byte
 }
 
-func (c *client) read() {
+func (c *wsClient) read() {
 	for {
 		typ, data, err := c.ws.Read(context.Background())
 		if err != nil {
@@ -222,7 +222,7 @@ func (c *client) read() {
 }
 
 // expect returns the next control frame of type typ, collecting binary output on the way.
-func (c *client) expect(t *testing.T, typ string) map[string]any {
+func (c *wsClient) expect(t *testing.T, typ string) map[string]any {
 	t.Helper()
 	timeout := time.After(5 * time.Second)
 	for {
@@ -243,7 +243,7 @@ func (c *client) expect(t *testing.T, typ string) map[string]any {
 }
 
 // expectOutput waits until the binary output contains s.
-func (c *client) expectOutput(t *testing.T, s string) {
+func (c *wsClient) expectOutput(t *testing.T, s string) {
 	t.Helper()
 	timeout := time.After(5 * time.Second)
 	for !strings.Contains(c.out.String(), s) {
@@ -260,7 +260,7 @@ func (c *client) expectOutput(t *testing.T, s string) {
 }
 
 // closed waits for the connection to end and returns its close status.
-func (c *client) closed(t *testing.T) (websocket.StatusCode, string) {
+func (c *wsClient) closed(t *testing.T) (websocket.StatusCode, string) {
 	t.Helper()
 	timeout := time.After(15 * time.Second)
 	for {
@@ -280,14 +280,14 @@ func (c *client) closed(t *testing.T) (websocket.StatusCode, string) {
 	}
 }
 
-func (c *client) send(t *testing.T, p string) {
+func (c *wsClient) send(t *testing.T, p string) {
 	t.Helper()
 	if err := c.ws.Write(context.Background(), websocket.MessageBinary, []byte(p)); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func (c *client) ctrl(t *testing.T, v any) {
+func (c *wsClient) ctrl(t *testing.T, v any) {
 	t.Helper()
 	b, _ := json.Marshal(v)
 	if err := c.ws.Write(context.Background(), websocket.MessageText, b); err != nil {
@@ -662,7 +662,7 @@ func TestWS_CaptureReachesStore(t *testing.T) {
 // A client that never reads again must not keep the connection's goroutines alive.
 func TestWS_StuckClientIsReleased(t *testing.T) {
 	t.Parallel()
-	h := newHarness(t, 1, false, func(o *Options) { o.OutputRate, o.OutputBurst = 1 << 30, 32 << 10 })
+	h := newHarness(t, 1, false, func(o *Options) { o.OutputRate, o.OutputBurst = 1<<30, 32<<10 })
 	id := h.start(t, 1)
 	ws, _, err := h.dialAs(t, id, 1, origin)
 	if err != nil {
