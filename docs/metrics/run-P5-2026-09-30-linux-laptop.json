@@ -1,0 +1,3914 @@
+{
+ "meta": {
+  "scenario": "P5",
+  "host": "linux-laptop",
+  "arch": "x86_64",
+  "kernel": "7.0.0-34-generic",
+  "runtime": "io.containerd.runsc.v1",
+  "platform": "systrap",
+  "runsc": "runsc version release-20260921.0",
+  "date": "2026-09-30T18:38:51Z",
+  "n": 100,
+  "ramp_per_s": 5,
+  "hold_s": 60,
+  "mix": {
+   "reader": 1
+  },
+  "max_sessions": 100,
+  "host_mem_total_mb": 15582,
+  "cpus": 16,
+  "command": "labd-perf run --scenario P5 --ramp 5 --api http://127.0.0.1:18081 --ws ws://127.0.0.1:18082 --script ~/labbing-platform/images/perf/session.gdb --out ~/labbing-platform/docs/metrics --host linux-laptop --runtime io.containerd.runsc.v1 --platform systrap --label  --partial  --n 100 --ready-file /tmp/tmp.o5iym1hWuH/ready",
+  "duration_s": 116
+ },
+ "summary": {
+  "sessions": 100,
+  "vuser_errors": 0,
+  "commands": 961,
+  "command_errors": 0,
+  "start_to_prompt_ms": {
+   "n": 100,
+   "p50": 2392.022,
+   "p95": 2504.41,
+   "p99": 2545.6,
+   "max": 2549.814
+  },
+  "create_http_ms": {
+   "n": 100,
+   "p50": 4.119,
+   "p95": 6.162,
+   "p99": 6.69,
+   "max": 8.496
+  },
+  "queue_wait_ms": {
+   "n": 100,
+   "p50": 1006.055,
+   "p95": 1008.208,
+   "p99": 1010.02,
+   "max": 1013.679
+  },
+  "echo_ms": {
+   "n": 1261,
+   "p50": 1.935,
+   "p95": 63.533,
+   "p99": 125.915,
+   "max": 225.025
+  },
+  "echo_ms_by_profile": {
+   "reader": {
+    "n": 1261,
+    "p50": 1.935,
+    "p95": 63.533,
+    "p99": 125.915,
+    "max": 225.025
+   }
+  },
+  "step_cmd_ms": {
+   "n": 0,
+   "p50": 0,
+   "p95": 0,
+   "p99": 0,
+   "max": 0
+  },
+  "cmd_ms": {
+   "break": {
+    "n": 300,
+    "p50": 3.313,
+    "p95": 78.116,
+    "p99": 82.609,
+    "max": 84.71
+   },
+   "bt": {
+    "n": 57,
+    "p50": 4.808,
+    "p95": 8.399,
+    "p99": 10.949,
+    "max": 10.949
+   },
+   "info": {
+    "n": 110,
+    "p50": 12.199,
+    "p95": 17.365,
+    "p99": 19.554,
+    "max": 19.862
+   },
+   "list": {
+    "n": 94,
+    "p50": 3.3,
+    "p95": 6.491,
+    "p99": 7.795,
+    "max": 7.795
+   },
+   "run": {
+    "n": 100,
+    "p50": 197.97,
+    "p95": 206.159,
+    "p99": 208.843,
+    "max": 213.004
+   },
+   "set": {
+    "n": 300,
+    "p50": 2.176,
+    "p95": 71.228,
+    "p99": 77.49,
+    "max": 79.857
+   }
+  },
+  "hold_labs": 100,
+  "hold_samples": 12,
+  "lab_mem_mb": {
+   "n": 1200,
+   "p50": 24.73,
+   "p95": 25.82,
+   "p99": 26.47,
+   "max": 27.1
+  },
+  "sentry_rss_mb": {
+   "n": 1200,
+   "p50": 46.6,
+   "p95": 47.1,
+   "p99": 47.3,
+   "max": 47.4
+  },
+  "lab_host_rss_mb": {
+   "n": 1200,
+   "p50": 93.1,
+   "p95": 93.9,
+   "p99": 94.1,
+   "max": 94.2
+  },
+  "lab_cpu_pct_avg": 0.05,
+  "lab_cpu_pct_by_profile": {
+   "reader": 0.05
+  },
+  "host_baseline_mb": 5208.9,
+  "host_after_mb": 5251.1,
+  "host_mem_used_mb": {
+   "p50": 8520.8,
+   "p95": 8535.9,
+   "max": 8535.9
+  },
+  "host_per_lab_mb": 33.3,
+  "host_cpu_pct": {
+   "p50": 1.82,
+   "p95": 10.48,
+   "max": 10.48
+  },
+  "psi_max": {
+   "cpu_some_avg10": 36.06,
+   "memory_some_avg10": 0,
+   "io_some_avg10": 0.24
+  },
+  "oom_kills": 0,
+  "labd_rss_mb": {
+   "idle": 26,
+   "peak": 56.3,
+   "after": 56.3
+  },
+  "labd_goroutines": {
+   "idle": 17,
+   "peak": 918,
+   "after": 17
+  },
+  "containerd_rss_mb": {
+   "idle": 68.8,
+   "peak": 88.7,
+   "after": 74
+  },
+  "containers_max": 100,
+  "ws_bps_in": 1.7,
+  "ws_bps_out": 18.2,
+  "ws_bps_out_aggregate": 1816,
+  "leaks": {
+   "containers": 0,
+   "goroutines": 0,
+   "fifos": 0
+  }
+ },
+ "criteria": [
+  {
+   "criterion": "all containers reconciled in \u003c 15 s",
+   "measured": "3628 ms from SIGKILL to every lab running again (labd restarted at once)",
+   "pass": true
+  },
+  {
+   "criterion": "reconnecting clients within the grace resume",
+   "measured": "100 of 100 reconnected to their own lab",
+   "pass": true
+  },
+  {
+   "criterion": "nothing left after every session ended",
+   "measured": "containers 0, goroutines +0, FIFOs +0",
+   "pass": true
+  }
+ ],
+ "timeline": [
+  {
+   "t": 10,
+   "event": "baseline taken"
+  },
+  {
+   "t": 45.1,
+   "event": "100 sessions running; waiting for labd to be killed"
+  },
+  {
+   "t": 45.6,
+   "event": "labd down"
+  },
+  {
+   "t": 49.2,
+   "event": "labd answering again"
+  },
+  {
+   "t": 49.3,
+   "event": "all 100 labs running again 17 ms after labd answered"
+  },
+  {
+   "t": 115.8,
+   "event": "teardown done"
+  }
+ ],
+ "extra": {
+  "adopted_ms": 16.626,
+  "down_ms": 3611.154,
+  "recovered_ms": 3627.781
+ },
+ "vusers": [
+  {
+   "user_id": 93531095,
+   "profile": "reader",
+   "session_id": "018a920b-2218-4a6e-8fec-723a1cfee9b6",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.954,
+   "queue_wait_ms": 1005.81,
+   "start_to_prompt_ms": 2341.526,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.635,
+    "p95": 35.657,
+    "p99": 35.657,
+    "max": 35.657
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 77.9,
+   "reconnects": 1,
+   "reconnect_ms": 3010.849
+  },
+  {
+   "user_id": 93531078,
+   "profile": "reader",
+   "session_id": "e04e9abe-c4cd-41c2-93c5-0ec86af9dda8",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.976,
+   "queue_wait_ms": 1007.404,
+   "start_to_prompt_ms": 2069.532,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.691,
+    "p95": 75.478,
+    "p99": 75.478,
+    "max": 75.478
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 81.5,
+   "reconnects": 1,
+   "reconnect_ms": 3511.896
+  },
+  {
+   "user_id": 93531100,
+   "profile": "reader",
+   "session_id": "89195411-de9a-4698-9b79-8989a885f3c5",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.463,
+   "queue_wait_ms": 1005.6,
+   "start_to_prompt_ms": 2195.196,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.684,
+    "p95": 30.061,
+    "p99": 30.061,
+    "max": 30.061
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 77.1,
+   "reconnects": 1,
+   "reconnect_ms": 3010.025
+  },
+  {
+   "user_id": 93531088,
+   "profile": "reader",
+   "session_id": "7a6551b3-0e71-4e02-9a76-f1dc61e04e4c",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.974,
+   "queue_wait_ms": 1005.724,
+   "start_to_prompt_ms": 2394.476,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.963,
+    "p95": 26.915,
+    "p99": 26.915,
+    "max": 26.915
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 79.2,
+   "reconnects": 1,
+   "reconnect_ms": 3512.27
+  },
+  {
+   "user_id": 93531008,
+   "profile": "reader",
+   "session_id": "e0d964a4-e024-4418-9322-91b5a22d003f",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.983,
+   "queue_wait_ms": 1007.32,
+   "start_to_prompt_ms": 2421.008,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.623,
+    "p95": 63.431,
+    "p99": 63.431,
+    "max": 63.431
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 95.3,
+   "reconnects": 1,
+   "reconnect_ms": 3512.147
+  },
+  {
+   "user_id": 93531039,
+   "profile": "reader",
+   "session_id": "830d1d6c-3fa0-48ac-9d04-ef71077e0727",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.055,
+   "queue_wait_ms": 1006.919,
+   "start_to_prompt_ms": 2403.746,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.142,
+    "p95": 63.344,
+    "p99": 63.344,
+    "max": 63.344
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 89,
+   "reconnects": 1,
+   "reconnect_ms": 3008.954
+  },
+  {
+   "user_id": 93531028,
+   "profile": "reader",
+   "session_id": "1a203769-2f72-46c9-b797-8ebe87733334",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.044,
+   "queue_wait_ms": 1005.715,
+   "start_to_prompt_ms": 2475.67,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.862,
+    "p95": 63.178,
+    "p99": 63.178,
+    "max": 63.178
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 91.3,
+   "reconnects": 1,
+   "reconnect_ms": 3511.418
+  },
+  {
+   "user_id": 93531019,
+   "profile": "reader",
+   "session_id": "00e7c961-10c8-442a-8bcc-828c3ffb3951",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.453,
+   "queue_wait_ms": 1005.872,
+   "start_to_prompt_ms": 2436.495,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.834,
+    "p95": 63.687,
+    "p99": 63.687,
+    "max": 63.687
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 93,
+   "reconnects": 1,
+   "reconnect_ms": 3011.121
+  },
+  {
+   "user_id": 93531045,
+   "profile": "reader",
+   "session_id": "c200b8c4-216f-40e1-8f18-590b685a7f78",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.837,
+   "queue_wait_ms": 1005.692,
+   "start_to_prompt_ms": 2472.994,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.344,
+    "p95": 63.641,
+    "p99": 63.641,
+    "max": 63.641
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 87.8,
+   "reconnects": 1,
+   "reconnect_ms": 3013.17
+  },
+  {
+   "user_id": 93531094,
+   "profile": "reader",
+   "session_id": "54c41016-6530-43e4-a0de-edc15329d123",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.842,
+   "queue_wait_ms": 1008.451,
+   "start_to_prompt_ms": 2344.935,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.744,
+    "p95": 13.014,
+    "p99": 13.014,
+    "max": 13.014
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 78.2,
+   "reconnects": 1,
+   "reconnect_ms": 3014.324
+  },
+  {
+   "user_id": 93531057,
+   "profile": "reader",
+   "session_id": "8518991e-3d11-4fe0-ba23-5e0f7c7cbf26",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.549,
+   "queue_wait_ms": 1004.927,
+   "start_to_prompt_ms": 2257.819,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.957,
+    "p95": 63.515,
+    "p99": 63.515,
+    "max": 63.515
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 85.6,
+   "reconnects": 1,
+   "reconnect_ms": 3510.727
+  },
+  {
+   "user_id": 93531048,
+   "profile": "reader",
+   "session_id": "e41cd0e2-6cc1-4361-9cb1-deddd9c43ee3",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 6.212,
+   "queue_wait_ms": 1007.81,
+   "start_to_prompt_ms": 2473.124,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.709,
+    "p95": 125.915,
+    "p99": 125.915,
+    "max": 125.915
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 87.2,
+   "reconnects": 1,
+   "reconnect_ms": 3513.059
+  },
+  {
+   "user_id": 93531030,
+   "profile": "reader",
+   "session_id": "8c4ceb23-63ab-44f0-adb5-a99ecb84acc0",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.693,
+   "queue_wait_ms": 1005.313,
+   "start_to_prompt_ms": 2423.806,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.978,
+    "p95": 65.825,
+    "p99": 65.825,
+    "max": 65.825
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 90.9,
+   "reconnects": 1,
+   "reconnect_ms": 3011.655
+  },
+  {
+   "user_id": 93531005,
+   "profile": "reader",
+   "session_id": "4e775f92-8f00-4871-8787-9d3b49ba1b19",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.044,
+   "queue_wait_ms": 1006.422,
+   "start_to_prompt_ms": 2403.065,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.86,
+    "p95": 63.227,
+    "p99": 63.227,
+    "max": 63.227
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 95.9,
+   "reconnects": 1,
+   "reconnect_ms": 3513.032
+  },
+  {
+   "user_id": 93531011,
+   "profile": "reader",
+   "session_id": "48410ac8-5a30-4550-9750-89b9e9dafec6",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.037,
+   "queue_wait_ms": 1006.214,
+   "start_to_prompt_ms": 2484.113,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.299,
+    "p95": 159.629,
+    "p99": 159.629,
+    "max": 159.629
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 94.6,
+   "reconnects": 1,
+   "reconnect_ms": 3011.304
+  },
+  {
+   "user_id": 93531063,
+   "profile": "reader",
+   "session_id": "2dc713c3-83e2-482c-8996-855ac9622c83",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.201,
+   "queue_wait_ms": 1006.876,
+   "start_to_prompt_ms": 2370.545,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.602,
+    "p95": 73.313,
+    "p99": 73.313,
+    "max": 73.313
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 84.3,
+   "reconnects": 1,
+   "reconnect_ms": 3013.704
+  },
+  {
+   "user_id": 93531053,
+   "profile": "reader",
+   "session_id": "52c612dc-90c4-4d89-9f6a-7c8c8b703597",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.742,
+   "queue_wait_ms": 1005.996,
+   "start_to_prompt_ms": 2214.164,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.606,
+    "p95": 39.15,
+    "p99": 39.15,
+    "max": 39.15
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 86.6,
+   "reconnects": 1,
+   "reconnect_ms": 3011.244
+  },
+  {
+   "user_id": 93531080,
+   "profile": "reader",
+   "session_id": "7476598f-3c3c-4910-bed5-3e5a1b7292ba",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.143,
+   "queue_wait_ms": 1005.904,
+   "start_to_prompt_ms": 2443.84,
+   "commands": 7,
+   "errors": 0,
+   "echo_ms": {
+    "n": 10,
+    "p50": 1.754,
+    "p95": 77.019,
+    "p99": 77.019,
+    "max": 77.019
+   },
+   "ws_bytes_in": 132,
+   "ws_bytes_out": 879,
+   "hold_s": 80.9,
+   "reconnects": 1,
+   "reconnect_ms": 3011.405
+  },
+  {
+   "user_id": 93531052,
+   "profile": "reader",
+   "session_id": "215daf1d-33a3-4bf1-9c47-29f1ca3ab861",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.35,
+   "queue_wait_ms": 1006.776,
+   "start_to_prompt_ms": 2323.436,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 0.459,
+    "p95": 83.316,
+    "p99": 83.316,
+    "max": 83.316
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 86.7,
+   "reconnects": 1,
+   "reconnect_ms": 3512.303
+  },
+  {
+   "user_id": 93531006,
+   "profile": "reader",
+   "session_id": "cc784c29-f450-4e24-9fd9-ad563f919cac",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.415,
+   "queue_wait_ms": 1006.006,
+   "start_to_prompt_ms": 2503.938,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.915,
+    "p95": 63.46,
+    "p99": 63.46,
+    "max": 63.46
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 95.7,
+   "reconnects": 1,
+   "reconnect_ms": 3512.172
+  },
+  {
+   "user_id": 93531012,
+   "profile": "reader",
+   "session_id": "382c3ffb-3296-49db-8f9a-70a03e4b524e",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 6.352,
+   "queue_wait_ms": 1008.013,
+   "start_to_prompt_ms": 2549.814,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.66,
+    "p95": 23.065,
+    "p99": 23.065,
+    "max": 23.065
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 94.5,
+   "reconnects": 1,
+   "reconnect_ms": 3512.175
+  },
+  {
+   "user_id": 93531042,
+   "profile": "reader",
+   "session_id": "2fabe7bc-ac1b-43d3-915a-e68701c9a720",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.794,
+   "queue_wait_ms": 1007.158,
+   "start_to_prompt_ms": 2495.91,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.652,
+    "p95": 31.094,
+    "p99": 31.094,
+    "max": 31.094
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 88.4,
+   "reconnects": 1,
+   "reconnect_ms": 3009.654
+  },
+  {
+   "user_id": 93531075,
+   "profile": "reader",
+   "session_id": "e3294c13-8d91-4650-8f2e-88e70f44b2de",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.091,
+   "queue_wait_ms": 1005.464,
+   "start_to_prompt_ms": 2145.576,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 2.046,
+    "p95": 63.405,
+    "p99": 63.405,
+    "max": 63.405
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 82.2,
+   "reconnects": 1,
+   "reconnect_ms": 3009.264
+  },
+  {
+   "user_id": 93531051,
+   "profile": "reader",
+   "session_id": "b91accab-1871-4e7b-b96f-f4e6bbeab671",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 6.162,
+   "queue_wait_ms": 1007.909,
+   "start_to_prompt_ms": 2535.691,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 0.393,
+    "p95": 40.122,
+    "p99": 40.122,
+    "max": 40.122
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 86.8,
+   "reconnects": 1,
+   "reconnect_ms": 3512.248
+  },
+  {
+   "user_id": 93531084,
+   "profile": "reader",
+   "session_id": "be70b0be-a080-42a1-97ea-1b12d065f89e",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.472,
+   "queue_wait_ms": 1004.689,
+   "start_to_prompt_ms": 2392.022,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.684,
+    "p95": 74.95,
+    "p99": 74.95,
+    "max": 74.95
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 80.1,
+   "reconnects": 1,
+   "reconnect_ms": 3011.063
+  },
+  {
+   "user_id": 93531058,
+   "profile": "reader",
+   "session_id": "b41f5a3a-f06e-4ef3-8779-e52cac4a19f8",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.811,
+   "queue_wait_ms": 1006.174,
+   "start_to_prompt_ms": 2099.086,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.608,
+    "p95": 72.541,
+    "p99": 72.541,
+    "max": 72.541
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 85.7,
+   "reconnects": 1,
+   "reconnect_ms": 3511.932
+  },
+  {
+   "user_id": 93531072,
+   "profile": "reader",
+   "session_id": "44693e43-9d01-4d7e-9771-59665c239914",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.144,
+   "queue_wait_ms": 1005.923,
+   "start_to_prompt_ms": 2377.74,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 0.444,
+    "p95": 24.287,
+    "p99": 24.287,
+    "max": 24.287
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 82.8,
+   "reconnects": 1,
+   "reconnect_ms": 4011.89
+  },
+  {
+   "user_id": 93531083,
+   "profile": "reader",
+   "session_id": "266e7f86-7a2d-4118-b444-479cad727674",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.126,
+   "queue_wait_ms": 1005.815,
+   "start_to_prompt_ms": 2335.228,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.442,
+    "p95": 72.859,
+    "p99": 72.859,
+    "max": 72.859
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 80.4,
+   "reconnects": 1,
+   "reconnect_ms": 3512.056
+  },
+  {
+   "user_id": 93531060,
+   "profile": "reader",
+   "session_id": "556d55c5-bc00-45c2-8bd7-96194f612834",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.656,
+   "queue_wait_ms": 1005.057,
+   "start_to_prompt_ms": 2384.45,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.623,
+    "p95": 38.39,
+    "p99": 38.39,
+    "max": 38.39
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 85,
+   "reconnects": 1,
+   "reconnect_ms": 3011.399
+  },
+  {
+   "user_id": 93531087,
+   "profile": "reader",
+   "session_id": "568b723c-cb28-4c1d-a61b-c36633cb5353",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 2.864,
+   "queue_wait_ms": 1005.041,
+   "start_to_prompt_ms": 2482.816,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 2.226,
+    "p95": 23.757,
+    "p99": 23.757,
+    "max": 23.757
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 79.5,
+   "reconnects": 1,
+   "reconnect_ms": 3511.698
+  },
+  {
+   "user_id": 93531040,
+   "profile": "reader",
+   "session_id": "b03ea20b-72fa-4392-b317-efb4b0eaede6",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.807,
+   "queue_wait_ms": 1005.882,
+   "start_to_prompt_ms": 2411.729,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.169,
+    "p95": 169.942,
+    "p99": 169.942,
+    "max": 169.942
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 88.9,
+   "reconnects": 1,
+   "reconnect_ms": 3511.354
+  },
+  {
+   "user_id": 93531069,
+   "profile": "reader",
+   "session_id": "8c9b496b-b13e-4fc1-a7fb-3e80ab8e651c",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.307,
+   "queue_wait_ms": 1007.287,
+   "start_to_prompt_ms": 2511.3,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 2.153,
+    "p95": 63.358,
+    "p99": 63.358,
+    "max": 63.358
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 83.1,
+   "reconnects": 1,
+   "reconnect_ms": 3011.4
+  },
+  {
+   "user_id": 93531035,
+   "profile": "reader",
+   "session_id": "0c74b146-fc60-409e-ba04-a05b87d27fd6",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.82,
+   "queue_wait_ms": 1005.695,
+   "start_to_prompt_ms": 2421.163,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.926,
+    "p95": 73.266,
+    "p99": 73.266,
+    "max": 73.266
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 90,
+   "reconnects": 1,
+   "reconnect_ms": 3516.849
+  },
+  {
+   "user_id": 93531079,
+   "profile": "reader",
+   "session_id": "9083a655-bb73-4e76-a42c-83b9f296387c",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.942,
+   "queue_wait_ms": 1007.325,
+   "start_to_prompt_ms": 2373.683,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.74,
+    "p95": 13.774,
+    "p99": 13.774,
+    "max": 13.774
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 81.2,
+   "reconnects": 1,
+   "reconnect_ms": 3010.67
+  },
+  {
+   "user_id": 93531099,
+   "profile": "reader",
+   "session_id": "26cb449c-a36f-4421-aa0f-7a486f50795d",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.776,
+   "queue_wait_ms": 1007.674,
+   "start_to_prompt_ms": 2270.382,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.748,
+    "p95": 40.634,
+    "p99": 40.634,
+    "max": 40.634
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 77.3,
+   "reconnects": 1,
+   "reconnect_ms": 3513.577
+  },
+  {
+   "user_id": 93531023,
+   "profile": "reader",
+   "session_id": "76cf6714-355b-4b30-91d5-2d400191aa38",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.095,
+   "queue_wait_ms": 1006.154,
+   "start_to_prompt_ms": 2425.896,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.782,
+    "p95": 63.47,
+    "p99": 63.47,
+    "max": 63.47
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 92.4,
+   "reconnects": 1,
+   "reconnect_ms": 3511.953
+  },
+  {
+   "user_id": 93531064,
+   "profile": "reader",
+   "session_id": "78722b45-60f7-48f2-bb07-d7516ecfa6dd",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.511,
+   "queue_wait_ms": 1007.126,
+   "start_to_prompt_ms": 2363.764,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.603,
+    "p95": 63.424,
+    "p99": 63.424,
+    "max": 63.424
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 84.2,
+   "reconnects": 1,
+   "reconnect_ms": 3010.098
+  },
+  {
+   "user_id": 93531076,
+   "profile": "reader",
+   "session_id": "e4743733-83ef-4889-86fb-364ccf447b23",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.135,
+   "queue_wait_ms": 1006.193,
+   "start_to_prompt_ms": 2222.557,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.632,
+    "p95": 78.778,
+    "p99": 78.778,
+    "max": 78.778
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 82,
+   "reconnects": 1,
+   "reconnect_ms": 3010.282
+  },
+  {
+   "user_id": 93531098,
+   "profile": "reader",
+   "session_id": "074466c8-e6be-4ea6-bf28-7bf23fa158b4",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 6.112,
+   "queue_wait_ms": 1008.316,
+   "start_to_prompt_ms": 2255.478,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.569,
+    "p95": 38.606,
+    "p99": 38.606,
+    "max": 38.606
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 77.6,
+   "reconnects": 1,
+   "reconnect_ms": 3513.21
+  },
+  {
+   "user_id": 93531033,
+   "profile": "reader",
+   "session_id": "63a2d009-e6a9-413f-80c3-0b2b13aa041a",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.497,
+   "queue_wait_ms": 1007.479,
+   "start_to_prompt_ms": 2370.705,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.65,
+    "p95": 63.567,
+    "p99": 63.567,
+    "max": 63.567
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 90.5,
+   "reconnects": 1,
+   "reconnect_ms": 3512.568
+  },
+  {
+   "user_id": 93531007,
+   "profile": "reader",
+   "session_id": "90e57c7a-20dd-4a08-bf0f-e005241914bf",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.998,
+   "queue_wait_ms": 1005.773,
+   "start_to_prompt_ms": 2372.194,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.397,
+    "p95": 73.929,
+    "p99": 73.929,
+    "max": 73.929
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 95.6,
+   "reconnects": 1,
+   "reconnect_ms": 3510.555
+  },
+  {
+   "user_id": 93531074,
+   "profile": "reader",
+   "session_id": "9be36a5a-8d40-43b0-b906-06cbc172fa0a",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.775,
+   "queue_wait_ms": 1005.24,
+   "start_to_prompt_ms": 1998.994,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.575,
+    "p95": 74.527,
+    "p99": 74.527,
+    "max": 74.527
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 82.6,
+   "reconnects": 1,
+   "reconnect_ms": 3514.282
+  },
+  {
+   "user_id": 93531044,
+   "profile": "reader",
+   "session_id": "540c33a2-6db1-4efb-aad4-47a5089c9bec",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.985,
+   "queue_wait_ms": 1006.456,
+   "start_to_prompt_ms": 2484.247,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.031,
+    "p95": 75.235,
+    "p99": 75.235,
+    "max": 75.235
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 88.1,
+   "reconnects": 1,
+   "reconnect_ms": 3512.402
+  },
+  {
+   "user_id": 93531092,
+   "profile": "reader",
+   "session_id": "f2671722-4ab3-47f8-af07-355c46807db8",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.101,
+   "queue_wait_ms": 1006.467,
+   "start_to_prompt_ms": 2346.818,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 2.641,
+    "p95": 159.125,
+    "p99": 159.125,
+    "max": 159.125
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 78.7,
+   "reconnects": 1,
+   "reconnect_ms": 3512.151
+  },
+  {
+   "user_id": 93531097,
+   "profile": "reader",
+   "session_id": "4305a5a2-2c24-4cff-bb84-5aa2262ae5f3",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.41,
+   "queue_wait_ms": 1005.802,
+   "start_to_prompt_ms": 2265.331,
+   "commands": 7,
+   "errors": 0,
+   "echo_ms": {
+    "n": 10,
+    "p50": 1.345,
+    "p95": 25.915,
+    "p99": 25.915,
+    "max": 25.915
+   },
+   "ws_bytes_in": 132,
+   "ws_bytes_out": 879,
+   "hold_s": 77.8,
+   "reconnects": 1,
+   "reconnect_ms": 3515.003
+  },
+  {
+   "user_id": 93531025,
+   "profile": "reader",
+   "session_id": "93685380-5e0a-4610-bea5-818a8633bce9",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.669,
+   "queue_wait_ms": 1005.002,
+   "start_to_prompt_ms": 2396.02,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.182,
+    "p95": 169.895,
+    "p99": 169.895,
+    "max": 169.895
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 92,
+   "reconnects": 1,
+   "reconnect_ms": 4013.888
+  },
+  {
+   "user_id": 93531027,
+   "profile": "reader",
+   "session_id": "491041a8-7953-485b-a377-87704980830c",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.891,
+   "queue_wait_ms": 1005.785,
+   "start_to_prompt_ms": 2393.342,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.234,
+    "p95": 77.948,
+    "p99": 77.948,
+    "max": 77.948
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 91.6,
+   "reconnects": 1,
+   "reconnect_ms": 3512.338
+  },
+  {
+   "user_id": 93531017,
+   "profile": "reader",
+   "session_id": "b5ac1bd9-4c02-43c1-a88b-d240ff2d17a9",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.955,
+   "queue_wait_ms": 1006.4,
+   "start_to_prompt_ms": 2315.617,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.851,
+    "p95": 77.715,
+    "p99": 77.715,
+    "max": 77.715
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 93.7,
+   "reconnects": 1,
+   "reconnect_ms": 3512.149
+  },
+  {
+   "user_id": 93531061,
+   "profile": "reader",
+   "session_id": "10e1d4d2-bb1a-4cee-aa80-ec1024882367",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 6.052,
+   "queue_wait_ms": 1007.436,
+   "start_to_prompt_ms": 2375.686,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.144,
+    "p95": 78.348,
+    "p99": 78.348,
+    "max": 78.348
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 84.9,
+   "reconnects": 1,
+   "reconnect_ms": 3513.659
+  },
+  {
+   "user_id": 93531065,
+   "profile": "reader",
+   "session_id": "c724b5a6-2265-4088-bd7b-a6e0dcde59b7",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.822,
+   "queue_wait_ms": 1005.415,
+   "start_to_prompt_ms": 2418.313,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.729,
+    "p95": 63.474,
+    "p99": 63.474,
+    "max": 63.474
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 84,
+   "reconnects": 1,
+   "reconnect_ms": 3010.814
+  },
+  {
+   "user_id": 93531001,
+   "profile": "reader",
+   "session_id": "bd144a74-a5d3-4607-b4a9-fad043066f13",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 8.496,
+   "queue_wait_ms": 1010.02,
+   "start_to_prompt_ms": 2335.091,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.594,
+    "p95": 63.347,
+    "p99": 63.347,
+    "max": 63.347
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 96.9,
+   "reconnects": 1,
+   "reconnect_ms": 3510.534
+  },
+  {
+   "user_id": 93531093,
+   "profile": "reader",
+   "session_id": "9673a308-e317-4803-80bd-be28f6cfaa7d",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.018,
+   "queue_wait_ms": 1006.027,
+   "start_to_prompt_ms": 2219.805,
+   "commands": 7,
+   "errors": 0,
+   "echo_ms": {
+    "n": 10,
+    "p50": 1.527,
+    "p95": 63.603,
+    "p99": 63.603,
+    "max": 63.603
+   },
+   "ws_bytes_in": 132,
+   "ws_bytes_out": 879,
+   "hold_s": 78.6,
+   "reconnects": 1,
+   "reconnect_ms": 3511.826
+  },
+  {
+   "user_id": 93531013,
+   "profile": "reader",
+   "session_id": "7c925ffb-ca63-4999-a782-0791a677ace4",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.165,
+   "queue_wait_ms": 1005.893,
+   "start_to_prompt_ms": 2545.6,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.836,
+    "p95": 225.025,
+    "p99": 225.025,
+    "max": 225.025
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 94.3,
+   "reconnects": 1,
+   "reconnect_ms": 3010.865
+  },
+  {
+   "user_id": 93531034,
+   "profile": "reader",
+   "session_id": "ad968463-be15-4f3b-a054-bb74a864716b",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.373,
+   "queue_wait_ms": 1007.537,
+   "start_to_prompt_ms": 2404.56,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.8,
+    "p95": 63.567,
+    "p99": 63.567,
+    "max": 63.567
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 90.2,
+   "reconnects": 1,
+   "reconnect_ms": 3011.045
+  },
+  {
+   "user_id": 93531050,
+   "profile": "reader",
+   "session_id": "9f82fb8b-fc17-49c4-a525-8f3886d33d2d",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.416,
+   "queue_wait_ms": 1005.251,
+   "start_to_prompt_ms": 2535.23,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 2.039,
+    "p95": 169.93,
+    "p99": 169.93,
+    "max": 169.93
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 87,
+   "reconnects": 1,
+   "reconnect_ms": 4012.385
+  },
+  {
+   "user_id": 93531009,
+   "profile": "reader",
+   "session_id": "7582a64d-8cf9-4de6-8556-c039d0363ddd",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.996,
+   "queue_wait_ms": 1007.359,
+   "start_to_prompt_ms": 2467.362,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.248,
+    "p95": 109.392,
+    "p99": 109.392,
+    "max": 109.392
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 95.1,
+   "reconnects": 1,
+   "reconnect_ms": 3512.041
+  },
+  {
+   "user_id": 93531070,
+   "profile": "reader",
+   "session_id": "9bbae465-fad8-4c94-a4b0-3ceae7b74458",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.334,
+   "queue_wait_ms": 1005.022,
+   "start_to_prompt_ms": 2381.085,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.378,
+    "p95": 12.889,
+    "p99": 12.889,
+    "max": 12.889
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 83.1,
+   "reconnects": 1,
+   "reconnect_ms": 3011.225
+  },
+  {
+   "user_id": 93531021,
+   "profile": "reader",
+   "session_id": "3208914e-bab7-42b6-8670-44fb45432115",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.931,
+   "queue_wait_ms": 1008.343,
+   "start_to_prompt_ms": 2445.381,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.799,
+    "p95": 64.221,
+    "p99": 64.221,
+    "max": 64.221
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 92.8,
+   "reconnects": 1,
+   "reconnect_ms": 4012.407
+  },
+  {
+   "user_id": 93531082,
+   "profile": "reader",
+   "session_id": "8c260481-59d2-414d-9d63-c787d5268554",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 6.023,
+   "queue_wait_ms": 1007.839,
+   "start_to_prompt_ms": 2394.555,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.527,
+    "p95": 63.252,
+    "p99": 63.252,
+    "max": 63.252
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 80.5,
+   "reconnects": 1,
+   "reconnect_ms": 3511.331
+  },
+  {
+   "user_id": 93531054,
+   "profile": "reader",
+   "session_id": "988d80ba-1b10-4158-aff7-7f9edb378869",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.037,
+   "queue_wait_ms": 1005.764,
+   "start_to_prompt_ms": 2079.579,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.079,
+    "p95": 87.875,
+    "p99": 87.875,
+    "max": 87.875
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 86.6,
+   "reconnects": 1,
+   "reconnect_ms": 3511.601
+  },
+  {
+   "user_id": 93531022,
+   "profile": "reader",
+   "session_id": "20f35600-9fe3-474e-827b-981cd5156971",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.066,
+   "queue_wait_ms": 1005.545,
+   "start_to_prompt_ms": 2389.435,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 2.096,
+    "p95": 193.893,
+    "p99": 193.893,
+    "max": 193.893
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 92.6,
+   "reconnects": 1,
+   "reconnect_ms": 3015.253
+  },
+  {
+   "user_id": 93531047,
+   "profile": "reader",
+   "session_id": "120bbb44-705a-41a5-a3c8-070173b88a15",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 6.69,
+   "queue_wait_ms": 1008.076,
+   "start_to_prompt_ms": 2476.28,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.871,
+    "p95": 42.908,
+    "p99": 42.908,
+    "max": 42.908
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 87.5,
+   "reconnects": 1,
+   "reconnect_ms": 3511.158
+  },
+  {
+   "user_id": 93531056,
+   "profile": "reader",
+   "session_id": "bfa66b3e-e5fb-4f9f-8211-7cb21c3f0ab8",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.88,
+   "queue_wait_ms": 1005.917,
+   "start_to_prompt_ms": 2235.954,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.666,
+    "p95": 63.801,
+    "p99": 63.801,
+    "max": 63.801
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 86,
+   "reconnects": 1,
+   "reconnect_ms": 3011.328
+  },
+  {
+   "user_id": 93531068,
+   "profile": "reader",
+   "session_id": "ed5adc5b-5c7b-4d22-a296-3c187a36b2fe",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.307,
+   "queue_wait_ms": 1006.022,
+   "start_to_prompt_ms": 2417.774,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.834,
+    "p95": 63.192,
+    "p99": 63.192,
+    "max": 63.192
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 83.4,
+   "reconnects": 1,
+   "reconnect_ms": 3512.339
+  },
+  {
+   "user_id": 93531043,
+   "profile": "reader",
+   "session_id": "1c6ccc5c-0cc6-4d41-a6ad-46942ee3a683",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.517,
+   "queue_wait_ms": 1007.357,
+   "start_to_prompt_ms": 2450.976,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.241,
+    "p95": 27.523,
+    "p99": 27.523,
+    "max": 27.523
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 88.4,
+   "reconnects": 1,
+   "reconnect_ms": 4012.137
+  },
+  {
+   "user_id": 93531055,
+   "profile": "reader",
+   "session_id": "6fdb24c0-644a-46bd-8cdd-f9fd097975f3",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.724,
+   "queue_wait_ms": 1005.436,
+   "start_to_prompt_ms": 2197.494,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.99,
+    "p95": 66.058,
+    "p99": 66.058,
+    "max": 66.058
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 86.3,
+   "reconnects": 1,
+   "reconnect_ms": 3512.179
+  },
+  {
+   "user_id": 93531067,
+   "profile": "reader",
+   "session_id": "71dc02a2-5e8b-4832-880e-5bce843967f2",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 2.859,
+   "queue_wait_ms": 1004.355,
+   "start_to_prompt_ms": 2426.025,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.815,
+    "p95": 70.801,
+    "p99": 70.801,
+    "max": 70.801
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 83.6,
+   "reconnects": 1,
+   "reconnect_ms": 3511.003
+  },
+  {
+   "user_id": 93531046,
+   "profile": "reader",
+   "session_id": "bc7cc4ca-0f5a-4906-93a7-0584108ece83",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.996,
+   "queue_wait_ms": 1007.736,
+   "start_to_prompt_ms": 2332.008,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.993,
+    "p95": 63.483,
+    "p99": 63.483,
+    "max": 63.483
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 87.9,
+   "reconnects": 1,
+   "reconnect_ms": 3012.82
+  },
+  {
+   "user_id": 93531010,
+   "profile": "reader",
+   "session_id": "e24e3bbd-fa9b-4e57-850a-1ac775569fa6",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.807,
+   "queue_wait_ms": 1005.21,
+   "start_to_prompt_ms": 2472.161,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.18,
+    "p95": 169.875,
+    "p99": 169.875,
+    "max": 169.875
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 95,
+   "reconnects": 1,
+   "reconnect_ms": 3512.607
+  },
+  {
+   "user_id": 93531003,
+   "profile": "reader",
+   "session_id": "ab61bacd-1df7-4b70-97f0-79d6d48d9648",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.141,
+   "queue_wait_ms": 1005.327,
+   "start_to_prompt_ms": 2405.52,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 2.016,
+    "p95": 69.27,
+    "p99": 69.27,
+    "max": 69.27
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 96.4,
+   "reconnects": 1,
+   "reconnect_ms": 3512.709
+  },
+  {
+   "user_id": 93531073,
+   "profile": "reader",
+   "session_id": "b07bf875-3519-49c3-8271-e701bdb24320",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.5,
+   "queue_wait_ms": 1006.847,
+   "start_to_prompt_ms": 2218.282,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.573,
+    "p95": 169.892,
+    "p99": 169.892,
+    "max": 169.892
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 82.7,
+   "reconnects": 1,
+   "reconnect_ms": 3512.367
+  },
+  {
+   "user_id": 93531096,
+   "profile": "reader",
+   "session_id": "38bb846f-8db3-4749-9fc2-2443eb69aa93",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.006,
+   "queue_wait_ms": 1005.627,
+   "start_to_prompt_ms": 2290.64,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.437,
+    "p95": 38.26,
+    "p99": 38.26,
+    "max": 38.26
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 78,
+   "reconnects": 1,
+   "reconnect_ms": 4013.93
+  },
+  {
+   "user_id": 93531031,
+   "profile": "reader",
+   "session_id": "149a9533-d1ca-4e24-a9d4-407367acdc70",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.582,
+   "queue_wait_ms": 1006.975,
+   "start_to_prompt_ms": 2359.544,
+   "commands": 7,
+   "errors": 0,
+   "echo_ms": {
+    "n": 10,
+    "p50": 1.793,
+    "p95": 77.342,
+    "p99": 77.342,
+    "max": 77.342
+   },
+   "ws_bytes_in": 132,
+   "ws_bytes_out": 879,
+   "hold_s": 90.9,
+   "reconnects": 1,
+   "reconnect_ms": 4010.748
+  },
+  {
+   "user_id": 93531018,
+   "profile": "reader",
+   "session_id": "3e5efd60-921e-4200-a7b4-ff67cb84e84f",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.418,
+   "queue_wait_ms": 1007.612,
+   "start_to_prompt_ms": 2445.068,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 2.049,
+    "p95": 74.588,
+    "p99": 74.588,
+    "max": 74.588
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 93.4,
+   "reconnects": 1,
+   "reconnect_ms": 3511.622
+  },
+  {
+   "user_id": 93531090,
+   "profile": "reader",
+   "session_id": "c0084245-7014-484f-9982-2608c4d3fd0f",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.902,
+   "queue_wait_ms": 1006.055,
+   "start_to_prompt_ms": 2324.786,
+   "commands": 7,
+   "errors": 0,
+   "echo_ms": {
+    "n": 10,
+    "p50": 1.504,
+    "p95": 13.289,
+    "p99": 13.289,
+    "max": 13.289
+   },
+   "ws_bytes_in": 132,
+   "ws_bytes_out": 879,
+   "hold_s": 79.2,
+   "reconnects": 1,
+   "reconnect_ms": 3011.455
+  },
+  {
+   "user_id": 93531049,
+   "profile": "reader",
+   "session_id": "c1faae04-beed-45eb-94ee-c0b837626e19",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.588,
+   "queue_wait_ms": 1013.679,
+   "start_to_prompt_ms": 2415.662,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 2.346,
+    "p95": 72.968,
+    "p99": 72.968,
+    "max": 72.968
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 87.3,
+   "reconnects": 1,
+   "reconnect_ms": 3010.82
+  },
+  {
+   "user_id": 93531081,
+   "profile": "reader",
+   "session_id": "3dbe0811-4fe4-4568-8d4d-be9c9694222d",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.262,
+   "queue_wait_ms": 1006.87,
+   "start_to_prompt_ms": 2406.432,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.994,
+    "p95": 30.12,
+    "p99": 30.12,
+    "max": 30.12
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 80.8,
+   "reconnects": 1,
+   "reconnect_ms": 3510.872
+  },
+  {
+   "user_id": 93531071,
+   "profile": "reader",
+   "session_id": "d629af17-13d4-42f3-9d29-4777a10f110a",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.063,
+   "queue_wait_ms": 1006.025,
+   "start_to_prompt_ms": 2346.112,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.956,
+    "p95": 151.482,
+    "p99": 151.482,
+    "max": 151.482
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 83,
+   "reconnects": 1,
+   "reconnect_ms": 3510.959
+  },
+  {
+   "user_id": 93531029,
+   "profile": "reader",
+   "session_id": "d00e937b-e02c-44b9-8d50-4b6e399e2ef1",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.671,
+   "queue_wait_ms": 1006.58,
+   "start_to_prompt_ms": 2456.59,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.888,
+    "p95": 38.221,
+    "p99": 38.221,
+    "max": 38.221
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 91.3,
+   "reconnects": 1,
+   "reconnect_ms": 3510.69
+  },
+  {
+   "user_id": 93531004,
+   "profile": "reader",
+   "session_id": "610ec09c-828b-4efc-8843-f01bc4a9c649",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.278,
+   "queue_wait_ms": 1006.661,
+   "start_to_prompt_ms": 2341.996,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.827,
+    "p95": 63.192,
+    "p99": 63.192,
+    "max": 63.192
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 96.3,
+   "reconnects": 1,
+   "reconnect_ms": 3009.803
+  },
+  {
+   "user_id": 93531091,
+   "profile": "reader",
+   "session_id": "2a829c96-556b-4d15-976b-ba6126816748",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.838,
+   "queue_wait_ms": 1007.377,
+   "start_to_prompt_ms": 2380.882,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.379,
+    "p95": 149.823,
+    "p99": 149.823,
+    "max": 149.823
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 78.9,
+   "reconnects": 1,
+   "reconnect_ms": 4012.735
+  },
+  {
+   "user_id": 93531038,
+   "profile": "reader",
+   "session_id": "2eb800da-443e-41f8-9075-26fbf8f65ed3",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.194,
+   "queue_wait_ms": 1007.288,
+   "start_to_prompt_ms": 2369.9,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.794,
+    "p95": 91.1,
+    "p99": 91.1,
+    "max": 91.1
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 89.5,
+   "reconnects": 1,
+   "reconnect_ms": 3512.514
+  },
+  {
+   "user_id": 93531026,
+   "profile": "reader",
+   "session_id": "138b507e-3e90-45a5-aa18-3e51e2928ea2",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.013,
+   "queue_wait_ms": 1007.05,
+   "start_to_prompt_ms": 2390.827,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.315,
+    "p95": 75.018,
+    "p99": 75.018,
+    "max": 75.018
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 91.9,
+   "reconnects": 1,
+   "reconnect_ms": 3012.368
+  },
+  {
+   "user_id": 93531024,
+   "profile": "reader",
+   "session_id": "f3b55a66-d36f-406c-a9db-b510a2bf2474",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.985,
+   "queue_wait_ms": 1005.498,
+   "start_to_prompt_ms": 2434.138,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.737,
+    "p95": 41.458,
+    "p99": 41.458,
+    "max": 41.458
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 92.3,
+   "reconnects": 1,
+   "reconnect_ms": 3010.601
+  },
+  {
+   "user_id": 93531015,
+   "profile": "reader",
+   "session_id": "33b10745-b15b-4ebe-a684-24847d1153d6",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.534,
+   "queue_wait_ms": 1006.539,
+   "start_to_prompt_ms": 2384.471,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.439,
+    "p95": 63.265,
+    "p99": 63.265,
+    "max": 63.265
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 94.2,
+   "reconnects": 1,
+   "reconnect_ms": 3010.392
+  },
+  {
+   "user_id": 93531002,
+   "profile": "reader",
+   "session_id": "c48e05b0-96e8-4ea0-a50a-b485c4ec40d1",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.602,
+   "queue_wait_ms": 1006.166,
+   "start_to_prompt_ms": 2395.574,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.125,
+    "p95": 28.481,
+    "p99": 28.481,
+    "max": 28.481
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 96.7,
+   "reconnects": 1,
+   "reconnect_ms": 3514.511
+  },
+  {
+   "user_id": 93531077,
+   "profile": "reader",
+   "session_id": "5f535b24-1aae-4047-89bc-876e088fd119",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.125,
+   "queue_wait_ms": 1006.567,
+   "start_to_prompt_ms": 2148.708,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.532,
+    "p95": 116.403,
+    "p99": 116.403,
+    "max": 116.403
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 81.9,
+   "reconnects": 1,
+   "reconnect_ms": 3515.341
+  },
+  {
+   "user_id": 93531032,
+   "profile": "reader",
+   "session_id": "fb1fdf48-7d5c-498b-9f70-b786ed2a4c43",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.689,
+   "queue_wait_ms": 1005.278,
+   "start_to_prompt_ms": 2320.594,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.905,
+    "p95": 70.885,
+    "p99": 70.885,
+    "max": 70.885
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 90.8,
+   "reconnects": 1,
+   "reconnect_ms": 3008.823
+  },
+  {
+   "user_id": 93531089,
+   "profile": "reader",
+   "session_id": "e428f5ac-f85b-48ed-92cf-8ef5c9dec144",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.147,
+   "queue_wait_ms": 1006.586,
+   "start_to_prompt_ms": 2403.365,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.977,
+    "p95": 28.388,
+    "p99": 28.388,
+    "max": 28.388
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 79.2,
+   "reconnects": 1,
+   "reconnect_ms": 3011.868
+  },
+  {
+   "user_id": 93531062,
+   "profile": "reader",
+   "session_id": "839b628a-0b53-471d-ae2e-92cf9eeca11a",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.119,
+   "queue_wait_ms": 1005.522,
+   "start_to_prompt_ms": 2326.959,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 2.035,
+    "p95": 73.648,
+    "p99": 73.648,
+    "max": 73.648
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 84.7,
+   "reconnects": 1,
+   "reconnect_ms": 3513.433
+  },
+  {
+   "user_id": 93531036,
+   "profile": "reader",
+   "session_id": "f3336b47-90ce-4795-aa0e-f011ab22e8c8",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.581,
+   "queue_wait_ms": 1005.565,
+   "start_to_prompt_ms": 2367.759,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 1.794,
+    "p95": 68.75,
+    "p99": 68.75,
+    "max": 68.75
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 90,
+   "reconnects": 1,
+   "reconnect_ms": 3512.045
+  },
+  {
+   "user_id": 93531066,
+   "profile": "reader",
+   "session_id": "f2da8b71-11b4-45d2-ab57-39433ec0fe23",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.011,
+   "queue_wait_ms": 1005.535,
+   "start_to_prompt_ms": 2411.311,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 2.133,
+    "p95": 35.793,
+    "p99": 35.793,
+    "max": 35.793
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 83.9,
+   "reconnects": 1,
+   "reconnect_ms": 3513.387
+  },
+  {
+   "user_id": 93531059,
+   "profile": "reader",
+   "session_id": "393813f9-fd41-4628-8c90-942595757dbe",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 5.005,
+   "queue_wait_ms": 1006.602,
+   "start_to_prompt_ms": 2371.286,
+   "commands": 11,
+   "errors": 0,
+   "echo_ms": {
+    "n": 14,
+    "p50": 2.213,
+    "p95": 63.323,
+    "p99": 63.323,
+    "max": 63.323
+   },
+   "ws_bytes_in": 163,
+   "ws_bytes_out": 1956,
+   "hold_s": 85.3,
+   "reconnects": 1,
+   "reconnect_ms": 3513.609
+  },
+  {
+   "user_id": 93531086,
+   "profile": "reader",
+   "session_id": "5dd9e860-c8b4-4af6-b731-fa070b8f3796",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.792,
+   "queue_wait_ms": 1005.623,
+   "start_to_prompt_ms": 2423.697,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 2.587,
+    "p95": 124.159,
+    "p99": 124.159,
+    "max": 124.159
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 79.9,
+   "reconnects": 1,
+   "reconnect_ms": 3515.274
+  },
+  {
+   "user_id": 93531085,
+   "profile": "reader",
+   "session_id": "22177c95-af63-4b1d-88fa-06d514212dcb",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.7,
+   "queue_wait_ms": 1005.148,
+   "start_to_prompt_ms": 2504.41,
+   "commands": 10,
+   "errors": 0,
+   "echo_ms": {
+    "n": 13,
+    "p50": 1.863,
+    "p95": 147.395,
+    "p99": 147.395,
+    "max": 147.395
+   },
+   "ws_bytes_in": 152,
+   "ws_bytes_out": 1579,
+   "hold_s": 80,
+   "reconnects": 1,
+   "reconnect_ms": 4014.486
+  },
+  {
+   "user_id": 93531041,
+   "profile": "reader",
+   "session_id": "2d02ab38-1a05-43ca-b183-c96e9b8f5358",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 2.972,
+   "queue_wait_ms": 1004.663,
+   "start_to_prompt_ms": 2490.05,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 2.128,
+    "p95": 92.105,
+    "p99": 92.105,
+    "max": 92.105
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 88.8,
+   "reconnects": 1,
+   "reconnect_ms": 4014.305
+  },
+  {
+   "user_id": 93531016,
+   "profile": "reader",
+   "session_id": "cf016f76-a6df-4c1f-b96e-12ebcf143a83",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 6.458,
+   "queue_wait_ms": 1008.208,
+   "start_to_prompt_ms": 2432.57,
+   "commands": 8,
+   "errors": 0,
+   "echo_ms": {
+    "n": 11,
+    "p50": 1.741,
+    "p95": 67.695,
+    "p99": 67.695,
+    "max": 67.695
+   },
+   "ws_bytes_in": 137,
+   "ws_bytes_out": 1202,
+   "hold_s": 94,
+   "reconnects": 1,
+   "reconnect_ms": 3511.692
+  },
+  {
+   "user_id": 93531020,
+   "profile": "reader",
+   "session_id": "35196ac9-97bd-4614-b050-c4e1c66af9dc",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 3.617,
+   "queue_wait_ms": 1005.214,
+   "start_to_prompt_ms": 2402.912,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.95,
+    "p95": 37.504,
+    "p99": 37.504,
+    "max": 37.504
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 93.1,
+   "reconnects": 1,
+   "reconnect_ms": 3010.525
+  },
+  {
+   "user_id": 93531014,
+   "profile": "reader",
+   "session_id": "95f54f9d-aadd-495a-835e-7821b71556d5",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 4.494,
+   "queue_wait_ms": 1006.456,
+   "start_to_prompt_ms": 2388.747,
+   "commands": 9,
+   "errors": 0,
+   "echo_ms": {
+    "n": 12,
+    "p50": 1.87,
+    "p95": 69.123,
+    "p99": 69.123,
+    "max": 69.123
+   },
+   "ws_bytes_in": 149,
+   "ws_bytes_out": 1466,
+   "hold_s": 94.4,
+   "reconnects": 1,
+   "reconnect_ms": 3013.481
+  },
+  {
+   "user_id": 93531037,
+   "profile": "reader",
+   "session_id": "608f0c34-d85d-42b3-be82-4a2fd8be564e",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 2.528,
+   "queue_wait_ms": 1004.396,
+   "start_to_prompt_ms": 2403.166,
+   "commands": 7,
+   "errors": 0,
+   "echo_ms": {
+    "n": 10,
+    "p50": 1.796,
+    "p95": 34.005,
+    "p99": 34.005,
+    "max": 34.005
+   },
+   "ws_bytes_in": 132,
+   "ws_bytes_out": 879,
+   "hold_s": 89.8,
+   "reconnects": 1,
+   "reconnect_ms": 3513.837
+  }
+ ],
+ "samples": [
+  {
+   "t": 0,
+   "mem_used_mb": 5190,
+   "mem_available_mb": 10391.7,
+   "cpu_pct": 0,
+   "psi": {
+    "cpu_some_avg10": 4.52,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.09
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 25.9
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 68.8,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 10,
+   "mem_used_mb": 5208.9,
+   "mem_available_mb": 10372.8,
+   "cpu_pct": 1.23,
+   "psi": {
+    "cpu_some_avg10": 1.74,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.03
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 26
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 68.8,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 5,
+   "mem_used_mb": 5230.2,
+   "mem_available_mb": 10351.5,
+   "cpu_pct": 4.52,
+   "psi": {
+    "cpu_some_avg10": 2.6,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.05
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 25.9
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 68.8,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 15,
+   "mem_used_mb": 5944.4,
+   "mem_available_mb": 9637.3,
+   "cpu_pct": 31.51,
+   "psi": {
+    "cpu_some_avg10": 13.98,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.01
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 25,
+    "creating": 1,
+    "running": 24,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 243,
+     "rss_mb": 34.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 77.5,
+   "fifos": 25,
+   "labs": 25,
+   "lab_mem_mb": {
+    "p50": 24.45,
+    "p95": 24.78,
+    "max": 25.64
+   },
+   "lab_mem_sum_mb": 534.6,
+   "sentry_rss_mb": {
+    "p50": 43.5,
+    "p95": 47,
+    "max": 47.2
+   },
+   "lab_host_rss_mb": {
+    "p50": 89.7,
+    "p95": 93.9,
+    "max": 94.2
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 20,
+   "mem_used_mb": 6765.5,
+   "mem_available_mb": 8816.2,
+   "cpu_pct": 41.95,
+   "psi": {
+    "cpu_some_avg10": 23.84,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.01
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 50,
+    "creating": 1,
+    "running": 49,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 467,
+     "rss_mb": 39.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 78.9,
+   "fifos": 50,
+   "labs": 50,
+   "lab_mem_mb": {
+    "p50": 24.58,
+    "p95": 24.89,
+    "max": 25.15
+   },
+   "lab_mem_sum_mb": 1150.2,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.3
+   },
+   "lab_host_rss_mb": {
+    "p50": 93,
+    "p95": 93.9,
+    "max": 94.2
+   },
+   "lab_cpu_pct": {
+    "p50": 1.75,
+    "p95": 17.27,
+    "max": 17.68
+   },
+   "lab_cpu_pct_sum": 145.81
+  },
+  {
+   "t": 25,
+   "mem_used_mb": 7598.1,
+   "mem_available_mb": 7983.6,
+   "cpu_pct": 41.56,
+   "psi": {
+    "cpu_some_avg10": 32.69,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 75,
+    "creating": 1,
+    "running": 74,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 692,
+     "rss_mb": 44.4
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 83.5,
+   "fifos": 75,
+   "labs": 75,
+   "lab_mem_mb": {
+    "p50": 24.6,
+    "p95": 24.87,
+    "max": 25.39
+   },
+   "lab_mem_sum_mb": 1767.9,
+   "sentry_rss_mb": {
+    "p50": 46.5,
+    "p95": 47.2,
+    "max": 47.3
+   },
+   "lab_host_rss_mb": {
+    "p50": 93,
+    "p95": 93.9,
+    "max": 94.2
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 17.64,
+    "max": 18.14
+   },
+   "lab_cpu_pct_sum": 150.71
+  },
+  {
+   "t": 30,
+   "mem_used_mb": 8437.5,
+   "mem_available_mb": 7144.2,
+   "cpu_pct": 41.53,
+   "psi": {
+    "cpu_some_avg10": 36.06,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 1,
+    "running": 99,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 49.2
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.7,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.58,
+    "p95": 24.87,
+    "max": 26.45
+   },
+   "lab_mem_sum_mb": 2378.5,
+   "sentry_rss_mb": {
+    "p50": 46.5,
+    "p95": 47.1,
+    "max": 47.3
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.1,
+    "p95": 93.9,
+    "max": 94.2
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 14.38,
+    "max": 15.52
+   },
+   "lab_cpu_pct_sum": 131.1
+  },
+  {
+   "t": 35,
+   "mem_used_mb": 8542.2,
+   "mem_available_mb": 7039.4,
+   "cpu_pct": 10.67,
+   "psi": {
+    "cpu_some_avg10": 27.42,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 51.4
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.7,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.6,
+    "p95": 25.61,
+    "max": 26.12
+   },
+   "lab_mem_sum_mb": 2470.5,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.3
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.2,
+    "p95": 93.9,
+    "max": 94.2
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 13.54,
+    "max": 15.42
+   },
+   "lab_cpu_pct_sum": 128.01
+  },
+  {
+   "t": 40,
+   "mem_used_mb": 8545.2,
+   "mem_available_mb": 7036.4,
+   "cpu_pct": 1.66,
+   "psi": {
+    "cpu_some_avg10": 18.38,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 52.7
+    }
+   },
+   "containers": 100,
+   "containerd_rss_mb": 88.7,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.6,
+    "p95": 25.43,
+    "max": 26.33
+   },
+   "lab_mem_sum_mb": 2471.4,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.3
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.2,
+    "p95": 93.9,
+    "max": 94.2
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.1,
+    "max": 0.13
+   },
+   "lab_cpu_pct_sum": 1.23
+  },
+  {
+   "t": 45,
+   "mem_used_mb": 8540,
+   "mem_available_mb": 7041.7,
+   "cpu_pct": 1.97,
+   "psi": {
+    "cpu_some_avg10": 10.09,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 54
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.7,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.64,
+    "p95": 25.55,
+    "max": 26.21
+   },
+   "lab_mem_sum_mb": 2473.6,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.3
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.1,
+    "p95": 93.9,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.12,
+    "max": 0.23
+   },
+   "lab_cpu_pct_sum": 2.64
+  },
+  {
+   "t": 50,
+   "mem_used_mb": 8535.1,
+   "mem_available_mb": 7046.6,
+   "cpu_pct": 10.48,
+   "psi": {
+    "cpu_some_avg10": 6.76,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 918,
+     "rss_mb": 42.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.5,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.64,
+    "p95": 26.09,
+    "max": 26.6
+   },
+   "lab_mem_sum_mb": 2477,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.3
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.1,
+    "p95": 93.9,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0.12,
+    "p95": 0.21,
+    "max": 0.49
+   },
+   "lab_cpu_pct_sum": 13.81
+  },
+  {
+   "t": 55,
+   "mem_used_mb": 8535.9,
+   "mem_available_mb": 7045.7,
+   "cpu_pct": 1.97,
+   "psi": {
+    "cpu_some_avg10": 3.71,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 44
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.5,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.65,
+    "p95": 25.5,
+    "max": 27.1
+   },
+   "lab_mem_sum_mb": 2476.7,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.3
+   },
+   "lab_host_rss_mb": {
+    "p50": 93,
+    "p95": 93.9,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0.01,
+    "p95": 0.12,
+    "max": 0.37
+   },
+   "lab_cpu_pct_sum": 3.45
+  },
+  {
+   "t": 60,
+   "mem_used_mb": 8524.8,
+   "mem_available_mb": 7056.8,
+   "cpu_pct": 1.82,
+   "psi": {
+    "cpu_some_avg10": 2.49,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 45.4
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.5,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.64,
+    "p95": 25.33,
+    "max": 26.6
+   },
+   "lab_mem_sum_mb": 2473.4,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.3
+   },
+   "lab_host_rss_mb": {
+    "p50": 93,
+    "p95": 93.8,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.36,
+    "max": 0.44
+   },
+   "lab_cpu_pct_sum": 3.7
+  },
+  {
+   "t": 65,
+   "mem_used_mb": 8518.9,
+   "mem_available_mb": 7062.8,
+   "cpu_pct": 1.78,
+   "psi": {
+    "cpu_some_avg10": 1.36,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 46.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.5,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.66,
+    "p95": 25.97,
+    "max": 26.9
+   },
+   "lab_mem_sum_mb": 2482,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.4
+   },
+   "lab_host_rss_mb": {
+    "p50": 93,
+    "p95": 93.9,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.4,
+    "max": 0.53
+   },
+   "lab_cpu_pct_sum": 6.42
+  },
+  {
+   "t": 70,
+   "mem_used_mb": 8520.8,
+   "mem_available_mb": 7060.8,
+   "cpu_pct": 1.97,
+   "psi": {
+    "cpu_some_avg10": 0.91,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 48.3
+    }
+   },
+   "containers": 100,
+   "containerd_rss_mb": 88.6,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.73,
+    "p95": 25.82,
+    "max": 26.27
+   },
+   "lab_mem_sum_mb": 2485.4,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.4
+   },
+   "lab_host_rss_mb": {
+    "p50": 93,
+    "p95": 93.9,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.42,
+    "max": 0.48
+   },
+   "lab_cpu_pct_sum": 8.12
+  },
+  {
+   "t": 75,
+   "mem_used_mb": 8522.8,
+   "mem_available_mb": 7058.9,
+   "cpu_pct": 1.83,
+   "psi": {
+    "cpu_some_avg10": 0.5,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 49.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.6,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.77,
+    "p95": 25.98,
+    "max": 26.59
+   },
+   "lab_mem_sum_mb": 2489,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.4
+   },
+   "lab_host_rss_mb": {
+    "p50": 93,
+    "p95": 93.8,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.34,
+    "max": 0.47
+   },
+   "lab_cpu_pct_sum": 3.97
+  },
+  {
+   "t": 80,
+   "mem_used_mb": 8523,
+   "mem_available_mb": 7058.7,
+   "cpu_pct": 1.64,
+   "psi": {
+    "cpu_some_avg10": 0.33,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 51.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.6,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.79,
+    "p95": 25.79,
+    "max": 26.73
+   },
+   "lab_mem_sum_mb": 2487.6,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.4
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.1,
+    "p95": 93.8,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.3,
+    "max": 0.42
+   },
+   "lab_cpu_pct_sum": 3.22
+  },
+  {
+   "t": 85,
+   "mem_used_mb": 8526.9,
+   "mem_available_mb": 7054.8,
+   "cpu_pct": 1.69,
+   "psi": {
+    "cpu_some_avg10": 0.18,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 52.7
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.6,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.79,
+    "p95": 25.35,
+    "max": 26.38
+   },
+   "lab_mem_sum_mb": 2483.4,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.4
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.1,
+    "p95": 93.8,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.13,
+    "max": 0.17
+   },
+   "lab_cpu_pct_sum": 2.25
+  },
+  {
+   "t": 90,
+   "mem_used_mb": 8506,
+   "mem_available_mb": 7075.6,
+   "cpu_pct": 3.6,
+   "psi": {
+    "cpu_some_avg10": 0.12,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 53.3
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.6,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.8,
+    "p95": 25.53,
+    "max": 26.2
+   },
+   "lab_mem_sum_mb": 2485.1,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.4
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.1,
+    "p95": 93.8,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.13,
+    "max": 0.41
+   },
+   "lab_cpu_pct_sum": 2.51
+  },
+  {
+   "t": 95,
+   "mem_used_mb": 8509.9,
+   "mem_available_mb": 7071.8,
+   "cpu_pct": 2.82,
+   "psi": {
+    "cpu_some_avg10": 0.06,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 53.5
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.6,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.82,
+    "p95": 25.86,
+    "max": 26.62
+   },
+   "lab_mem_sum_mb": 2490.9,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.4
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.1,
+    "p95": 93.8,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.15,
+    "max": 0.49
+   },
+   "lab_cpu_pct_sum": 2.84
+  },
+  {
+   "t": 100,
+   "mem_used_mb": 8509.4,
+   "mem_available_mb": 7072.3,
+   "cpu_pct": 1.5,
+   "psi": {
+    "cpu_some_avg10": 0.04,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 53.7
+    }
+   },
+   "containers": 100,
+   "containerd_rss_mb": 88.6,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.83,
+    "p95": 25.95,
+    "max": 26.57
+   },
+   "lab_mem_sum_mb": 2489.6,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.4
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.1,
+    "p95": 93.8,
+    "max": 94.1
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.19,
+    "max": 0.39
+   },
+   "lab_cpu_pct_sum": 2.72
+  },
+  {
+   "t": 105,
+   "mem_used_mb": 8509,
+   "mem_available_mb": 7072.7,
+   "cpu_pct": 1.78,
+   "psi": {
+    "cpu_some_avg10": 0.02,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 0,
+    "running": 100,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 917,
+     "rss_mb": 54
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 88.6,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 24.82,
+    "p95": 25.85,
+    "max": 27.1
+   },
+   "lab_mem_sum_mb": 2490.7,
+   "sentry_rss_mb": {
+    "p50": 46.6,
+    "p95": 47.1,
+    "max": 47.4
+   },
+   "lab_host_rss_mb": {
+    "p50": 93.1,
+    "p95": 93.9,
+    "max": 94.2
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.21,
+    "max": 0.49
+   },
+   "lab_cpu_pct_sum": 3.68
+  },
+  {
+   "t": 110,
+   "mem_used_mb": 5593.1,
+   "mem_available_mb": 9988.6,
+   "cpu_pct": 16.28,
+   "psi": {
+    "cpu_some_avg10": 0.01,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 84,
+    "creating": 0,
+    "running": 0,
+    "ending": 84,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 102,
+     "rss_mb": 56.3
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 84.2,
+   "fifos": 62,
+   "labs": 9,
+   "lab_mem_mb": {
+    "p50": 0.47,
+    "p95": 0.47,
+    "max": 0.47
+   },
+   "lab_mem_sum_mb": 4.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.91,
+    "p95": 1.24,
+    "max": 1.24
+   },
+   "lab_cpu_pct_sum": 8.26
+  },
+  {
+   "t": 115,
+   "mem_used_mb": 5251.5,
+   "mem_available_mb": 10330.2,
+   "cpu_pct": 2.56,
+   "psi": {
+    "cpu_some_avg10": 4.01,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.24
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 56.3
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 74,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 115.7,
+   "mem_used_mb": 5251.1,
+   "mem_available_mb": 10330.6,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 4.01,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.24
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 56.3
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 74,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  }
+ ]
+}

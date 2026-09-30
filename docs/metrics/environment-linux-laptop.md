@@ -6,7 +6,7 @@ Recorded 2026-09-28, Phase 0, task 0.8. Source: `./run.sh doctor`, `provision.sh
 | Item | Value |
 | --- | --- |
 | Machine | ASUS TUF Gaming F16 (FX608JH) |
-| CPU model | not recorded yet; add the output of `lscpu \| grep 'Model name'` |
+| CPU model | 13th Gen Intel(R) Core(TM) i5-13450HX |
 | OS | Ubuntu 26.04.1 LTS (`resolute`) — not the reference 24.04, see notes |
 | Kernel | 7.0.0-34-generic |
 | Arch | x86_64 |

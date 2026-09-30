@@ -1,0 +1,563 @@
+{
+ "meta": {
+  "scenario": "P6",
+  "host": "linux-laptop",
+  "arch": "x86_64",
+  "kernel": "7.0.0-34-generic",
+  "runtime": "io.containerd.runsc.v1",
+  "platform": "systrap",
+  "runsc": "runsc version release-20260921.0",
+  "date": "2026-09-30T18:07:41Z",
+  "n": 150,
+  "ramp_per_s": 5,
+  "hold_s": 0,
+  "mix": null,
+  "max_sessions": 100,
+  "host_mem_total_mb": 15582,
+  "cpus": 16,
+  "command": "labd-perf run --scenario P6 --ramp 5 --api http://127.0.0.1:18081 --ws ws://127.0.0.1:18082 --script ~/labbing-platform/images/perf/session.gdb --out ~/labbing-platform/docs/metrics --host linux-laptop --runtime io.containerd.runsc.v1 --platform systrap --label  --partial ",
+  "duration_s": 29
+ },
+ "summary": {
+  "sessions": 0,
+  "vuser_errors": 0,
+  "commands": 0,
+  "command_errors": 0,
+  "start_to_prompt_ms": {
+   "n": 0,
+   "p50": 0,
+   "p95": 0,
+   "p99": 0,
+   "max": 0
+  },
+  "create_http_ms": {
+   "n": 0,
+   "p50": 0,
+   "p95": 0,
+   "p99": 0,
+   "max": 0
+  },
+  "queue_wait_ms": {
+   "n": 0,
+   "p50": 0,
+   "p95": 0,
+   "p99": 0,
+   "max": 0
+  },
+  "echo_ms": {
+   "n": 0,
+   "p50": 0,
+   "p95": 0,
+   "p99": 0,
+   "max": 0
+  },
+  "echo_ms_by_profile": {},
+  "step_cmd_ms": {
+   "n": 0,
+   "p50": 0,
+   "p95": 0,
+   "p99": 0,
+   "max": 0
+  },
+  "cmd_ms": {},
+  "hold_labs": 100,
+  "hold_samples": 2,
+  "lab_mem_mb": {
+   "n": 199,
+   "p50": 10.94,
+   "p95": 11.43,
+   "p99": 12.14,
+   "max": 12.82
+  },
+  "sentry_rss_mb": {
+   "n": 199,
+   "p50": 30.5,
+   "p95": 31.4,
+   "p99": 32.2,
+   "max": 32.2
+  },
+  "lab_host_rss_mb": {
+   "n": 199,
+   "p50": 77,
+   "p95": 78,
+   "p99": 78.6,
+   "max": 78.6
+  },
+  "lab_cpu_pct_avg": 0,
+  "lab_cpu_pct_by_profile": {},
+  "host_baseline_mb": 5158.6,
+  "host_after_mb": 5244.3,
+  "host_mem_used_mb": {
+   "p50": 7470.6,
+   "p95": 7526.2,
+   "max": 7526.2
+  },
+  "host_per_lab_mb": 23.9,
+  "host_cpu_pct": {
+   "p50": 17.27,
+   "p95": 29.61,
+   "max": 29.61
+  },
+  "psi_max": {
+   "cpu_some_avg10": 16.46,
+   "memory_some_avg10": 0,
+   "io_some_avg10": 0.44
+  },
+  "oom_kills": 0,
+  "labd_rss_mb": {
+   "idle": 25.8,
+   "peak": 58.3,
+   "after": 58.3
+  },
+  "labd_goroutines": {
+   "idle": 17,
+   "peak": 618,
+   "after": 17
+  },
+  "containerd_rss_mb": {
+   "idle": 62.8,
+   "peak": 86.9,
+   "after": 68.2
+  },
+  "containers_max": 0,
+  "ws_bps_in": 0,
+  "ws_bps_out": 0,
+  "ws_bps_out_aggregate": 0,
+  "leaks": {
+   "containers": 0,
+   "goroutines": 0,
+   "fifos": 0
+  }
+ },
+ "criteria": [
+  {
+   "criterion": "admitted exactly the cap",
+   "measured": "100 of cap 100",
+   "pass": true
+  },
+  {
+   "criterion": "the rest queued with correct positions",
+   "measured": "50 queued (want 50), positions in order: true",
+   "pass": true
+  },
+  {
+   "criterion": "none admitted over the cap",
+   "measured": "[]",
+   "pass": true
+  },
+  {
+   "criterion": "the queue drains first in, first out",
+   "measured": "50 of 50 admitted from the queue in order: true",
+   "pass": true
+  },
+  {
+   "criterion": "nothing left after every session ended",
+   "measured": "containers 0, goroutines +0, FIFOs +0",
+   "pass": true
+  }
+ ],
+ "timeline": [
+  {
+   "t": 10,
+   "event": "baseline taken"
+  },
+  {
+   "t": 10,
+   "event": "150 requests against cap 100 (queue 50)"
+  },
+  {
+   "t": 10.6,
+   "event": "admitted 100, queued 50, rejected 0"
+  },
+  {
+   "t": 23.1,
+   "event": "drain: 50 of 50 queued admitted, FIFO true"
+  },
+  {
+   "t": 29.4,
+   "event": "teardown done"
+  }
+ ],
+ "extra": {
+  "p6": {
+   "admitted": 100,
+   "admitted_from_queue": 50,
+   "cap": 100,
+   "drained_fifo": true,
+   "max_queue": 50,
+   "never_over_cap": true,
+   "over_cap": null,
+   "positions_in_order": true,
+   "queue_wait_ms": {
+    "n": 50,
+    "p50": 6908.07,
+    "p95": 12122.826,
+    "p99": 12570.452,
+    "max": 12570.452
+   },
+   "queued": 50,
+   "rejected": 0,
+   "requests": 150
+  }
+ },
+ "vusers": null,
+ "samples": [
+  {
+   "t": 10,
+   "mem_used_mb": 5151.5,
+   "mem_available_mb": 10430.2,
+   "cpu_pct": 1.18,
+   "psi": {
+    "cpu_some_avg10": 6.14,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 25.8
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 62.8,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 0,
+   "mem_used_mb": 5158.6,
+   "mem_available_mb": 10423.1,
+   "cpu_pct": 0,
+   "psi": {
+    "cpu_some_avg10": 16.46,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 25.8
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 62.8,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 5,
+   "mem_used_mb": 5169.7,
+   "mem_available_mb": 10412,
+   "cpu_pct": 1.61,
+   "psi": {
+    "cpu_some_avg10": 9.15,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 25.8
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 62.8,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 15,
+   "mem_used_mb": 7470.6,
+   "mem_available_mb": 8111.1,
+   "cpu_pct": 29.61,
+   "psi": {
+    "cpu_some_avg10": 7.65,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.44
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 1,
+    "running": 99,
+    "ending": 0,
+    "queued": 35,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 618,
+     "rss_mb": 55.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 82.7,
+   "fifos": 100,
+   "labs": 100,
+   "lab_mem_mb": {
+    "p50": 10.93,
+    "p95": 11.41,
+    "max": 12.14
+   },
+   "lab_mem_sum_mb": 1099.1,
+   "sentry_rss_mb": {
+    "p50": 30.5,
+    "p95": 31.2,
+    "max": 32.2
+   },
+   "lab_host_rss_mb": {
+    "p50": 77,
+    "p95": 77.9,
+    "max": 78.6
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 20,
+   "mem_used_mb": 7526.2,
+   "mem_available_mb": 8055.4,
+   "cpu_pct": 17.27,
+   "psi": {
+    "cpu_some_avg10": 7.25,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.29
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 100,
+    "creating": 2,
+    "running": 98,
+    "ending": 0,
+    "queued": 13,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 612,
+     "rss_mb": 57.5
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 86.9,
+   "fifos": 99,
+   "labs": 99,
+   "lab_mem_mb": {
+    "p50": 10.94,
+    "p95": 11.43,
+    "max": 12.82
+   },
+   "lab_mem_sum_mb": 1089,
+   "sentry_rss_mb": {
+    "p50": 30.6,
+    "p95": 31.4,
+    "max": 32.2
+   },
+   "lab_host_rss_mb": {
+    "p50": 77,
+    "p95": 78,
+    "max": 78.6
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0.01,
+    "max": 0.25
+   },
+   "lab_cpu_pct_sum": 0.31
+  },
+  {
+   "t": 25,
+   "mem_used_mb": 5293.5,
+   "mem_available_mb": 10288.2,
+   "cpu_pct": 22.32,
+   "psi": {
+    "cpu_some_avg10": 9.28,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.34
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 58.3
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 68.2,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 29.4,
+   "mem_used_mb": 5244.3,
+   "mem_available_mb": 10337.4,
+   "cpu_pct": 1.31,
+   "psi": {
+    "cpu_some_avg10": 6.22,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0.23
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 58.3
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 68.2,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  }
+ ]
+}
