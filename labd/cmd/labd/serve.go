@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -32,6 +33,9 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 	if cfg.WSTokenKey == "" {
 		return fmt.Errorf("%s is not set; the terminal gateway refuses to run without it (S12)", config.EnvWSTokenKey)
 	}
+	// Registered first, so it runs last: after the recorder, the manager and the stores have
+	// closed. Its absence after "shutting down" means labd hung.
+	defer log.Info("labd stopped; labs keep running")
 	db, err := store.OpenPostgres(ctx, cfg.PostgresDSN)
 	if err != nil {
 		return err
@@ -118,16 +122,42 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 		}
 	}()
 
-	// If either server fails, stop the other too.
+	return serveAll(ctx, log, gw.Shutdown,
+		listener{"internal API", lnAPI, srv.Handler()},
+		listener{"terminal gateway", lnWS, wsMux})
+}
+
+type listener struct {
+	name string
+	ln   net.Listener
+	h    http.Handler
+}
+
+// serveAll serves every listener until ctx is cancelled or one fails (which stops the
+// others), then closes the gateway's WebSockets with closeWS. http.Server.Shutdown does not
+// track hijacked connections, so without this they would only drop when the process exits,
+// with no close frame. Labs keep running either way.
+func serveAll(ctx context.Context, log *slog.Logger, closeWS func(context.Context) error, ls ...listener) error {
 	sctx, stop := context.WithCancel(ctx)
 	defer stop()
-	errc := make(chan error, 2)
-	go func() { errc <- serveHTTP(sctx, lnWS, wsMux, log) }()
-	go func() { errc <- serveHTTP(sctx, lnAPI, srv.Handler(), log) }()
-	err = <-errc
+	errc := make(chan error, len(ls))
+	for _, l := range ls {
+		go func() { errc <- serveHTTP(sctx, l.name, l.ln, l.h, log) }()
+	}
+	err := <-errc
+	if ctx.Err() != nil {
+		log.Info("shutting down; labs keep running")
+	}
 	stop()
-	if err2 := <-errc; err == nil {
-		err = err2
+	for range ls[1:] {
+		if err2 := <-errc; err == nil {
+			err = err2
+		}
+	}
+	dctx, cancel := context.WithTimeout(context.Background(), shutdownDrain)
+	defer cancel()
+	if err2 := closeWS(dctx); err2 != nil {
+		log.Warn("gateway shutdown incomplete", "err", err2)
 	}
 	return err
 }

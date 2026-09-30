@@ -2,6 +2,7 @@ package term
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -82,9 +83,14 @@ const readLimit = 64 << 10
 type Server struct {
 	o Options
 
-	mu    sync.Mutex
-	conns map[string]*conn        // the live connection per session
-	state map[string]*sessionTerm // per-session state that survives reconnects
+	mu      sync.Mutex
+	conns   map[string]*conn        // the live connection per session
+	state   map[string]*sessionTerm // per-session state that survives reconnects
+	closing bool                    // Shutdown has begun; new connections are refused
+
+	// active counts handlers in flight. http.Server.Shutdown does not track hijacked
+	// connections, so the gateway waits for its own in Shutdown.
+	active sync.WaitGroup
 
 	unknownFrames atomic.Int64
 }
@@ -124,23 +130,33 @@ func (s *Server) originOK(r *http.Request) bool {
 
 func (s *Server) serveWS(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
+	remote := remoteOf(r)
+	// Refused before the token is looked at, so a shutdown cannot burn it.
+	if !s.enter() {
+		http.Error(w, "shutting down", http.StatusServiceUnavailable)
+		return
+	}
+	defer s.active.Done()
 	// Origin first, so a cross-site page cannot burn a user's single-use token.
 	if !s.originOK(r) {
+		s.o.Log.Info("ws: origin rejected", "session_id", id, "origin", r.Header.Get("Origin"), "remote", remote)
 		http.Error(w, "origin not allowed", http.StatusForbidden)
 		return
 	}
 	uid, err := s.o.Tokens.Verify(r.URL.Query().Get("t"), id, s.o.Clock.Now())
 	if err != nil {
-		s.o.Log.Info("ws: token rejected", "session_id", id, "err", err)
+		s.o.Log.Info("ws: token rejected", "session_id", id, "err", err, "remote", remote)
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 	info, err := s.o.Sessions.Get(id)
 	if err != nil {
+		s.o.Log.Info("ws: no such session", "session_id", id, "user_id", uid, "remote", remote)
 		http.Error(w, "no such session", http.StatusNotFound)
 		return
 	}
 	if info.UserID != uid {
+		s.o.Log.Info("ws: token user does not own the session", "session_id", id, "user_id", uid, "remote", remote)
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -152,8 +168,57 @@ func (s *Server) serveWS(w http.ResponseWriter, r *http.Request) {
 		return // Accept has written the HTTP error
 	}
 	ws.SetReadLimit(readLimit)
-	c := &conn{srv: s, ws: ws, id: id, uid: uid, ctrl: make(chan []byte, 16)}
+	c := &conn{srv: s, ws: ws, id: id, uid: uid, remote: remote, since: s.o.Clock.Now(),
+		peerCode: -1, ctrl: make(chan []byte, 16)}
+	s.o.Log.Info("ws: connected", "session_id", id, "user_id", uid, "remote", remote, "state", info.State)
 	c.run(r.Context(), info)
+}
+
+// remoteOf is the peer address, plus the client Caddy reports in production. The
+// forwarded address is for the log only; nothing trusts it.
+func remoteOf(r *http.Request) string {
+	if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
+		return r.RemoteAddr + " (for " + fwd + ")"
+	}
+	return r.RemoteAddr
+}
+
+// enter admits one handler unless Shutdown has begun.
+func (s *Server) enter() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.closing {
+		return false
+	}
+	s.active.Add(1)
+	return true
+}
+
+// Shutdown closes every connection with 1000 and waits, until ctx is done, for their
+// handlers to finish. Labs keep running: the next labd adopts them within the reconnect
+// grace, and clients reconnect to it. Later connections get 503.
+func (s *Server) Shutdown(ctx context.Context) error {
+	s.mu.Lock()
+	s.closing = true
+	conns := make([]*conn, 0, len(s.conns))
+	for _, c := range s.conns {
+		conns = append(conns, c)
+	}
+	s.mu.Unlock()
+	if len(conns) > 0 {
+		s.o.Log.Info("ws: closing connections for shutdown", "connections", len(conns))
+	}
+	for _, c := range conns {
+		c.closeBy(closedByShutdown, websocket.StatusNormalClosure, "")
+	}
+	done := make(chan struct{})
+	go func() { s.active.Wait(); close(done) }()
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		return fmt.Errorf("ws: connections still closing: %w", ctx.Err())
+	}
 }
 
 // termState returns the per-session state, creating it on first use.
@@ -168,14 +233,20 @@ func (s *Server) termState(id string) *sessionTerm {
 	return st
 }
 
-// takeOver registers c as the session's connection and closes the one it replaces.
+// takeOver registers c as the session's connection and closes the one it replaces. A
+// connection that arrives while Shutdown runs is closed at once.
 func (s *Server) takeOver(c *conn) {
 	s.mu.Lock()
 	old := s.conns[c.id]
 	s.conns[c.id] = c
+	closing := s.closing
 	s.mu.Unlock()
 	if old != nil {
+		s.o.Log.Info("ws: replaced", "session_id", c.id, "user_id", c.uid, "old_remote", old.remote, "new_remote", c.remote)
 		old.replaced()
+	}
+	if closing {
+		c.closeBy(closedByShutdown, websocket.StatusNormalClosure, "")
 	}
 }
 

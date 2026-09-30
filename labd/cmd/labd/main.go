@@ -1,7 +1,8 @@
 // Command labd is the lab orchestrator and terminal gateway.
 //
 // Subcommands: serve (default) runs the session manager and the internal API; migrate
-// applies the SQL migrations. The WebSocket gateway arrives in Phase 3.
+// applies the SQL migrations; pull and prune manage challenge images. serve also runs the
+// WebSocket terminal gateway.
 package main
 
 import (
@@ -160,22 +161,24 @@ func migrate(ctx context.Context, cfg config.Config, stdout *os.File) error {
 	return nil
 }
 
-// serveHTTP runs h on ln until ctx is cancelled, then drains.
-func serveHTTP(ctx context.Context, ln net.Listener, h http.Handler, log *slog.Logger) error {
+// serveHTTP runs h on ln until ctx is cancelled, then drains. name labels the log lines.
+// Shutdown does not wait for hijacked connections (WebSockets); the gateway closes those
+// itself (serveAll).
+func serveHTTP(ctx context.Context, name string, ln net.Listener, h http.Handler, log *slog.Logger) error {
 	srv := &http.Server{
 		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	errc := make(chan error, 1)
 	go func() { errc <- srv.Serve(ln) }()
-	log.Info("labd listening", "addr", ln.Addr().String(), "version", version)
+	log.Info("labd listening", "listener", name, "addr", ln.Addr().String(), "version", version)
 
 	select {
 	case err := <-errc:
 		return err
 	case <-ctx.Done():
 	}
-	log.Info("shutting down; labs keep running", "drain", shutdownDrain)
+	log.Info("listener shutting down", "listener", name, "addr", ln.Addr().String(), "drain", shutdownDrain)
 	sctx, cancel := context.WithTimeout(context.Background(), shutdownDrain)
 	defer cancel()
 	if err := srv.Shutdown(sctx); err != nil {

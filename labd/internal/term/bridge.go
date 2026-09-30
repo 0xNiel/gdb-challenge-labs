@@ -20,19 +20,30 @@ import (
 // context closes the connection at once, which would lose the close code. Shutdown goes
 // through closeWith and a proper Close instead.
 type conn struct {
-	srv  *Server
-	ws   *websocket.Conn
-	id   string
-	uid  int64
-	ctrl chan []byte
+	srv    *Server
+	ws     *websocket.Conn
+	id     string
+	uid    int64
+	remote string    // for the log
+	since  time.Time // when the socket was upgraded
+	ctrl   chan []byte
 
 	cancel    context.CancelFunc
 	closeOnce sync.Once
-	code      websocket.StatusCode
+	code      websocket.StatusCode // what the server sends; set once by closeBy
 	reason    string
-	running   bool // guarded by mu
+	by        string // who ended the connection: closedBy*
 	mu        sync.Mutex
+	running   bool                 // guarded by mu
+	peerCode  websocket.StatusCode // the client's close code, -1 if it sent none; guarded by mu
 }
+
+// Who ended a connection, as logged on detach.
+const (
+	closedByServer   = "server"   // session ended, replaced, slow consumer
+	closedByClient   = "client"   // the client closed or the network dropped
+	closedByShutdown = "shutdown" // labd is stopping; the lab keeps running
+)
 
 // flushWait bounds how long closing waits for the writer to flush (a network timeout, so
 // real time, not the injectable clock).
@@ -46,10 +57,23 @@ type outStream struct {
 
 // closeWith ends the connection with code and reason (first caller wins).
 func (c *conn) closeWith(code websocket.StatusCode, reason string) {
+	c.closeBy(closedByServer, code, reason)
+}
+
+// closeBy is closeWith recording who ended the connection.
+func (c *conn) closeBy(by string, code websocket.StatusCode, reason string) {
 	c.closeOnce.Do(func() {
-		c.code, c.reason = code, reason
+		c.code, c.reason, c.by = code, reason, by
 		c.cancel()
 	})
+}
+
+// clientGone records that the socket failed or the client closed it.
+func (c *conn) clientGone(err error) {
+	c.mu.Lock()
+	c.peerCode = websocket.CloseStatus(err)
+	c.mu.Unlock()
+	c.closeBy(closedByClient, websocket.StatusNormalClosure, "")
 }
 
 func (c *conn) replaced() { c.closeWith(websocket.StatusNormalClosure, "replaced") }
@@ -106,6 +130,12 @@ func (c *conn) run(parent context.Context, first orch.SessionInfo) {
 		_ = c.ws.Close(c.code, c.reason)
 		<-writerDone
 		<-readerDone
+		c.mu.Lock()
+		peer := c.peerCode
+		c.mu.Unlock()
+		s.o.Log.Info("ws: detached", "session_id", c.id, "user_id", c.uid, "remote", c.remote,
+			"closed_by", c.by, "code", int(c.code), "reason", c.reason, "client_code", int(peer),
+			"connected_s", int(s.o.Clock.Now().Sub(c.since).Seconds()))
 	}()
 
 	ended, final, err := s.o.Sessions.Ended(c.id)
@@ -189,7 +219,7 @@ func (c *conn) run(parent context.Context, first orch.SessionInfo) {
 			} else if fullSince.IsZero() {
 				fullSince = now
 			} else if now.Sub(fullSince) >= s.o.SlowConsumer {
-				s.o.Log.Warn("ws: slow consumer; closing", "session_id", c.id)
+				s.o.Log.Warn("ws: slow consumer; closing", "session_id", c.id, "user_id", c.uid, "remote", c.remote)
 				c.closeWith(websocket.StatusPolicyViolation, "slow_consumer")
 				return
 			}
@@ -220,7 +250,7 @@ func (c *conn) readLoop(ctx context.Context) {
 	for {
 		typ, data, err := c.ws.Read(context.Background())
 		if err != nil {
-			c.closeWith(websocket.StatusNormalClosure, "") // the client went away
+			c.clientGone(err)
 			return
 		}
 		switch typ {
@@ -307,7 +337,7 @@ func (c *conn) writeLoop(ctx context.Context, outReady <-chan outStream) {
 				return false
 			}
 			if c.ws.Write(context.Background(), websocket.MessageBinary, p[:n]) != nil {
-				c.closeWith(websocket.StatusNormalClosure, "")
+				c.closeBy(closedByClient, websocket.StatusNormalClosure, "")
 				return false
 			}
 			p = p[n:]
@@ -319,7 +349,7 @@ func (c *conn) writeLoop(ctx context.Context, outReady <-chan outStream) {
 		select {
 		case f := <-c.ctrl:
 			if c.ws.Write(context.Background(), websocket.MessageText, f) != nil {
-				c.closeWith(websocket.StatusNormalClosure, "")
+				c.closeBy(closedByClient, websocket.StatusNormalClosure, "")
 				return
 			}
 			continue
@@ -338,7 +368,7 @@ func (c *conn) writeLoop(ctx context.Context, outReady <-chan outStream) {
 			}
 		case f := <-c.ctrl:
 			if c.ws.Write(context.Background(), websocket.MessageText, f) != nil {
-				c.closeWith(websocket.StatusNormalClosure, "")
+				c.closeBy(closedByClient, websocket.StatusNormalClosure, "")
 				return
 			}
 		case os := <-outReady:

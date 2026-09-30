@@ -709,3 +709,44 @@ func TestWS_StuckClientIsReleased(t *testing.T) {
 	before := pty.emitted.Load()
 	waitFor(t, "output to resume", func() bool { return pty.emitted.Load() > before })
 }
+
+// ---------------------------------------------------------------- shutdown
+
+// labd stopping must close attached sockets properly (http.Server.Shutdown does not track
+// hijacked connections) and leave the lab running for the next labd to adopt.
+func TestWS_ShutdownClosesConnectionsAndKeepsLab(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 2, false, nil)
+	id := h.start(t, 1)
+	c := h.dial(t, id, 1)
+	if st := c.expect(t, "state"); st["state"] != "running" {
+		t.Fatalf("state %v", st)
+	}
+	idle := h.start(t, 2) // a second lab with nobody attached
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	t0 := time.Now()
+	if err := h.srv.Shutdown(ctx); err != nil {
+		t.Fatalf("Shutdown: %v", err)
+	}
+	if d := time.Since(t0); d > 2*time.Second {
+		t.Fatalf("Shutdown took %v", d)
+	}
+	if code, reason := c.closed(t); code != websocket.StatusNormalClosure || reason != "" {
+		t.Fatalf("closed with %d %q, want 1000 and no reason", code, reason)
+	}
+	for _, sid := range []string{id, idle} {
+		if in, err := h.m.Get(sid); err != nil || in.State != orch.StateRunning {
+			t.Fatalf("session %s after gateway shutdown: %+v, %v", sid, in, err)
+		}
+	}
+	select {
+	case <-h.rt.get(id).done:
+		t.Fatal("the lab's container was stopped")
+	default:
+	}
+	if _, resp, err := h.dialAs(t, id, 1, origin); err == nil || resp == nil || resp.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("dial after shutdown: %v, %v; want 503", resp, err)
+	}
+}

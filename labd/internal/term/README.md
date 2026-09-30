@@ -77,4 +77,21 @@ This is what was typed, not what gdb ran; history recall is invisible. Raw outpu
 | 1000 | `ended` | The session ended; preceded by `state: ended` |
 | 1000 | `replaced` | Another connection took over |
 | 1008 | `slow_consumer` | Output stayed backed up for 10 s |
-| 1000 | (empty) | Server shutdown or client close |
+| 1000 | (empty) | labd is stopping, or the client closed |
+
+When labd stops (SIGINT or SIGTERM), it closes every socket with 1000 and no reason, then exits within about 5 s at most (measured: about 0.1 s). The labs keep running. The next labd adopts them and starts the reconnect grace, so a client that reconnects within 60 s, with a fresh token, gets its lab and scrollback back. While labd is stopping, a new handshake gets HTTP 503.
+
+## Log lines
+
+The gateway logs at info level, one line per event, each with `session_id` and the peer address (`remote`; behind Caddy it also shows the `X-Forwarded-For` client, for the log only).
+
+| Message | When | Extra fields |
+| --- | --- | --- |
+| `ws: connected` | Socket upgraded | `user_id`, `state` (queued, creating or running) |
+| `ws: detached` | Socket closed, for any reason | `user_id`, `closed_by` (`server`, `client` or `shutdown`), `code` and `reason` sent, `client_code` received (-1 if none), `connected_s` |
+| `ws: replaced` | A new socket took over the session | `old_remote`, `new_remote` |
+| `ws: slow consumer; closing` (warn) | Output backed up for 10 s | `user_id` |
+| `ws: origin rejected`, `ws: token rejected`, `ws: no such session`, `ws: token user does not own the session` | Handshake refused (403, 401, 404, 401) | `origin`, `err` or `user_id` |
+| `ws: closing connections for shutdown` | labd stopping with sockets open | `connections` |
+
+labd itself logs `listener shutting down` once per listener (`listener`, `addr`) and `labd stopped; labs keep running` as its very last line. If that last line is missing, labd did not finish shutting down.
