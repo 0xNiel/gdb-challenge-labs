@@ -150,7 +150,6 @@ type runner struct {
 	marks   []Mark
 	users   []VUserResult
 	extra   map[string]any
-	crit    []Criterion
 	hold    [2]float64 // hold window, seconds since t0
 	nextUID atomic.Int64
 	http    *http.Client
