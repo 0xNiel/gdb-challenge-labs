@@ -22,11 +22,16 @@ type fakeLabd struct {
 	deleted []string
 	lines   []string        // every line the "terminal" received
 	live    map[string]bool // sessions started and not deleted
+	// dropAfter closes the first socket (no close frame, like a killed labd) after this many
+	// lines; 0 never drops.
+	dropAfter int
+	conns     int
+	gdb       map[string]bool // per session, like the lab's PTY: survives a reconnect
 }
 
 func newFakeLabd(t *testing.T) *fakeLabd {
 	t.Helper()
-	f := &fakeLabd{live: map[string]bool{}}
+	f := &fakeLabd{live: map[string]bool{}, gdb: map[string]bool{}}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(http.ResponseWriter, *http.Request) {})
 	mux.HandleFunc("GET /internal/stats", func(w http.ResponseWriter, _ *http.Request) {
@@ -72,11 +77,23 @@ func (f *fakeLabd) term(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer ws.CloseNow()
+	f.mu.Lock()
+	f.conns++
+	drop := f.dropAfter > 0 && f.conns == 1
+	f.mu.Unlock()
+	nLines := 0
 	ctx := context.Background()
 	out := func(s string) { _ = ws.Write(ctx, websocket.MessageBinary, []byte(s)) }
+	id := r.PathValue("id")
 	_ = ws.Write(ctx, websocket.MessageText, []byte(`{"type":"state","state":"running"}`))
-	out("lab$ ")
-	inGdb, pasted, warned := false, 0, false
+	f.mu.Lock()
+	inGdb := f.gdb[id]
+	f.mu.Unlock()
+	if !inGdb {
+		out("lab$ ")
+	}
+	defer func() { f.mu.Lock(); f.gdb[id] = inGdb; f.mu.Unlock() }()
+	pasted, warned := 0, false
 	var line strings.Builder
 	for {
 		typ, data, err := ws.Read(ctx)
@@ -104,6 +121,9 @@ func (f *fakeLabd) term(w http.ResponseWriter, r *http.Request) {
 			case '\n':
 				l := line.String()
 				line.Reset()
+				if nLines++; drop && nLines > f.dropAfter {
+					return // CloseNow: the socket just goes away
+				}
 				f.mu.Lock()
 				f.lines = append(f.lines, l)
 				f.mu.Unlock()
@@ -233,5 +253,24 @@ func TestVUser_CancelEndsHoldAndDeletes(t *testing.T) {
 	defer f.mu.Unlock()
 	if len(f.deleted) != 1 {
 		t.Errorf("deleted %v", f.deleted)
+	}
+}
+
+func TestVUser_ReconnectsWhileIdle(t *testing.T) {
+	t.Parallel()
+	f := newFakeLabd(t)
+	f.dropAfter = 12 // after gdb, the setup and a few reader commands
+	ps, _ := Profiles(loadRealScript(t))
+	cfg := f.cfg(ps[Reader], 5, 10*time.Minute)
+	cfg.Reconnect = 30 * time.Second
+	res := RunVUser(context.Background(), cfg)
+	if res.Err != "" {
+		t.Fatalf("vuser failed: %s", res.Err)
+	}
+	if res.Reconnects != 1 || res.ReconnectMS <= 0 || res.SessionID != "s5" {
+		t.Fatalf("reconnects %d after %.1f ms, session %s", res.Reconnects, res.ReconnectMS, res.SessionID)
+	}
+	if res.Commands < 15 {
+		t.Errorf("%d commands: the hold did not continue after the reconnect", res.Commands)
 	}
 }

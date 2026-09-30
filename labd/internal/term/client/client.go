@@ -138,6 +138,13 @@ func (c *Client) Expect(re *regexp.Regexp, timeout time.Duration) (string, error
 	}
 }
 
+// Closed reports whether the socket has closed.
+func (c *Client) Closed() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.closeErr != nil
+}
+
 // Discard drops the output not yet consumed by Expect and returns it. Used after bursts
 // (a paste) whose many prompts would otherwise satisfy the next Expect early.
 func (c *Client) Discard() string {

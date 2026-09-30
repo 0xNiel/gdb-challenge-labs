@@ -238,7 +238,7 @@ func (v *vuser) run(hold context.Context) error {
 		if !due.Before(end) {
 			break
 		}
-		if v.cfg.Sleep(hold, due.Sub(v.cfg.Now())) != nil {
+		if !v.wait(ctx, hold, due) {
 			break // churn: this user's time is up
 		}
 		if err := v.cmd(ctx, v.cfg.Profile.Loop[i%len(v.cfg.Profile.Loop)]); err != nil {
@@ -246,6 +246,31 @@ func (v *vuser) run(hold context.Context) error {
 		}
 	}
 	return v.quit()
+}
+
+// wait sleeps until due; false when hold ends first. With Reconnect, it checks the socket
+// every second and reattaches at once: a reader can sit idle longer than the reconnect grace,
+// and waiting for its next command to notice the drop would let the grace expire.
+func (v *vuser) wait(ctx, hold context.Context, due time.Time) bool {
+	for {
+		left := due.Sub(v.cfg.Now())
+		if left <= 0 {
+			return hold.Err() == nil
+		}
+		step := left
+		if v.cfg.Reconnect > 0 {
+			step = min(left, time.Second)
+		}
+		if v.cfg.Sleep(hold, step) != nil {
+			return false
+		}
+		if v.cfg.Reconnect > 0 && v.c.Closed() {
+			if err := v.reconnect(ctx); err != nil {
+				v.res.Err = err.Error()
+				return false
+			}
+		}
+	}
 }
 
 func (v *vuser) quit() error {
