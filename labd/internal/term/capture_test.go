@@ -94,3 +94,25 @@ func waitUntil(t *testing.T, cond func() bool) {
 		time.Sleep(5 * time.Millisecond)
 	}
 }
+
+func TestRecorder_RecordAfterCloseIsSafe(t *testing.T) {
+	t.Parallel()
+	r := NewRecorder(store.NewMemory(), clock.NewFake(t0), slog.New(slog.NewTextHandler(io.Discard, nil)))
+	stop := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-stop:
+				return
+			default:
+				r.Record(store.Event{Type: "command_entered"})
+			}
+		}
+	}()
+	time.Sleep(10 * time.Millisecond)
+	r.Close()
+	if r.Record(store.Event{}) {
+		t.Fatal("Record after Close reported success")
+	}
+	close(stop)
+}

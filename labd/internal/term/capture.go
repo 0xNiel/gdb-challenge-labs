@@ -126,7 +126,9 @@ type Recorder struct {
 	log  *slog.Logger
 	in   chan store.Event
 	done chan struct{}
-	once sync.Once
+
+	mu     sync.RWMutex // Record holds it shared; Close exclusively, so no send hits a closed channel
+	closed bool
 }
 
 const (
@@ -142,8 +144,14 @@ func NewRecorder(sink EventSink, clk clock.Clock, log *slog.Logger) *Recorder {
 	return r
 }
 
-// Record queues one event without blocking. It reports false if the queue was full.
+// Record queues one event without blocking. It reports false if the queue was full or the
+// recorder is closed (a connection can outlive labd's shutdown by a moment).
 func (r *Recorder) Record(ev store.Event) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	if r.closed {
+		return false
+	}
 	select {
 	case r.in <- ev:
 		return true
@@ -188,6 +196,11 @@ func (r *Recorder) run() {
 
 // Close writes what is queued and stops the recorder.
 func (r *Recorder) Close() {
-	r.once.Do(func() { close(r.in) })
+	r.mu.Lock()
+	if !r.closed {
+		r.closed = true
+		close(r.in)
+	}
+	r.mu.Unlock()
 	<-r.done
 }

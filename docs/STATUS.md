@@ -12,7 +12,7 @@ Update this file at the end of every working session. Keep it factual. Newest lo
    curl -s -H 'Authorization: Bearer dev' -d '{"user_id":1,"challenge_slug":"perf"}' http://127.0.0.1:8081/internal/sessions
    # open within 60 s: http://127.0.0.1:8082/dev/term?session=<session_id>&t=<ws_token>
    ```
-   In the terminal: `gdb /opt/perf/perf`, `break main`, `run`, `next`, `watch counter`, `continue`, `bt`. Then paste about 100 KB of text and check that the warn message appears. On the laptop (x86-64) every step works. On the Mac's arm64 VM, `next` and `continue` hit the known gVisor arm64 crash (QUESTIONS Q13); that is expected, not a gateway fault. Record a line here: `Phase 3 human check: <date> <initials> OK`.
+   In the terminal: `gdb /opt/perf/perf`, `break main`, `run`, `next`, `watch counter`, `continue`, `bt`. Then paste about 100 KB of text and check that the warn message appears. On the laptop (x86-64) every step works. On the Mac's arm64 VM, `next` and `continue` hit the known gVisor arm64 crash (QUESTIONS Q13); that is expected, not a gateway fault. Then add this line to this file, on its own line and starting at the first column (the gate checks for it): `Phase 3 human check: YYYY-MM-DD <initials> OK`.
 2. **x86-64 P1** on the laptop:
    ```
    git pull && git checkout phase-3-terminal-gateway

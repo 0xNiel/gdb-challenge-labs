@@ -29,11 +29,13 @@ check_file() {
   else fail "$desc — no file matches $pattern"; fi
 }
 
-# check_status_line "Phase 3 human check"  — STATUS.md must contain a line with that text and "OK"
+# check_status_line "Phase 3 human check" — STATUS.md must have a line that starts with that
+# text, then a date, who, and OK: "Phase 3 human check: 2026-10-01 ON OK". Anchored so that
+# instructions quoting the format do not count.
 check_status_line() {
   local text="$1"
-  if grep -Eq "^.*${text}.*OK" "$STATUS"; then pass "STATUS.md records '$text'"
-  else fail "STATUS.md lacks a line matching '$text ... OK'"; fi
+  if grep -Eq "^(- )?${text}: [0-9]{4}-[0-9]{2}-[0-9]{2} .*OK\s*$" "$STATUS"; then pass "STATUS.md records '$text'"
+  else fail "STATUS.md lacks a line '$text: YYYY-MM-DD <who> OK'"; fi
 }
 
 check_clean_tree() {
