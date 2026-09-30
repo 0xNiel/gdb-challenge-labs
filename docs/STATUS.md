@@ -4,7 +4,23 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
-**Phase 3 — Terminal gateway.** Starting on branch `phase-3-terminal-gateway`. Phase 2 passed its gate on the x86-64 laptop on 2026-09-30 and is merged into `main`.
+**Phase 3 — Terminal gateway.** In progress on branch `phase-3-terminal-gateway`. Tasks 3.1–3.11 are built and pass on the arm64 dev VM. Two things remain, both the owner's:
+
+1. **Human check (task 3.8)** in a browser, on the Mac or the laptop:
+   ```
+   LABD_INTERNAL_SECRET=dev WS_TOKEN_KEY=dev ./run.sh labd          # labd.dev.yaml serves /dev/term
+   curl -s -H 'Authorization: Bearer dev' -d '{"user_id":1,"challenge_slug":"perf"}' http://127.0.0.1:8081/internal/sessions
+   # open within 60 s: http://127.0.0.1:8082/dev/term?session=<session_id>&t=<ws_token>
+   ```
+   In the terminal: `gdb /opt/perf/perf`, `break main`, `run`, `next`, `watch counter`, `continue`, `bt`. Then paste about 100 KB of text and check that the warn message appears. On the laptop (x86-64) every step works. On the Mac's arm64 VM, `next` and `continue` hit the known gVisor arm64 crash (QUESTIONS Q13); that is expected, not a gateway fault. Record a line here: `Phase 3 human check: <date> <initials> OK`.
+2. **x86-64 P1** on the laptop:
+   ```
+   git pull && git checkout phase-3-terminal-gateway
+   ./run.sh test --integration
+   LAB_HOST=linux-laptop ./run.sh perf --scenario P1-lite --hold 10m     # ~11 minutes
+   git add docs/metrics && git commit -m "[P3] metrics: x86-64 P1" && git push
+   ./run.sh gate --phase 3                                             # passes once the human check line is in
+   ```
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -25,7 +41,7 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 0 | Bootstrap: repo, toolchain, dev VM | done (0.9 open, non-blocking) | passed on Mac and laptop | 2026-09-28 |
 | 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-29 |
 | 2 | labd core (sessions, semaphore, reconciler) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
-| 3 | Terminal gateway (WebSocket ↔ PTY) | in progress | — | — |
+| 3 | Terminal gateway (WebSocket ↔ PTY) | in progress: needs human check and x86-64 P1 | Mac: see log | 2026-09-30 |
 | 4 | Perf suite and measured capacity | blocked on 3 | — | — |
 | 5 | Challenge pipeline and tier 1 content | not started (owner review of Phase 1 first) | — | — |
 | 6 | Django web app | blocked on 3, 5 | — | — |
@@ -48,6 +64,25 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-09-30 — Phase 3 built: WebSocket gateway, capture, client, dev page, P1
+- **Built** (tasks 3.1–3.11):
+  - HMAC WebSocket tokens (single use);
+  - the gateway (`GET /ws/term/{id}`) with Origin check, input and output rate limits, a backpressured output with slow-consumer close (1008), connection replacement (1000 `replaced`), reconnect grace (60 s), TTL frames, extend, and resize;
+  - command capture into `command_entered` events;
+  - the scripted client and the replay command;
+  - the dev test page with vendored xterm.js 5.5.0;
+  - `POST /internal/sessions` now returns a real `ws_token`;
+  - the P1 script and the gate.
+- The protocol as implemented is in `labd/internal/term/README.md`: the contract for web in Phase 6.
+- **ADR 0012:** tokens carry a random nonce. The plan's format made two tokens minted in the same second identical, so the second failed as "reused" (two tabs, fast reconnect). The tests caught it.
+- **Plan correction:** task 3.5's example `"ne\x7fxt\n" → next` contradicts its own backspace rule; the code follows the rule.
+- **Real gdb over the socket** (`integration/term_test.go`): start gdb, break, run, print, quit; stop closes 1000; commands captured. Passes on the arm64 VM.
+- **Dev VM P1** (arm64, `docs/metrics/p1-2026-09-30-dev-vm.md`, 10 min, 20 commands/min):
+  - request to `(gdb)` 1321 ms; echo p50 2.9 ms, p95 4.9 ms;
+  - lab cgroup 25.7 MiB p50; Sentry RSS 42 MiB; CPU 0.22 % of a core;
+  - WebSocket 3 B/s in, 34 B/s out; 201 commands, 0 errors.
+- `capacity.md`'s CPU-per-lab and bandwidth rows wait for the laptop's P1 (x86-64 only replaces an *est.*).
 
 ### 2026-09-30 — Phase 2 gate passed on the x86-64 laptop
 - **Laptop P4-lite** (`docs/metrics/create-latency-2026-09-30-linux-laptop.md`, runsc, 10 min at cap 20):

@@ -1,0 +1,36 @@
+{
+  "host": "dev-vm",
+  "arch": "aarch64",
+  "kernel": "6.8.0-142-generic",
+  "date": "2026-09-30T02:19:43Z",
+  "runtime": "io.containerd.runsc.v1",
+  "runsc": "runsc version release-20260921.0",
+  "profile": "stepper",
+  "rate_per_min": 20,
+  "duration_s": 600,
+  "start_to_prompt_ms": 1321,
+  "echo_latency_ms": {
+    "p50": 2.859,
+    "p95": 4.925,
+    "max": 5.619
+  },
+  "cgroup_mem_mb": {
+    "p50": 25.7,
+    "p95": 25.8,
+    "max": 26.0
+  },
+  "sentry_rss_mb": {
+    "p50": 42.3,
+    "p95": 42.7,
+    "max": 42.7
+  },
+  "cpu_pct_avg": 0.22,
+  "ws_bytes_in": 2135,
+  "ws_bytes_out": 20762,
+  "ws_bps_in": 3.558333333333333,
+  "ws_bps_out": 34.60333333333333,
+  "commands": 201,
+  "command_errors": 0,
+  "samples": 120,
+  "units": "memory in MiB"
+}
