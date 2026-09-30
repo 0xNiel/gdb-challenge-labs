@@ -4,15 +4,7 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
-**Phase 2 — labd core.** In progress on branch `phase-2-labd-core` (Phase 1 merged into `main` locally on 2026-09-29; not pushed). Tasks 2.1–2.13 are built and pass on the arm64 dev VM. The gate also needs x86-64 results (ADR 0001). First push this branch from the Mac, then on the laptop:
-
-```
-git pull && git checkout phase-2-labd-core && ./run.sh vm up
-./run.sh test --integration                                          # real containerd, runsc, Postgres
-LAB_HOST=linux-laptop ./run.sh perf --scenario P4-lite --hold 10m    # ~11 minutes
-git add docs/metrics && git commit -m "[P2] metrics: x86-64 create latency" && git push
-./run.sh gate --phase 2                                              # ~13 minutes
-```
+**Phase 3 — Terminal gateway.** Starting on branch `phase-3-terminal-gateway`. Phase 2 passed its gate on the x86-64 laptop on 2026-09-30 and is merged into `main`.
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -31,9 +23,9 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | Phase | Name | State | Gate result | Date |
 | --- | --- | --- | --- | --- |
 | 0 | Bootstrap: repo, toolchain, dev VM | done (0.9 open, non-blocking) | passed on Mac and laptop | 2026-09-28 |
-| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; merged to `main` (local) | passed on the laptop (x86-64) | 2026-09-29 |
-| 2 | labd core (sessions, semaphore, reconciler) | in progress: needs x86-64 run | Mac: all local checks pass | 2026-09-29 |
-| 3 | Terminal gateway (WebSocket ↔ PTY) | blocked on 2 | — | — |
+| 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-29 |
+| 2 | labd core (sessions, semaphore, reconciler) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
+| 3 | Terminal gateway (WebSocket ↔ PTY) | in progress | — | — |
 | 4 | Perf suite and measured capacity | blocked on 3 | — | — |
 | 5 | Challenge pipeline and tier 1 content | not started (owner review of Phase 1 first) | — | — |
 | 6 | Django web app | blocked on 3, 5 | — | — |
@@ -56,6 +48,31 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-09-30 — Phase 2 gate passed on the x86-64 laptop
+- **Laptop P4-lite** (`docs/metrics/create-latency-2026-09-30-linux-laptop.md`, runsc, 10 min at cap 20):
+  - 300 sessions; create to running p50 223 ms, p95 277 ms, max 312 ms;
+  - containers never above 20 and equal to active once quiet; 0 left at the end;
+  - labd: 24.9 MiB and 13 goroutines idle, 37.5 MiB and 133 goroutines at 20 sessions, back to 13 after.
+- Create is about 3× slower on the laptop than on the arm64 VM (p50 70 ms), the same direction as Phase 1's start-to-prompt (1463 ms against about 430 ms). Phase 4 should look at runsc boot cost on x86-64 (systrap there, KVM available on the laptop).
+- Integration tests, P5-lite and the full gate pass on the laptop. Phase 2 is merged into `main` and pushed; Phase 3 starts.
+
+Phase 2 gate on the Linux laptop:
+```
+==> gate for phase 2 — 2026-09-30T01:14Z — linux-laptop
+==> [gate 2] unit tests (go vet, go test -race)
+  PASS  run.sh test --go
+==> [gate 2] integration tests (real containerd, runsc, Postgres)
+  PASS  run.sh test --integration
+==> [gate 2] P4-lite and P5-lite on this host
+  PASS  P4-lite: 10 min churn at cap 20, no leak
+  PASS  P5-lite: kill -9 labd at 20 labs, all adopted within 15 s
+  PASS  no containers left in namespace labs
+==> [gate 2] recorded create latency (x86-64, ADR 0001)
+  PASS  create-latency report (create-latency-2026-09-30-linux-laptop.md)
+  PASS  x86-64 create latency recorded (create-latency-2026-09-30-linux-laptop.json)
+==> GATE 2 PASSED. Paste this output into docs/STATUS.md.
+```
 
 ### 2026-09-29 — Phase 2 built: sessions, queue, timers, reconciler, store, internal API
 - **Phase 1** fast-forwarded into `main` locally at the owner's request. Nothing pushed.
