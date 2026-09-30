@@ -17,14 +17,14 @@ LABD_LOG="$WORK/labd.log"
 say() { printf '==> %s\n' "$*" >&2; }
 die() { printf 'FAIL: %s\n' "$*" >&2; PERF_FAILED=1; exit 1; }
 
-# perf_init CAP — checks the host, builds labd, writes the config, authenticates sudo once
-# (ctr needs root to list containers; labd itself does not).
+# perf_init CAP — checks the host (scripts/labs.sh preflight), builds labd, writes the
+# config, authenticates sudo once (ctr needs root to list containers; labd itself does not).
 perf_init() {
   local cap="$1"
   [[ "$(uname -s)" == Linux ]] || die "run on the Linux lab host (./run.sh perf --scenario ...)"
-  if pgrep -x labd >/dev/null; then
-    die "another labd is running (pid $(pgrep -x labd | tr '\n' ' ')); two labds in namespace labs would reconcile each other's labs away. Stop it first."
-  fi
+  # No other labd (the two would reconcile each other's labs away) and no leftover lab (this
+  # labd would adopt it and count it). Stops here, before the build, with what to do.
+  "$PERF_ROOT/scripts/labs.sh" preflight || die "preflight failed (above); nothing was started"
   say "building labd"
   (cd "$PERF_ROOT/labd" && go build -o bin/labd ./cmd/labd)
   sed -e "s|^listen_internal:.*|listen_internal: 127.0.0.1:18081|" \

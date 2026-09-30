@@ -134,7 +134,19 @@ phase_2() {
   if [[ -n "$cl" ]]; then pass "x86-64 create latency recorded ($(basename "$cl"))"
   else fail "no create latency from an x86-64 host yet: on the laptop run LAB_HOST=linux-laptop ./run.sh perf --scenario P4-lite --hold 10m, commit docs/metrics"; fi
 }
+# preflight — before anything slow: no labd running and namespace labs empty. Otherwise the
+# perf runs refuse to start and the leftover check fails, 20 minutes in. Not captured, so a
+# sudo prompt shows.
+preflight() {
+  say "preflight: no labd running, namespace labs empty"
+  if "$RUN" labs preflight; then pass "no labd running, namespace labs empty"; return; fi
+  fail "preflight (above)"
+  printf '\n==> GATE %s FAILED at preflight: stop the dev labd, then ./run.sh labs clean, then rerun.\n' "$PHASE"
+  exit 1
+}
+
 phase_3() {
+  preflight
   say "unit tests (go vet, go test -race)"
   check "run.sh test --go" "$RUN" test --go
   say "integration tests (includes real gdb over the WebSocket)"

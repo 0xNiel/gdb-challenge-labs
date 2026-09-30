@@ -22,6 +22,8 @@ The protocol as implemented is in `labd/internal/term/README.md`. Where the impl
 - **Grace** lives in the Manager (`ClientAttached`/`ClientDetached` with a connection generation). Labs adopted after a labd restart start inside the grace.
 - **Capture**: the plan's example `"ne\x7fxt\n" → next` contradicts its own backspace rule; the code follows the rule (`nxt`). `seq` and the input bucket are per session, so they survive reconnects.
 - **Config**: `site_host` (the full origin, for example `https://labs.example.com`), `dev_allow_no_origin`, `dev_testpage`. `WS_TOKEN_KEY` comes from the environment; labd refuses to start without it.
+- **Shutdown and logging** (2026-09-30, after the owner's laptop run): labd stopping closes every WebSocket with 1000 (`Server.Shutdown`; `http.Server.Shutdown` does not track hijacked connections) and keeps the labs running. It never hung: on the dev VM it exits about 0.1 s after SIGINT or SIGTERM, with or without a client attached. The gateway logs connects, detaches, replacements, slow consumers and refused handshakes; labd's last line is `labd stopped; labs keep running`. See the README's "Log lines".
+- **Preflight**: `./run.sh labs ls|clean|preflight` (`scripts/labs.sh`). The gate and the perf scripts refuse to start while a labd runs or a lab is left, instead of failing halfway.
 - **Files**: the scripted client's test is `internal/term/client_test.go`, in package `term`, so it can use the fake server. The dev page is embedded by `labd/testpage/embed.go`. P1 runs through `./run.sh perf --scenario P1-lite --hold 10m`.
 
 ## Design fixed by this document
@@ -102,6 +104,7 @@ Unit: token, frames, bridge, limiter, capture, grace/TTL, client. Integration: r
 ```
 ./run.sh gate --phase 3
 ```
+0. Preflight, before anything slow: no labd running and namespace `labs` empty (`./run.sh labs preflight`). If either fails, the gate stops at once and says what to do: stop the dev labd, then `./run.sh labs clean`. The perf scripts run the same preflight.
 1. `go test -race ./...` green.
 2. `./run.sh test --integration` green including `term_test.go`.
 3. `labd/perf/p1.sh` exits 0 (the gate runs 2 minutes into `.scratch/`), and a 10-minute `docs/metrics/p1-*.json` from an x86-64 host (ADR 0001) has `echo_latency_ms.p95`: `LAB_HOST=linux-laptop ./run.sh perf --scenario P1-lite --hold 10m`.

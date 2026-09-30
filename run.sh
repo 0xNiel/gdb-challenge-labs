@@ -45,6 +45,10 @@ gdb Challenge Labs — ./run.sh <command> [flags]
   lint | fmt                   gofmt/vet/staticcheck, ruff, shellcheck | apply formatters
 
   labd [--config PATH] [args]  run labd in the VM (default config labd/labd.dev.yaml)
+  labs ls|clean [--yes]|preflight
+                               labs in containerd namespace `labs` (in the VM on macOS): list them;
+                               remove them after one confirmation (refused while a labd runs);
+                               preflight fails if a labd runs or any lab is left (gate 3, perf)
   web [--port 8000]            run the Django dev server on the host
   dev                          labd in the VM (background) + Django on the host
   db up|down|shell|migrate|reset
@@ -436,6 +440,10 @@ cmd_labd() {
   run_linux "$LABD_DIR/bin/labd" --config "$cfg" "$@"
 }
 
+cmd_labs() {
+  run_linux bash "$ROOT/scripts/labs.sh" "$@"
+}
+
 cmd_web() {
   local port=8000
   while [[ $# -gt 0 ]]; do case "$1" in --port) port="$2"; shift 2;; *) die "web: unknown flag $1";; esac; done
@@ -556,6 +564,7 @@ main() {
     lint)    cmd_lint "$@" ;;
     fmt)     cmd_fmt "$@" ;;
     labd)    cmd_labd "$@" ;;
+    labs)    cmd_labs "$@" ;;
     web)     cmd_web "$@" ;;
     dev)     cmd_dev "$@" ;;
     db)      cmd_db "$@" ;;
