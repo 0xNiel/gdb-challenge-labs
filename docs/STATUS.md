@@ -4,23 +4,39 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 ## Current phase
 
-**Phase 3 — Terminal gateway.** In progress on branch `phase-3-terminal-gateway`. Tasks 3.1–3.11 are built and pass on the arm64 dev VM. Two things remain, both the owner's:
+**Phase 3 — Terminal gateway.** In progress on branch `phase-3-terminal-gateway`. Tasks 3.1–3.11 are built and pass on the arm64 dev VM. Two things remain, both the owner's: the human check and the x86-64 P1.
 
-1. **Human check (task 3.8)** in a browser, on the Mac or the laptop:
+The owner's first laptop attempt (2026-09-30) failed because the steps ran out of order. The dev labd was still running when P1 started, and the dev session's lab was still there when the gate counted leftovers. labd did not hang: it exits about 0.1 s after Ctrl-C. It just logged nothing after "shutting down". Now it logs every connection and ends with `labd stopped; labs keep running`. The gate and the perf scripts check first and stop at once with what to do.
+
+**On the laptop, in this order:**
+
+1. **Update.** `git pull && git checkout phase-3-terminal-gateway`, then `./run.sh labs preflight`. It must say `preflight ok`. If a labd is running, stop it (Ctrl-C in its terminal). If labs are left, run `./run.sh labs clean` and answer `y`.
+2. **Human check (task 3.8).** Use two terminals, A and B.
+   1. A: `LABD_INTERNAL_SECRET=dev WS_TOKEN_KEY=dev ./run.sh labd`. Wait for the two `labd listening` lines (`internal API` and `terminal gateway`).
+   2. B, start a session and print the page URL:
+      ```
+      resp=$(curl -s -H 'Authorization: Bearer dev' -d '{"user_id":1,"challenge_slug":"perf"}' http://127.0.0.1:8081/internal/sessions)
+      sid=$(jq -r .session_id <<<"$resp"); tok=$(jq -r .ws_token <<<"$resp"); echo "$resp"
+      echo "http://127.0.0.1:8082/dev/term?session=$sid&t=$tok"
+      ```
+   3. Open the URL within 60 s. The page says `running`, and A logs `ws: connected`. If the page says `closed: 1006` or A logs `ws: token rejected`, the token expired or was used: repeat step 2 (same session, fresh token).
+   4. In the page's terminal: `gdb /opt/perf/perf`, `break main`, `run`, `next`, `watch counter`, `continue`, `bt`. Each should work (x86-64). On the Mac's arm64 VM, `next` and `continue` crash the program (QUESTIONS Q13); that is expected there, not a gateway fault.
+   5. Paste about 100 KB of text into the terminal. For example, run `seq 20000 > /tmp/paste.txt` (109 KB), open the file in a text editor, select all, copy, and paste into the page. The orange message `input rate limit: keystrokes dropped` appears at the top.
+   6. B, stop the session **before** stopping labd:
+      ```
+      curl -s -X DELETE -H 'Authorization: Bearer dev' -d '{"reason":"user_stop"}' http://127.0.0.1:8081/internal/sessions/$sid
+      ```
+      The page shows `ended (user_stop)`, then `closed: 1000 ended`. A logs `ws: detached ... closed_by=server code=1000 reason=ended`.
+   7. A: Ctrl-C. The last line must be `labd stopped; labs keep running`.
+   8. B: `./run.sh labs preflight` must say `preflight ok`. If it lists a lab, run `./run.sh labs clean`.
+   9. Add this line to this file, on its own line, starting at the first column, with the real date and your initials (the gate greps for it): `Phase 3 human check: YYYY-MM-DD <initials> OK`.
+3. **x86-64 P1**, about 11 minutes. Preflight must pass first; the script checks it.
    ```
-   LABD_INTERNAL_SECRET=dev WS_TOKEN_KEY=dev ./run.sh labd          # labd.dev.yaml serves /dev/term
-   curl -s -H 'Authorization: Bearer dev' -d '{"user_id":1,"challenge_slug":"perf"}' http://127.0.0.1:8081/internal/sessions
-   # open within 60 s: http://127.0.0.1:8082/dev/term?session=<session_id>&t=<ws_token>
+   LAB_HOST=linux-laptop ./run.sh perf --scenario P1-lite --hold 10m
+   git add docs/metrics docs/STATUS.md && git commit -m "[P3] metrics: x86-64 P1; human check" && git push
+   ./run.sh gate --phase 3
    ```
-   In the terminal: `gdb /opt/perf/perf`, `break main`, `run`, `next`, `watch counter`, `continue`, `bt`. Then paste about 100 KB of text and check that the warn message appears. On the laptop (x86-64) every step works. On the Mac's arm64 VM, `next` and `continue` hit the known gVisor arm64 crash (QUESTIONS Q13); that is expected, not a gateway fault. Then add this line to this file, on its own line and starting at the first column (the gate checks for it): `Phase 3 human check: YYYY-MM-DD <initials> OK`.
-2. **x86-64 P1** on the laptop:
-   ```
-   git pull && git checkout phase-3-terminal-gateway
-   ./run.sh test --integration
-   LAB_HOST=linux-laptop ./run.sh perf --scenario P1-lite --hold 10m     # ~11 minutes
-   git add docs/metrics && git commit -m "[P3] metrics: x86-64 P1" && git push
-   ./run.sh gate --phase 3                                             # passes once the human check line is in
-   ```
+   Send the gate output. The gate starts with the same preflight and stops at once if a labd is running or a lab is left.
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -41,7 +57,7 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 0 | Bootstrap: repo, toolchain, dev VM | done (0.9 open, non-blocking) | passed on Mac and laptop | 2026-09-28 |
 | 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-29 |
 | 2 | labd core (sessions, semaphore, reconciler) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
-| 3 | Terminal gateway (WebSocket ↔ PTY) | in progress: needs human check and x86-64 P1 | Mac: see log | 2026-09-30 |
+| 3 | Terminal gateway (WebSocket ↔ PTY) | in progress: needs human check and x86-64 P1 | Mac: all but the two laptop items | 2026-09-30 |
 | 4 | Perf suite and measured capacity | blocked on 3 | — | — |
 | 5 | Challenge pipeline and tier 1 content | not started (owner review of Phase 1 first) | — | — |
 | 6 | Django web app | blocked on 3, 5 | — | — |
@@ -64,6 +80,30 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-09-30 — labd shutdown checked, gateway logging, preflight for gate and perf
+- **The owner's laptop run.** Both P1 runs refused to start because the dev labd was still running. The gate then found the dev session's lab, which labs outliving labd leaves behind by design. The log could not show whether labd had exited.
+- **Shutdown did not hang.** Reproduced on the dev VM (`.scratch/shutdown-repro.sh`, not committed): labd exits 102–109 ms after SIGINT or SIGTERM, with a WebSocket client attached and with only a lab running. The lab keeps running, and the next labd adopts it. One real defect: the attached client saw a bare EOF, not the 1000 close the README promised, because `http.Server.Shutdown` does not track hijacked connections. Fixed: `term.Server.Shutdown` closes every socket with 1000 and later handshakes get 503. Tests: `TestWS_ShutdownClosesConnectionsAndKeepsLab` and `TestServeAll_ClosesWebSocketsOnCancel`. After the fix, exit takes 104–106 ms and the client gets 1000.
+- **Logging.** The gateway now logs `ws: connected`, `ws: detached` (who closed it, codes, duration), `ws: replaced`, slow consumers and every refused handshake, each with the remote address. Each listener's shutdown line names it. `labd stopped; labs keep running` is the last line; if it is missing, labd hung. The list is in `labd/internal/term/README.md` ("Log lines").
+- **Fail fast.** `./run.sh labs ls|clean|preflight` (`scripts/labs.sh`). The gate and the perf scripts run `preflight` first and stop within a second if a labd is running or a lab is left. `clean` refuses while a labd runs. The human-check steps above now stop the session before Ctrl-C and end with a preflight.
+- **Checks on the Mac:** `./run.sh check`, `test --all`, `lint` and `test --integration` pass; `go test -race -count=5 ./...` passes. The Mac's staticcheck was built with Go 1.25 and cannot load this module, so it only warns. staticcheck in the VM is clean.
+- **Gate on the Mac:** everything passes except the two laptop items:
+```
+==> [gate 3] preflight: no labd running, namespace labs empty
+  PASS  no labd running, namespace labs empty
+==> [gate 3] unit tests (go vet, go test -race)
+  PASS  run.sh test --go
+==> [gate 3] integration tests (includes real gdb over the WebSocket)
+  PASS  run.sh test --integration
+==> [gate 3] P1 runs on this host (2 min, scratch output)
+  PASS  P1-lite: one session replaying session.gdb over the socket
+  PASS  no containers left in namespace labs
+==> [gate 3] recorded P1 (x86-64, ADR 0001) and the human check
+  FAIL  no 10-minute P1 from an x86-64 host yet: on the laptop run LAB_HOST=linux-laptop ./run.sh perf --scenario P1-lite --hold 10m, commit docs/metrics
+  FAIL  STATUS.md lacks a line 'Phase 3 human check: YYYY-MM-DD <who> OK'
+==> GATE 3 FAILED. Fix the FAIL lines above; do not start the next phase.
+```
+- **Next:** the owner runs the laptop steps at the top of this file.
 
 ### 2026-09-30 — Phase 3 built: WebSocket gateway, capture, client, dev page, P1
 - **Built** (tasks 3.1–3.11):
