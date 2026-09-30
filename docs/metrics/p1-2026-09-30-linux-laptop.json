@@ -2,29 +2,29 @@
   "host": "linux-laptop",
   "arch": "x86_64",
   "kernel": "7.0.0-34-generic",
-  "date": "2026-09-30T15:03:12Z",
+  "date": "2026-09-30T15:48:51Z",
   "runtime": "io.containerd.runsc.v1",
   "runsc": "runsc version release-20260921.0",
   "profile": "stepper",
   "rate_per_min": 20,
   "duration_s": 600,
-  "start_to_prompt_ms": 2327,
+  "start_to_prompt_ms": 2296,
   "echo_latency_ms": {
-    "p50": 3.264,
-    "p95": 5.327,
-    "max": 7.109
+    "p50": 3.241,
+    "p95": 5.488,
+    "max": 9.579
   },
   "cgroup_mem_mb": {
-    "p50": 27.6,
-    "p95": 28.9,
-    "max": 29.5
+    "p50": 28.0,
+    "p95": 29.0,
+    "max": 29.4
   },
   "sentry_rss_mb": {
-    "p50": 48.0,
-    "p95": 48.7,
-    "max": 48.7
+    "p50": 47.8,
+    "p95": 48.6,
+    "max": 48.6
   },
-  "cpu_pct_avg": 0.50,
+  "cpu_pct_avg": 0.53,
   "ws_bytes_in": 2135,
   "ws_bytes_out": 34162,
   "ws_bps_in": 3.558333333333333,
