@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -25,6 +26,7 @@ type Collector struct {
 	Stats      func(ctx context.Context) (LabdStats, error)
 	Containers func(ctx context.Context) (int, error)
 
+	mu      sync.Mutex // Sample keeps deltas between calls; the loop and teardown both call it
 	start   time.Time
 	prevCPU cpuTimes
 	prevLab map[string]labCPU
@@ -33,12 +35,14 @@ type Collector struct {
 
 // LabdStats is the part of GET /internal/stats the collector keeps.
 type LabdStats struct {
-	Active   int `json:"active"`
-	Creating int `json:"creating"`
-	Running  int `json:"running"`
-	Ending   int `json:"ending"`
-	Queued   int `json:"queued"`
-	Labd     struct {
+	Active      int `json:"active"`
+	Creating    int `json:"creating"`
+	Running     int `json:"running"`
+	Ending      int `json:"ending"`
+	Queued      int `json:"queued"`
+	MaxSessions int `json:"max_sessions"`
+	MaxQueue    int `json:"max_queue"`
+	Labd        struct {
 		Goroutines int     `json:"goroutines"`
 		RSSMB      float64 `json:"rss_mb"`
 	} `json:"labd"`
@@ -94,6 +98,8 @@ func (c *Collector) path(p string) string { return filepath.Join(c.Root, p) }
 // Sample takes one tick at now. Containers are counted only when count is true (the plan
 // counts them every 30 s; it asks containerd).
 func (c *Collector) Sample(ctx context.Context, now time.Time, count bool) Sample {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.start.IsZero() {
 		c.start = now
 	}

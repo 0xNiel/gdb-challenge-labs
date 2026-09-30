@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lib.sh — shared by labd/perf/p4lite.sh and p5.sh. Source it; do not run it.
+# lib.sh — shared by labd/perf/p1.sh, p4lite.sh, p5.sh and scenario.sh. Source it; do not run it.
 #
 # Runs a private labd on the Linux lab host: its own config (ports 18081/18082, so a dev
 # labd on 8081 is not disturbed), the dev Postgres, the dev challenges.json (perf image),
@@ -17,10 +17,12 @@ LABD_LOG="$WORK/labd.log"
 say() { printf '==> %s\n' "$*" >&2; }
 die() { printf 'FAIL: %s\n' "$*" >&2; PERF_FAILED=1; exit 1; }
 
-# perf_init CAP — checks the host (scripts/labs.sh preflight), builds labd, writes the
-# config, authenticates sudo once (ctr needs root to list containers; labd itself does not).
+# perf_init CAP [QUEUE] — checks the host (scripts/labs.sh preflight), builds labd, writes
+# the config from $PERF_BASE_CFG (default labd.dev.yaml; the Phase 4 suite uses
+# labd.perf.yaml) with CAP slots and QUEUE queued (default 2 x CAP), authenticates sudo once
+# (ctr needs root to list containers; labd itself does not).
 perf_init() {
-  local cap="$1"
+  local cap="$1" queue="${2:-$(( $1 * 2 ))}"
   [[ "$(uname -s)" == Linux ]] || die "run on the Linux lab host (./run.sh perf --scenario ...)"
   # No other labd (the two would reconcile each other's labs away) and no leftover lab (this
   # labd would adopt it and count it). Stops here, before the build, with what to do.
@@ -30,9 +32,9 @@ perf_init() {
   sed -e "s|^listen_internal:.*|listen_internal: 127.0.0.1:18081|" \
       -e "s|^listen_ws:.*|listen_ws: 127.0.0.1:18082|" \
       -e "s|^max_sessions:.*|max_sessions: $cap|" \
-      -e "s|^max_queue:.*|max_queue: $((cap * 2))|" \
+      -e "s|^max_queue:.*|max_queue: $queue|" \
       -e "s|^challenges_file:.*|challenges_file: $PERF_ROOT/labd/challenges.dev.json|" \
-      "$PERF_ROOT/labd/labd.dev.yaml" > "$LABD_CFG"
+      "${PERF_BASE_CFG:-$PERF_ROOT/labd/labd.dev.yaml}" > "$LABD_CFG"
   if ! sudo -n true 2>/dev/null; then say "ctr needs root to count containers; authenticating sudo once"; sudo -v; fi
 }
 

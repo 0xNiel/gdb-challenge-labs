@@ -20,23 +20,44 @@ type fakeLabd struct {
 	srv     *httptest.Server
 	mu      sync.Mutex
 	deleted []string
-	lines   []string // every line the "terminal" received
+	lines   []string        // every line the "terminal" received
+	live    map[string]bool // sessions started and not deleted
 }
 
 func newFakeLabd(t *testing.T) *fakeLabd {
 	t.Helper()
-	f := &fakeLabd{}
+	f := &fakeLabd{live: map[string]bool{}}
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /healthz", func(http.ResponseWriter, *http.Request) {})
+	mux.HandleFunc("GET /internal/stats", func(w http.ResponseWriter, _ *http.Request) {
+		f.mu.Lock()
+		n := len(f.live)
+		f.mu.Unlock()
+		_ = json.NewEncoder(w).Encode(map[string]any{"active": n, "running": n, "max_sessions": 100, "max_queue": 50})
+	})
+	mux.HandleFunc("GET /internal/sessions", func(w http.ResponseWriter, _ *http.Request) {
+		f.mu.Lock()
+		var rows []map[string]any
+		for id := range f.live {
+			rows = append(rows, map[string]any{"session_id": id, "state": "running"})
+		}
+		f.mu.Unlock()
+		_ = json.NewEncoder(w).Encode(map[string]any{"sessions": rows})
+	})
 	mux.HandleFunc("POST /internal/sessions", func(w http.ResponseWriter, r *http.Request) {
 		var b struct {
 			UserID int64 `json:"user_id"`
 		}
 		_ = json.NewDecoder(r.Body).Decode(&b)
+		f.mu.Lock()
+		f.live[fmt.Sprintf("s%d", b.UserID)] = true
+		f.mu.Unlock()
 		_ = json.NewEncoder(w).Encode(map[string]any{"session_id": fmt.Sprintf("s%d", b.UserID), "ws_token": "tok", "state": "creating"})
 	})
 	mux.HandleFunc("DELETE /internal/sessions/{id}", func(_ http.ResponseWriter, r *http.Request) {
 		f.mu.Lock()
 		f.deleted = append(f.deleted, r.PathValue("id"))
+		delete(f.live, r.PathValue("id"))
 		f.mu.Unlock()
 	})
 	mux.HandleFunc("GET /ws/term/{id}", f.term)

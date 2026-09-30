@@ -57,7 +57,9 @@ gdb Challenge Labs — ./run.sh <command> [flags]
   images labbase|perf|build|all
   images challenge <dir> [--push]
   perf --scenario P0|single-lab|P1-lite|P4-lite|P5-lite|P1..P9 [--n N] [--hold 20m] [--ramp 5] [--runtime runsc|runc|both] [--out DIR]
-                               P0 and single-lab default to --runtime both. Label results with LAB_HOST
+       [--cap 100] [--platform kvm] [--partial WHY]
+                               P0 and single-lab default to --runtime both. P1..P9 default to the spec
+                               table (labd/perf/scenario.sh). Label results with LAB_HOST
                                (e.g. LAB_HOST=linux-laptop); default: dev-vm in Lima, else the hostname
   gate --phase N               exit test for phase N (scripts/gate.sh)
   deploy                       production deploy on the VPS (Phase 8)
@@ -506,11 +508,12 @@ duration_s() {
 }
 
 cmd_perf() {
-  local scenario="" n=10 hold="20m" ramp=5 runtime="" out="$METRICS_DIR"
+  local scenario="" n="" hold="" ramp=5 runtime="" out="$METRICS_DIR" platform="" cap="" partial=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --scenario) scenario="$2"; shift 2;; --n) n="$2"; shift 2;; --hold) hold="$2"; shift 2;;
       --ramp) ramp="$2"; shift 2;; --runtime) runtime="$2"; shift 2;; --out) out="$2"; shift 2;;
+      --platform) platform="$2"; shift 2;; --cap) cap="$2"; shift 2;; --partial) partial="$2"; shift 2;;
       *) die "perf: unknown flag $1";;
     esac
   done
@@ -522,18 +525,20 @@ cmd_perf() {
         run_linux bash "$LABD_DIR/perf/single-lab.sh" --runtime "${runtime:-both}" --out "$out" ${LAB_HOST:+--host "$LAB_HOST"} ;;
     # Phase 2: churn at cap 20 (--hold is the churn time, e.g. 10m) and crash recovery at 20.
     P4-lite)
-        local secs; secs="$(duration_s "${hold}")"
+        local secs; secs="$(duration_s "${hold:-20m}")"
         run_linux env ${LAB_HOST:+LAB_HOST="$LAB_HOST"} bash "$LABD_DIR/perf/p4lite.sh" --duration "$secs" --out "$out" ;;
     P5-lite)
         run_linux bash "$LABD_DIR/perf/p5.sh" ;;
     # Phase 3: one session replaying session.gdb over the WebSocket (--hold is its length).
     P1-lite)
-        local p1s; p1s="$(duration_s "${hold}")"
+        local p1s; p1s="$(duration_s "${hold:-20m}")"
         run_linux env ${LAB_HOST:+LAB_HOST="$LAB_HOST"} bash "$LABD_DIR/perf/p1.sh" --duration "$p1s" --out "$out" ;;
+    # Phase 4: labd-perf against a private labd (labd/perf/scenario.sh). --n and --hold default
+    # to the spec table (P2: 100 readers for 20 min); runall.sh runs them all.
     P1|P2|P3|P4|P5|P6|P7|P8|P9)
-        cmd_build
-        run_linux "$LABD_DIR/bin/labd-perf" run --scenario "$scenario" --n "$n" --hold "$hold" \
-          --ramp "$ramp" --runtime "${runtime:-runsc}" --out "$out" ;;
+        run_linux env ${LAB_HOST:+LAB_HOST="$LAB_HOST"} bash "$LABD_DIR/perf/scenario.sh" --scenario "$scenario" \
+          ${n:+--n "$n"} ${hold:+--hold "$hold"} ${cap:+--cap "$cap"} ${platform:+--platform "$platform"} \
+          ${partial:+--partial "$partial"} --ramp "$ramp" --runtime "${runtime:-runsc}" --out "$out" ;;
     *) die "perf: unknown scenario $scenario" ;;
   esac
 }
