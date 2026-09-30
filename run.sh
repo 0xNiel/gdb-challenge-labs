@@ -431,7 +431,7 @@ cmd_fmt() {
 cmd_labd() {
   local cfg="$LABD_CONFIG"
   if [[ "${1:-}" == "--config" ]]; then cfg="$2"; shift 2; fi
-  [[ -x "$LABD_DIR/bin/labd" ]] || cmd_build
+  cmd_build  # always: go build is incremental, and a stale binary rejects newer config keys
   say "labd --config $cfg $*"
   run_linux "$LABD_DIR/bin/labd" --config "$cfg" "$@"
 }
@@ -460,7 +460,7 @@ cmd_db() {
     down)    run_linux sudo systemctl stop postgresql ;;
     shell)   run_linux psql "${DATABASE_URL:-postgres://labd@localhost/labs}" "$@" ;;
     migrate)
-      [[ -x "$LABD_DIR/bin/labd" ]] || cmd_build
+      cmd_build  # always: go build is incremental, and a stale binary rejects newer config keys
       run_linux "$LABD_DIR/bin/labd" --config "$LABD_CONFIG" migrate
       [[ -f "$WEB_DIR/manage.py" ]] && (cd "$WEB_DIR" && uv run python manage.py migrate) ;;
     reset)
@@ -523,7 +523,7 @@ cmd_perf() {
         local p1s; p1s="$(duration_s "${hold}")"
         run_linux env ${LAB_HOST:+LAB_HOST="$LAB_HOST"} bash "$LABD_DIR/perf/p1.sh" --duration "$p1s" --out "$out" ;;
     P1|P2|P3|P4|P5|P6|P7|P8|P9)
-        [[ -x "$LABD_DIR/bin/labd-perf" ]] || cmd_build
+        cmd_build
         run_linux "$LABD_DIR/bin/labd-perf" run --scenario "$scenario" --n "$n" --hold "$hold" \
           --ramp "$ramp" --runtime "${runtime:-runsc}" --out "$out" ;;
     *) die "perf: unknown scenario $scenario" ;;
