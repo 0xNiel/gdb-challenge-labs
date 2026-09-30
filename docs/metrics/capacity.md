@@ -12,9 +12,9 @@ Memory values from `single-lab-*.json` are MiB (2^20 bytes), although the JSON f
 | Memory: gVisor Sentry RSS p95 | 45.5 MiB at a breakpoint; 42.5 MiB at the prompt. RSS counts shared pages (the runsc binary), so it overstates the cost per lab; the cgroup row is the better figure | linux-laptop | `single-lab-2026-09-29-linux-laptop.json` |
 | Memory: total per lab p95 | 25.8 MiB (27.1 MB): the cgroup holds the whole sandbox, Sentry and gofer included. One lab, not yet under load; Phase 4 (P1–P3) re-measures at N labs | linux-laptop | `single-lab-2026-09-29-linux-laptop.json` |
 | CPU: idle | *est.* < 1 % of a core | — | spec |
-| CPU: during `step` loops | *est.* 5–20 % of a core | — | spec |
+| CPU: during `step` loops | 0.53 % of a core average (host cgroup `usage_usec` over 600 s wall), one lab replaying `session.gdb` at 20 commands/min, 201 commands. Against the spec's *est.* 5–20 %. A person stepping faster costs more; Phase 4 measures at N labs | linux-laptop | `p1-2026-09-30-linux-laptop.json` |
 | Disk: writable snapshot per session | *est.* ~1 MB | — | spec |
-| Bandwidth: WS bytes/s per active terminal | *est.* 0.5–5 KB/s | — | spec |
+| Bandwidth: WS bytes/s per active terminal | 57 B/s out (terminal output), 3.6 B/s in (keystrokes), averaged over 600 s at 20 commands/min: 34162 and 2135 bytes. Against the spec's *est.* 0.5–5 KB/s. Payload only, no WebSocket or TLS framing | linux-laptop | `p1-2026-09-30-linux-laptop.json` |
 | Start latency: create to prompt p95 | 1543 ms (p50 1463 ms, 10 runs); target < 2 s met. Container create to gdb's first prompt, not browser click to prompt | linux-laptop | `single-lab-2026-09-29-linux-laptop.json` |
 | Echo latency p95 | *est.* < 100 ms (target) | — | spec |
 
@@ -62,4 +62,6 @@ These do not replace any *est.* above (ADR 0001); the x86-64 rows above come fro
 
 ## Failures and decisions
 
-None recorded yet. Format: `YYYY-MM-DD · scenario · criterion · measured · decision · link`.
+Format: `YYYY-MM-DD · scenario · criterion · measured · decision · link`.
+
+- 2026-09-30 · P1 (linux-laptop) · start latency p95 < 2 s · 2296 ms, one start, from the API request to `(gdb) ` over the WebSocket, including the client starting gdb · recorded, not blocking: the Phase 3 gate requires the number, not the pass. One start is not a p95. The container-to-prompt p95 over 10 runs is 1543 ms (`single-lab-2026-09-29-linux-laptop.json`). Phase 4 (P2) measures the start p95 over many starts and decides there · [p1-2026-09-30-linux-laptop.md](p1-2026-09-30-linux-laptop.md)

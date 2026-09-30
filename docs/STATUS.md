@@ -6,39 +6,7 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 Phase 3 human check: 2026-09-30 <OG> OK
 
-**Phase 3 — Terminal gateway.** In progress on branch `phase-3-terminal-gateway`. Tasks 3.1–3.11 are built and pass on the arm64 dev VM. Two things remain, both the owner's: the human check and the x86-64 P1.
-
-The owner's first laptop attempt (2026-09-30) failed because the steps ran out of order. The dev labd was still running when P1 started, and the dev session's lab was still there when the gate counted leftovers. labd did not hang: it exits about 0.1 s after Ctrl-C. It just logged nothing after "shutting down". Now it logs every connection and ends with `labd stopped; labs keep running`. The gate and the perf scripts check first and stop at once with what to do.
-
-**On the laptop, in this order:**
-
-1. **Update.** `git pull && git checkout phase-3-terminal-gateway`, then `./run.sh labs preflight`. It must say `preflight ok`. If a labd is running, stop it (Ctrl-C in its terminal). If labs are left, run `./run.sh labs clean` and answer `y`.
-2. **Human check (task 3.8).** Use two terminals, A and B.
-   1. A: `LABD_INTERNAL_SECRET=dev WS_TOKEN_KEY=dev ./run.sh labd`. Wait for the two `labd listening` lines (`internal API` and `terminal gateway`).
-   2. B, start a session and print the page URL:
-      ```
-      resp=$(curl -s -H 'Authorization: Bearer dev' -d '{"user_id":1,"challenge_slug":"perf"}' http://127.0.0.1:8081/internal/sessions)
-      sid=$(jq -r .session_id <<<"$resp"); tok=$(jq -r .ws_token <<<"$resp"); echo "$resp"
-      echo "http://127.0.0.1:8082/dev/term?session=$sid&t=$tok"
-      ```
-   3. Open the URL within 60 s. The page says `running`, and A logs `ws: connected`. If the page says `closed: 1006` or A logs `ws: token rejected`, the token expired or was used: repeat step 2 (same session, fresh token).
-   4. In the page's terminal: `gdb /opt/perf/perf`, `break main`, `run`, `next`, `watch counter`, `continue`, `bt`. Each should work (x86-64). On the Mac's arm64 VM, `next` and `continue` crash the program (QUESTIONS Q13); that is expected there, not a gateway fault.
-   5. Paste about 100 KB of text into the terminal. For example, run `seq 20000 > /tmp/paste.txt` (109 KB), open the file in a text editor, select all, copy, and paste into the page. The orange message `input rate limit: keystrokes dropped` appears at the top.
-   6. B, stop the session **before** stopping labd:
-      ```
-      curl -s -X DELETE -H 'Authorization: Bearer dev' -d '{"reason":"user_stop"}' http://127.0.0.1:8081/internal/sessions/$sid
-      ```
-      The page shows `ended (user_stop)`, then `closed: 1000 ended`. A logs `ws: detached ... closed_by=server code=1000 reason=ended`.
-   7. A: Ctrl-C. The last line must be `labd stopped; labs keep running`.
-   8. B: `./run.sh labs preflight` must say `preflight ok`. If it lists a lab, run `./run.sh labs clean`.
-   9. Add this line to this file, on its own line, starting at the first column, with the real date and your initials (the gate greps for it): `Phase 3 human check: YYYY-MM-DD <initials> OK`.
-3. **x86-64 P1**, about 11 minutes. Preflight must pass first; the script checks it.
-   ```
-   LAB_HOST=linux-laptop ./run.sh perf --scenario P1-lite --hold 10m
-   git add docs/metrics docs/STATUS.md && git commit -m "[P3] metrics: x86-64 P1; human check" && git push
-   ./run.sh gate --phase 3
-   ```
-   Send the gate output. The gate starts with the same preflight and stops at once if a labd is running or a lab is left.
+**Phase 3 — Terminal gateway: done.** Gate passed on the x86-64 laptop on 2026-09-30 and merged into `main`. **Phase 4 (perf suite) has not started**; it waits for the owner's go-ahead.
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -59,8 +27,8 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 0 | Bootstrap: repo, toolchain, dev VM | done (0.9 open, non-blocking) | passed on Mac and laptop | 2026-09-28 |
 | 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-29 |
 | 2 | labd core (sessions, semaphore, reconciler) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
-| 3 | Terminal gateway (WebSocket ↔ PTY) | in progress: needs human check and x86-64 P1 | Mac: all but the two laptop items | 2026-09-30 |
-| 4 | Perf suite and measured capacity | blocked on 3 | — | — |
+| 3 | Terminal gateway (WebSocket ↔ PTY) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
+| 4 | Perf suite and measured capacity | not started (waiting for the owner) | — | — |
 | 5 | Challenge pipeline and tier 1 content | not started (owner review of Phase 1 first) | — | — |
 | 6 | Django web app | blocked on 3, 5 | — | — |
 | 7 | Metrics, rollups, admin live view | blocked on 6 | — | — |
@@ -82,6 +50,34 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-09-30 — Phase 3 gate passed on the x86-64 laptop
+- **Laptop P1** (`docs/metrics/p1-2026-09-30-linux-laptop.md`, runsc, 10 min at 20 commands/min):
+  - request to `(gdb)` over the socket 2296 ms (one start);
+  - echo p50 3.2 ms, p95 5.5 ms, max 9.6 ms;
+  - lab cgroup 28.0 MiB p50, 29.4 MiB max; Sentry RSS 47.8 MiB p50;
+  - CPU 0.53 % of a core; WebSocket 3.6 B/s in, 57 B/s out; 201 commands, 0 errors.
+- **capacity.md:** the "CPU: during step loops" and "Bandwidth per active terminal" rows now carry these numbers. Both are far below the spec's estimates (5–20 % of a core; 0.5–5 KB/s). The echo latency row is still *est.* and can take the 5.5 ms p95 from the same file if the owner agrees.
+- **Start latency miss, recorded:** 2296 ms against a p95 < 2 s target, from a single start that includes the client starting gdb. The container-to-prompt p95 is 1543 ms. Recorded under "Failures and decisions" in capacity.md; Phase 4 (P2) measures it properly. Not a gate failure (the phase document requires the number).
+- The owner's human check passed on the laptop (the line at the top of "Current phase"). Phase 3 is merged into `main` (fast-forward) and pushed.
+
+Phase 3 gate on the Linux laptop:
+```
+==> gate for phase 3 — 2026-09-30T15:48Z — linux-laptop
+==> [gate 3] preflight: no labd running, namespace labs empty
+  PASS  no labd running, namespace labs empty
+==> [gate 3] unit tests (go vet, go test -race)
+  PASS  run.sh test --go
+==> [gate 3] integration tests (includes real gdb over the WebSocket)
+  PASS  run.sh test --integration
+==> [gate 3] P1 runs on this host (2 min, scratch output)
+  PASS  P1-lite: one session replaying session.gdb over the socket
+  PASS  no containers left in namespace labs
+==> [gate 3] recorded P1 (x86-64, ADR 0001) and the human check
+  PASS  x86-64 P1 with echo latency p95 recorded (p1-2026-09-30-linux-laptop.json)
+  PASS  STATUS.md records 'Phase 3 human check'
+==> GATE 3 PASSED. Paste this output into docs/STATUS.md.
+```
 
 ### 2026-09-30 — labd shutdown checked, gateway logging, preflight for gate and perf
 - **The owner's laptop run.** Both P1 runs refused to start because the dev labd was still running. The gate then found the dev session's lab, which labs outliving labd leaves behind by design. The log could not show whether labd had exited.
