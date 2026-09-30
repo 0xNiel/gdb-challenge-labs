@@ -42,8 +42,12 @@ type ManagerConfig struct {
 	MaxQueue      int
 	DefaultLimits config.Limits
 	QueueTimeout  time.Duration // 0 means DefaultQueueTimeout
+	WSGrace       time.Duration // ws_reconnect_grace_s; 0 means DefaultWSGrace
 	Challenges    []Challenge
 }
+
+// DefaultWSGrace is how long a running lab waits for its WebSocket to come back (spec: 60 s).
+const DefaultWSGrace = 60 * time.Second
 
 // Manager owns every session: the slot semaphore, the per-user cap, the FIFO queue and the
 // idle and hard timers (spec "Orchestrator → Concurrency cap").
@@ -65,6 +69,7 @@ type Manager struct {
 	inUse        int // sessions holding a slot: creating, running, ending
 	defaults     config.Limits
 	queueTimeout time.Duration
+	wsGrace      time.Duration
 	challenges   map[string]Challenge
 	sessions     map[string]*Session // every session not yet ended, failed or abandoned
 	byUser       map[int64]*Session  // the user's queued, creating or running session
@@ -81,11 +86,14 @@ func NewManager(cfg ManagerConfig, rt Runtime, st store.Store, clk clock.Clock, 
 	if cfg.Runtime == "" {
 		cfg.Runtime = RuntimeRunsc
 	}
+	if cfg.WSGrace == 0 {
+		cfg.WSGrace = DefaultWSGrace
+	}
 	m := &Manager{
 		rt: rt, st: st, clk: clk, log: log, base: cfg.BaseSpec, rtID: cfg.Runtime,
 		cap: cfg.MaxSessions, maxQueue: cfg.MaxQueue, defaults: cfg.DefaultLimits,
-		queueTimeout: cfg.QueueTimeout,
-		sessions:     map[string]*Session{}, byUser: map[int64]*Session{},
+		queueTimeout: cfg.QueueTimeout, wsGrace: cfg.WSGrace,
+		sessions: map[string]*Session{}, byUser: map[int64]*Session{},
 	}
 	m.SetChallenges(cfg.Challenges)
 	return m
@@ -123,6 +131,7 @@ func (m *Manager) Start(_ context.Context, req StartReq) (SessionInfo, error) {
 	s := &Session{
 		ID: newUUID(), UserID: req.UserID, ChallengeSlug: ch.Slug, Image: ch.Image,
 		Limits: mergeLimits(ch.Limits, m.defaults), CreatedAt: now, out: newOutput(),
+		ended: make(chan struct{}),
 	}
 	s.ContainerID = "lab-" + s.ID
 	var admitted bool
@@ -361,6 +370,104 @@ func (m *Manager) Challenges() []Challenge {
 	return out
 }
 
+// Resize sets the terminal size of a running session.
+func (m *Manager) Resize(ctx context.Context, id string, cols, rows uint32) error {
+	m.mu.Lock()
+	s := m.sessions[id]
+	if s == nil || s.State != StateRunning {
+		m.mu.Unlock()
+		return ErrNotRunning
+	}
+	c := s.ctr
+	m.mu.Unlock()
+	return c.Resize(ctx, cols, rows)
+}
+
+// ClientAttached records that a WebSocket took over the session's terminal and cancels the
+// reconnect grace timer. It returns the connection's generation for ClientDetached.
+func (m *Manager) ClientAttached(id string) (int, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	s := m.sessions[id]
+	if s == nil {
+		return 0, ErrNotFound
+	}
+	s.connGen++
+	s.attached = true
+	if s.grace != nil {
+		s.grace.Stop()
+		s.grace = nil
+	}
+	return s.connGen, nil
+}
+
+// ClientDetached records that the WebSocket of generation gen closed. Unless a newer
+// connection has taken over, a running session gets ws_reconnect_grace_s to reconnect and
+// is then stopped with reason ws_closed (spec state machine: "WS closed 60s").
+func (m *Manager) ClientDetached(id string, gen int) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	s := m.sessions[id]
+	if s == nil || gen != s.connGen || m.closed {
+		return
+	}
+	s.attached = false
+	if s.State != StateRunning {
+		return
+	}
+	if s.grace != nil {
+		s.grace.Stop()
+	}
+	s.grace = m.clk.AfterFunc(m.wsGrace, func() { m.graceExpired(id, gen) })
+}
+
+func (m *Manager) graceExpired(id string, gen int) {
+	m.mu.Lock()
+	s := m.sessions[id]
+	if m.closed || s == nil || s.State != StateRunning || s.attached || s.connGen != gen {
+		m.mu.Unlock()
+		return
+	}
+	m.beginEndLocked(s, ReasonWSClosed)
+	m.mu.Unlock()
+	m.persist(s)
+	m.launchTeardown(s)
+}
+
+// Ended returns a channel closed when the session ends, fails or is abandoned, and a
+// function returning its final state (valid once the channel is closed).
+func (m *Manager) Ended(id string) (<-chan struct{}, func() SessionInfo, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	s := m.sessions[id]
+	if s == nil {
+		return nil, nil, ErrNotFound
+	}
+	return s.ended, func() SessionInfo {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		return s.info(0)
+	}, nil
+}
+
+// AddCommands counts command lines the gateway captured for a session (sessions.commands).
+func (m *Manager) AddCommands(id string, n int) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if s := m.sessions[id]; s != nil {
+		s.commands += n
+	}
+}
+
+// SetWSGrace changes ws_reconnect_grace_s for disconnects from now on.
+func (m *Manager) SetWSGrace(d time.Duration) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if d > 0 {
+		m.wsGrace = d
+	}
+}
+
 // Close stops admitting sessions and stops every timer. Containers keep running: the next
 // labd adopts them (Reconcile). It waits for in-flight creates and teardowns.
 func (m *Manager) Close() {
@@ -424,6 +531,7 @@ func (m *Manager) removeQueuedLocked(s *Session, reason string) {
 	stopTimers(s)
 	s.State, s.EndReason, s.EndedAt = StateAbandoned, reason, m.clk.Now()
 	m.forgetLocked(s)
+	close(s.ended)
 }
 
 // abandon is the queue timeout.
@@ -629,11 +737,12 @@ func (m *Manager) teardown(s *Session) {
 	m.inUse--
 	m.forgetLocked(s)
 	admitted := m.dispatchLocked()
-	reason := s.EndReason
+	reason, commands := s.EndReason, s.commands
+	close(s.ended)
 	m.mu.Unlock()
 
 	m.persist(s)
-	m.event(s, "lab_ended", map[string]any{"reason": reason, "duration_s": int(dur.Seconds())})
+	m.event(s, "lab_ended", map[string]any{"reason": reason, "duration_s": int(dur.Seconds()), "commands": commands})
 	m.log.Info("lab ended", "session_id", s.ID, "reason", reason, "duration_s", int(dur.Seconds()))
 	m.launchAdmitted(admitted)
 }
@@ -651,6 +760,7 @@ func (m *Manager) fail(s *Session, c Container, cause error) {
 	m.inUse--
 	m.forgetLocked(s)
 	admitted := m.dispatchLocked()
+	close(s.ended)
 	m.mu.Unlock()
 
 	m.persist(s)
@@ -660,7 +770,7 @@ func (m *Manager) fail(s *Session, c Container, cause error) {
 }
 
 func stopTimers(s *Session) {
-	for _, t := range []clock.Timer{s.idle, s.hard, s.abandon} {
+	for _, t := range []clock.Timer{s.idle, s.hard, s.abandon, s.grace} {
 		if t != nil {
 			t.Stop()
 		}

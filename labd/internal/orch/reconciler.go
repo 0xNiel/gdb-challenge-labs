@@ -120,7 +120,7 @@ func (m *Manager) adopt(row store.Session, info ContainerInfo, c Container, crea
 		ID: row.ID, ContainerID: info.ID, UserID: row.UserID, ChallengeSlug: row.ChallengeSlug,
 		Image: row.Image, Limits: lim, State: StateRunning, Extended: row.Extended,
 		CreatedAt: row.CreatedAt, AdmittedAt: created, StartedAt: started, ctr: c, out: newOutput(),
-		idleWindow: idle,
+		idleWindow: idle, ended: make(chan struct{}), commands: row.Commands,
 	}
 	if s.Extended {
 		s.idleWindow += minutes(lim.ExtendMinutes)
@@ -133,6 +133,8 @@ func (m *Manager) adopt(row store.Session, info ContainerInfo, c Container, crea
 	m.sessions[s.ID] = s
 	m.byUser[s.UserID] = s
 	m.mu.Unlock()
+	// Nobody is attached after a restart: the browser gets the usual grace to reconnect.
+	m.ClientDetached(s.ID, 0)
 
 	go m.pump(s, c)
 	go m.watchExit(s, c)

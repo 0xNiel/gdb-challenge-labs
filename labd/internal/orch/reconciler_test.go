@@ -87,7 +87,11 @@ func TestReconcile_LiveTaskAdopted(t *testing.T) {
 		t.Fatal(err)
 	}
 	waitFor(t, func() bool { return string(out.Snapshot()) == "still here\n" })
-	// Timers were rebuilt: the hard TTL fires 40 minutes after the restart.
+	// The browser reconnects within the grace; timers were rebuilt: the hard TTL fires 40
+	// minutes after the restart.
+	if _, err := h.m.ClientAttached("live"); err != nil {
+		t.Fatal(err)
+	}
 	for range 3 {
 		h.clk.Advance(13 * time.Minute)
 		h.m.Touch("live")
@@ -162,4 +166,18 @@ func TestReconcile_AdoptedCountsAgainstCap(t *testing.T) {
 	if s := h.start(t, 1); s.State != StateQueued {
 		t.Fatalf("new session is %s with the only slot adopted; want queued", s.State)
 	}
+}
+
+func TestReconcile_AdoptedWithoutReconnectEndsAfterGrace(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 5, 5)
+	h.openRow(t, "live", "running", 9, epoch)
+	h.rt.addOrphan("lab-live", labelsFor("live", epoch), true)
+	h.reconcile(t)
+	h.clk.Advance(59 * time.Second)
+	if got := h.state(t, "live"); got != StateRunning {
+		t.Fatalf("ended inside the grace: %s", got)
+	}
+	h.clk.Advance(time.Second)
+	h.endedWith(t, "live", ReasonWSClosed)
 }

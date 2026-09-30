@@ -96,14 +96,14 @@ func (p *Postgres) Migrate(ctx context.Context) ([]string, error) {
 func (p *Postgres) UpsertSession(ctx context.Context, s Session) error {
 	_, err := p.pool.Exec(ctx, `
 		INSERT INTO sessions (id, user_id, challenge_slug, image, state, created_at, started_at,
-		                      ended_at, end_reason, container_id, extended)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		                      ended_at, end_reason, container_id, extended, commands)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		ON CONFLICT (id) DO UPDATE SET
 		    state = EXCLUDED.state, started_at = EXCLUDED.started_at, ended_at = EXCLUDED.ended_at,
 		    end_reason = EXCLUDED.end_reason, container_id = EXCLUDED.container_id,
-		    extended = EXCLUDED.extended`,
+		    extended = EXCLUDED.extended, commands = EXCLUDED.commands`,
 		s.ID, s.UserID, s.ChallengeSlug, s.Image, s.State, s.CreatedAt, nullTime(s.StartedAt),
-		nullTime(s.EndedAt), s.EndReason, s.ContainerID, s.Extended)
+		nullTime(s.EndedAt), s.EndReason, s.ContainerID, s.Extended, s.Commands)
 	if err != nil {
 		return fmt.Errorf("upsert session %s: %w", s.ID, err)
 	}

@@ -83,6 +83,12 @@ type Session struct {
 	hardDeadline time.Time
 	stopReason   string     // a stop requested while the container was being created
 	writeMu      sync.Mutex // serialises row writes so the newest state is written last
+
+	grace    clock.Timer   // armed while no WebSocket is attached (Phase 3)
+	connGen  int           // generation of the current WebSocket; 0 when none ever attached
+	attached bool          // a WebSocket is attached now
+	ended    chan struct{} // closed when the session is ended, failed or abandoned
+	commands int           // command_entered lines seen by the gateway
 }
 
 // SessionInfo is a copy of a session's public state.
@@ -101,6 +107,8 @@ type SessionInfo struct {
 	IdleDeadline   time.Time `json:"idle_deadline,omitzero"`
 	HardDeadline   time.Time `json:"hard_deadline,omitzero"`
 	ContainerID    string    `json:"container_id,omitempty"`
+	Commands       int       `json:"commands"`
+	Attached       bool      `json:"ws_attached"`
 	CgroupPath     string    `json:"-"`
 }
 
@@ -110,6 +118,7 @@ func (s *Session) info(pos int) SessionInfo {
 		QueuePosition: pos, EndReason: s.EndReason, Extended: s.Extended,
 		CreatedAt: s.CreatedAt, StartedAt: s.StartedAt, EndedAt: s.EndedAt,
 		IdleDeadline: s.idleDeadline, HardDeadline: s.hardDeadline, ContainerID: s.ContainerID,
+		Commands: s.commands, Attached: s.attached,
 	}
 	if !s.StartedAt.IsZero() && !s.AdmittedAt.IsZero() {
 		in.StartLatencyMS = s.StartedAt.Sub(s.AdmittedAt).Milliseconds()
@@ -124,35 +133,47 @@ func (s *Session) record() store.Session {
 	return store.Session{
 		ID: s.ID, UserID: s.UserID, ChallengeSlug: s.ChallengeSlug, Image: s.Image,
 		State: string(s.State), CreatedAt: s.CreatedAt, StartedAt: s.StartedAt, EndedAt: s.EndedAt,
-		EndReason: s.EndReason, ContainerID: s.ContainerID, Extended: s.Extended,
+		EndReason: s.EndReason, ContainerID: s.ContainerID, Extended: s.Extended, Commands: s.commands,
 	}
 }
 
-// Output keeps the last OutputScrollback bytes a lab's terminal printed and fans new output
-// out to subscribers. It never blocks the terminal: a subscriber that falls behind misses
-// chunks (the gateway in Phase 3 decides what to do about that).
+// Output keeps the last OutputScrollback bytes a lab's terminal printed and passes new output
+// to at most a few subscribers (the gateway has one per session). Delivery to a subscriber
+// blocks while its channel is full: that is the backpressure the spec asks for, and the
+// gateway ends a subscription that stays full for too long (slow consumer), which unblocks
+// the terminal again.
 type Output struct {
 	mu   sync.Mutex
 	buf  []byte
-	subs map[chan []byte]struct{}
+	subs map[*outSub]struct{}
+}
+
+type outSub struct {
+	ch   chan []byte
+	gone chan struct{}
+	once sync.Once
 }
 
 // OutputScrollback is how much terminal output a session keeps for a reconnecting client.
 const OutputScrollback = 64 << 10
 
-func newOutput() *Output { return &Output{subs: map[chan []byte]struct{}{}} }
+func newOutput() *Output { return &Output{subs: map[*outSub]struct{}{}} }
 
 func (o *Output) Write(p []byte) (int, error) {
 	o.mu.Lock()
-	defer o.mu.Unlock()
 	o.buf = append(o.buf, p...)
 	if over := len(o.buf) - OutputScrollback; over > 0 {
 		o.buf = append(o.buf[:0], o.buf[over:]...)
 	}
-	for ch := range o.subs {
+	subs := make([]*outSub, 0, len(o.subs))
+	for s := range o.subs {
+		subs = append(subs, s)
+	}
+	o.mu.Unlock()
+	for _, s := range subs {
 		select {
-		case ch <- append([]byte(nil), p...):
-		default:
+		case s.ch <- append([]byte(nil), p...):
+		case <-s.gone:
 		}
 	}
 	return len(p), nil
@@ -165,16 +186,22 @@ func (o *Output) Snapshot() []byte {
 	return append([]byte(nil), o.buf...)
 }
 
-// Subscribe returns a channel of new output and a function that ends the subscription.
-func (o *Output) Subscribe() (<-chan []byte, func()) {
-	ch := make(chan []byte, 64)
+// Subscribe returns the scrollback so far and a channel (capacity depth) of everything
+// written after it, with nothing lost in between. cancel ends the subscription; call it
+// exactly when done reading, or the terminal blocks once the channel fills.
+func (o *Output) Subscribe(depth int) (scrollback []byte, ch <-chan []byte, cancel func()) {
+	s := &outSub{ch: make(chan []byte, depth), gone: make(chan struct{})}
 	o.mu.Lock()
-	o.subs[ch] = struct{}{}
+	scrollback = append([]byte(nil), o.buf...)
+	o.subs[s] = struct{}{}
 	o.mu.Unlock()
-	return ch, func() {
-		o.mu.Lock()
-		delete(o.subs, ch)
-		o.mu.Unlock()
+	return scrollback, s.ch, func() {
+		s.once.Do(func() {
+			close(s.gone)
+			o.mu.Lock()
+			delete(o.subs, s)
+			o.mu.Unlock()
+		})
 	}
 }
 
