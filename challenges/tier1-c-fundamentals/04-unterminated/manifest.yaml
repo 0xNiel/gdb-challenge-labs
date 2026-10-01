@@ -1,0 +1,19 @@
+slug: tier1-04-unterminated
+title: Unterminated string
+tier: 1
+order: 4
+difficulty: 3
+estimated_minutes: 25
+flag_format: "LAB{...}"
+image: ""
+limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60, idle_minutes: 15, extend_minutes: 15}
+hints:
+  - {cost: 0, text: "Stop after the badge is filled in (`break badge_key`, `run`) and look at the name's raw bytes with `x/16xb card.name`."}
+  - {cost: 1, text: "Compare `x/s card.name` with what `name` should hold, and look at what comes right after it in the struct: `ptype /o struct badge`."}
+  - {cost: 2, text: "Put the missing terminator after the 8 characters: `set var card.role[0] = 0` (the byte at `card.name + 8`), then `continue`."}
+tags: [c, strings, memory, structs]
+key_expr: "badge_key(&card): FNV-1a of the name's first 8 bytes, XORed with strlen(name), which must be 8"
+key_value: 2880166725
+build:
+  flags: "-O0 -g -fno-stack-protector"
+  entry: badge
