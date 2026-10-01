@@ -80,4 +80,6 @@ def hint_reveal(request, slug):
 
 @login_required
 def dashboard(request):
-    return render(request, "progress/dashboard.html", {})
+    from .dashboard import summary
+
+    return render(request, "progress/dashboard.html", summary(request.user))

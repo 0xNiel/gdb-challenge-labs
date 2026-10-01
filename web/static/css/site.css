@@ -85,3 +85,10 @@ table.source td { border: 0; padding: 0 .5rem; vertical-align: top; white-space:
 table.source td.ln { color: var(--muted); text-align: right; user-select: none; width: 1%; }
 table.source code { background: none; padding: 0; }
 @media (max-width: 900px) { #lab { grid-template-columns: 1fr; grid-template-rows: 60vh auto; } body.lab { overflow: auto; height: auto; } }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1rem; margin: 1rem 0 2rem; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; }
+.stat .num { display: block; font-size: 2rem; font-weight: 700; line-height: 1.1; }
+.stat .label { color: var(--muted); font-size: .9rem; }
+.tier-progress { margin: .8rem 0; }
+.bar { height: .6rem; background: var(--line); border-radius: 999px; overflow: hidden; margin-top: .3rem; }
+.bar span { display: block; height: 100%; background: var(--ok); }

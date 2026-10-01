@@ -1,2 +1,23 @@
 {% extends "base.html" %}
-{% block main %}<h1>Dashboard</h1>{% endblock %}
+{% block title %}Dashboard · gdb Challenge Labs{% endblock %}
+{% block main %}
+<h1>Your progress</h1>
+<div class="stats">
+  <div class="stat"><span class="num" id="stat-solved">{{ solved }}</span><span class="label">of {{ total }} solved</span></div>
+  <div class="stat"><span class="num" id="stat-time">{% widthratio time_spent_s 60 1 %}</span><span class="label">minutes in labs</span></div>
+  <div class="stat"><span class="num" id="stat-hints">{{ hints_used }}</span><span class="label">hint{{ hints_used|pluralize }} used</span></div>
+  <div class="stat"><span class="num" id="stat-streak">{{ streak_days }}</span><span class="label">day streak</span></div>
+</div>
+<h2>Tiers</h2>
+{% for t in tiers %}
+<div class="tier-progress">
+  <div><strong>Tier {{ t.tier.number }}: {{ t.tier.title }}</strong> <span class="muted">{{ t.solved }} of {{ t.total }}</span></div>
+  <div class="bar" role="progressbar" aria-valuenow="{{ t.pct }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ t.pct }}%"></span></div>
+</div>
+{% empty %}<p class="muted">No challenges yet.</p>{% endfor %}
+{% if recent %}
+<h2>Recently solved</h2>
+<ul>{% for p in recent %}<li><a href="{% url 'challenge' p.challenge.slug %}">{{ p.challenge.title }}</a> <span class="muted small">{{ p.solved_at|date:"M j" }}{% if p.hints_used %} · {{ p.hints_used }} hint{{ p.hints_used|pluralize }}{% endif %}</span></li>{% endfor %}</ul>
+{% endif %}
+<p><a class="button" href="{% url 'learn' %}">Continue learning</a></p>
+{% endblock %}
