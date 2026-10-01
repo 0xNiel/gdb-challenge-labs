@@ -164,13 +164,17 @@ func (c *conn) run(parent context.Context, first orch.SessionInfo) {
 			endedNow()
 			return
 		}
+		poll := s.o.QueuePoll
+		if info.State == orch.StateCreating {
+			poll = s.o.CreatingPoll
+		}
 		select {
 		case <-ctx.Done():
 			return
 		case <-ended:
 			endedNow()
 			return
-		case <-s.o.Clock.After(s.o.QueuePoll):
+		case <-s.o.Clock.After(poll):
 		}
 		if info, err = s.o.Sessions.Get(c.id); err != nil {
 			endedNow()

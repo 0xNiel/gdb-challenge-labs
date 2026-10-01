@@ -46,6 +46,7 @@ type Options struct {
 	SlowConsumer                                   time.Duration // output stuck this long closes the socket (spec 10 s)
 	TTLEvery                                       time.Duration // ttl frame period (spec 30 s)
 	QueuePoll                                      time.Duration // how often a queued client's position is refreshed
+	CreatingPoll                                   time.Duration // how often a creating session is checked for running
 	OutDepth                                       int           // output frames buffered per connection (plan: 256)
 }
 
@@ -74,6 +75,9 @@ func (o *Options) defaults() {
 	defd(&o.SlowConsumer, 10*time.Second)
 	defd(&o.TTLEvery, 30*time.Second)
 	defd(&o.QueuePoll, time.Second)
+	// A lab is created in about 250 ms; polling it once a second added up to a second to
+	// every start (Phase 4, P2: request to "running" was 1006 ms for every session).
+	defd(&o.CreatingPoll, 50*time.Millisecond)
 }
 
 // readLimit caps one incoming WebSocket message (ADR 0004).

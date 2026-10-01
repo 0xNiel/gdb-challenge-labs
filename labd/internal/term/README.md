@@ -39,7 +39,7 @@ Binary frames carry terminal bytes both ways. Text frames carry JSON control mes
 | client → server | anything else | Ignored and counted (`Server.UnknownFrames`) |
 | server → client | binary | Terminal output, in frames of at most 32 KiB. After `state: running`, the first frames replay up to 64 KiB of scrollback |
 | server → client | `{"type":"queued","position":n}` | On connect while queued, and whenever the position changes (checked every second) |
-| server → client | `{"type":"state","state":"running"}` | When the terminal is attached |
+| server → client | `{"type":"state","state":"running"}` | When the terminal is attached. While the lab is being created the gateway checks every 50 ms, so this follows the container start closely |
 | server → client | `{"type":"state","state":"ended","reason":"..."}` | Just before the socket closes with 1000 `ended`. Reasons: `idle_timeout`, `hard_ttl`, `ws_closed`, `user_stop`, `admin_kill`, `solved`, `task_exited`, `queue_timeout`, `create_failed` |
 | server → client | `{"type":"ttl","idle_remaining_s":n,"hard_remaining_s":n,"extend_available":b}` | Once on attach, then every 30 s. The UI counts down between frames and shows Extend at 2 minutes left |
 | server → client | `{"type":"warn","message":"..."}` | Keystrokes were dropped by the input limit; at most one per second |

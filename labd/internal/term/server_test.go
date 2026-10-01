@@ -34,9 +34,16 @@ const origin = "https://labs.example.com"
 type ptyRuntime struct {
 	mu   sync.Mutex
 	ctrs map[string]*ptyCtr
+	gate chan struct{} // when set, Create waits for it to close (a slow container create)
 }
 
 func (r *ptyRuntime) Create(_ context.Context, o orch.CreateOpts) (orch.Container, error) {
+	r.mu.Lock()
+	gate := r.gate
+	r.mu.Unlock()
+	if gate != nil {
+		<-gate
+	}
 	c := &ptyCtr{id: o.ID, done: make(chan struct{})}
 	c.inR, c.inW = io.Pipe()
 	c.outR, c.outW = io.Pipe()
@@ -749,4 +756,41 @@ func TestWS_ShutdownClosesConnectionsAndKeepsLab(t *testing.T) {
 	if _, resp, err := h.dialAs(t, id, 1, origin); err == nil || resp == nil || resp.StatusCode != http.StatusServiceUnavailable {
 		t.Fatalf("dial after shutdown: %v, %v; want 503", resp, err)
 	}
+}
+
+// The client learns the lab is running within one CreatingPoll of it being up, not at the
+// next once-a-second queue poll (Phase 4: that poll added up to a second to every start).
+func TestWS_RunningSoonAfterCreate(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 2, false, nil)
+	gate := make(chan struct{})
+	h.rt.mu.Lock()
+	h.rt.gate = gate
+	h.rt.mu.Unlock()
+	in, err := h.m.Start(context.Background(), orch.StartReq{UserID: 1, ChallengeSlug: "perf"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ws, _, err := h.dialAs(t, in.ID, 1, origin)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ws.CloseNow()
+	c := &wsClient{ws: ws, frames: make(chan frame, 1024)}
+	go c.read()
+	close(gate)
+	h.m.Settle()
+	waitFor(t, "the lab running", func() bool { g, _ := h.m.Get(in.ID); return g.State == orch.StateRunning })
+	// Advance at most 200 ms of fake time (four creating polls, far below the 1 s queue poll).
+	for step := 0; step < 4; step++ {
+		h.fake.Advance(50 * time.Millisecond)
+		select {
+		case f := <-c.frames:
+			if f.text["type"] == "state" && f.text["state"] == "running" {
+				return
+			}
+		case <-time.After(100 * time.Millisecond):
+		}
+	}
+	t.Fatal("no state: running within 200 ms of fake time after the lab was up")
 }

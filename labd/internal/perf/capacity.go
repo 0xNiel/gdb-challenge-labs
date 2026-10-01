@@ -108,15 +108,28 @@ func RenderCapacity(rep Report, runs map[string]LoadedRun, missing []string) str
 		s, ok := sum(k)
 		r, okr := sum(k + "-runc")
 		if ok && okr {
-			row(fmt.Sprintf("Memory per lab at N (%s), whole host cost", k), fmt.Sprintf("%.1f MB", r.HostPerLabMB), fmt.Sprintf("%.1f MB (+%.1f)", s.HostPerLabMB, s.HostPerLabMB-r.HostPerLabMB), host, file(k)+", "+file(k+"-runc"))
+			// The cgroup is the comparable figure. The host's (used - idle) / labs moves with
+			// everything else on the machine (±15 MB per lab on a desktop at N=100), too much to
+			// subtract one run from another.
+			row(fmt.Sprintf("Memory per lab at N (%s), cgroup p95", k), fmt.Sprintf("%.1f", r.LabMemMB.P95),
+				fmt.Sprintf("%.1f (+%.1f; host cost %.1f MB against %.1f, noisy)", s.LabMemMB.P95, s.LabMemMB.P95-r.LabMemMB.P95, s.HostPerLabMB, r.HostPerLabMB),
+				host, file(k)+", "+file(k+"-runc"))
+			row(fmt.Sprintf("Start to gdb prompt at N (%s), p95", k), fmt.Sprintf("%.0f ms", r.StartToPromptMS.P95), fmt.Sprintf("%.0f ms (+%.0f)", s.StartToPromptMS.P95, s.StartToPromptMS.P95-r.StartToPromptMS.P95), host, file(k)+", "+file(k+"-runc"))
 		}
 	}
 	for _, k := range []string{"P1", "P2"} {
 		s, ok := sum(k)
 		kv, okk := sum(k + "-kvm")
 		if ok && okk {
-			row(fmt.Sprintf("%s under runsc KVM platform: start p95, echo p95, step p50", k), "systrap: "+fmt.Sprintf("%.0f ms, %.1f ms, %.2f ms", s.StartToPromptMS.P95, s.EchoMS.P95, s.StepCmdMS.P50),
-				fmt.Sprintf("kvm: %.0f ms, %.1f ms, %.2f ms", kv.StartToPromptMS.P95, kv.EchoMS.P95, kv.StepCmdMS.P50), host, file(k+"-kvm"))
+			step := func(p Pctl) string { // readers never step
+				if p.N == 0 {
+					return "no steps"
+				}
+				return fmt.Sprintf("step p50 %.2f ms", p.P50)
+			}
+			row(fmt.Sprintf("%s under the runsc KVM platform: start p95, echo p95, step", k),
+				fmt.Sprintf("systrap: %.0f ms, %.1f ms, %s", s.StartToPromptMS.P95, s.EchoMS.P95, step(s.StepCmdMS)),
+				fmt.Sprintf("kvm: %.0f ms, %.1f ms, %s", kv.StartToPromptMS.P95, kv.EchoMS.P95, step(kv.StepCmdMS)), host, file(k)+", "+file(k+"-kvm"))
 		}
 	}
 
