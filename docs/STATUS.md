@@ -107,7 +107,7 @@ The owner built all five labs on the laptop and played lab 1: the bug showed as 
   - By hand with specrun (runsc, arm64): lab 1 starts in `/opt/lab`, and `./scores` prints `total of 5 scores: 437` with no `cd`. Perf starts in `/home/lab`.
   - **No image rebuilt.** Lab images already carry `WORKDIR /opt/lab`. Rebuilding all five in the arm64 VM passed every step and gave the same digests as before.
 - **`manifest.yaml` and `solution.md` are not in the lab, by design.** The laptop steps above now say they are repo files, list each lab's directory and binary, and give a command to reveal one hint at a time. `challenges/README.md`'s dev-page section says the same. Hints appear in the web page from Phase 6.
-- **Checks on the Mac:** `check`, `test --all`, `lint` pass; `test --integration` passes; staticcheck in the VM clean (also with `-tags integration`); `go test -race -count=5 ./...` in labd passes. Gate 5: see below.
+- **Checks on the Mac:** `check`, `test --all`, `lint` pass; `test --integration` passes; staticcheck in the VM clean (also with `-tags integration`); `go test -race -count=5 ./...` in labd passes. `./run.sh gate --phase 5` on the Mac passes every check except the five human-check lines; the x86-64 build record (the owner's commit `7b3e31f`) now passes.
 - **Next:** the laptop steps at the top of this file. Lab 1 must be played again: it now starts in `/opt/lab`.
 
 ### 2026-10-01 — Phase 5 built: flag, pipeline, five tier-1 labs
