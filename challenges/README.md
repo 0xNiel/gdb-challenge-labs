@@ -8,7 +8,7 @@ One directory per challenge, `challenges/tierN-<name>/NN-<slug>/`. The manifest'
 
 | File | Who sees it | What it is |
 | --- | --- | --- |
-| `manifest.yaml` | build, labd, web | Metadata, limits, hints, the key (below). Schema: `schema/manifest.schema.json` |
+| `manifest.yaml` | build, labd, web; never in the lab | Metadata, limits, hints, the key (below). The learner sees the hints in the web page (Phase 6). Schema: `schema/manifest.schema.json` |
 | `src/main.c` | the learner, in the lab at `/opt/lab/src/main.c` | The buggy program: one bug, under 120 lines |
 | `README.md` | the learner, at `/opt/lab/README.md` | What the program *should* do and how to run it. No hints |
 | `build.sh` | build | The compile command; run inside `images/build` |
@@ -137,7 +137,9 @@ The steps keep the plan's numbers but run in this order: 1 lint the manifest; 2 
 2. Point a labd config at it: `sed "s|^challenges_file:.*|challenges_file: $PWD/.scratch/challenges.local.json|" labd/labd.dev.yaml > .scratch/labd.local.yaml`.
 3. `LABD_INTERNAL_SECRET=dev WS_TOKEN_KEY=dev ./run.sh labd --config .scratch/labd.local.yaml`.
 4. Start a session for the challenge's slug (the `curl` in `docs/STATUS.md`'s Phase 3 steps, with `"challenge_slug": "<slug>"`) and open the printed `/dev/term` URL.
-5. Play it as a learner: check the bug shows on a plain `./<entry>`, that each hint, read in order, moves you forward, and that the intended path works without the solution. Stop the session before stopping labd.
+5. Play it as a learner. The shell starts in `/opt/lab`, the image's `WORKDIR` (ADR 0014), which holds only `README.md`, `src/` and the binary. Check the bug shows on a plain `./<entry>`, that each hint, read in order, moves you forward, and that the intended path works without the solution. Stop the session before stopping labd.
+
+The hints and the solution are not in the lab, by design (see "Never in an image" below). Read them in the repo, beside the terminal: the hints are the `hints:` list in `challenges/<tier>/<NN-slug>/manifest.yaml`, cheapest first, and the walkthrough is `solution.md` in the same directory. From Phase 6 the web page shows the lesson and reveals the hints one at a time; until then the repo is the only place to read them.
 
 ## Never in an image
 

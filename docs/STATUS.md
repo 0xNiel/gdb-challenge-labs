@@ -34,10 +34,22 @@ All five labs pass every build step in the Mac's arm64 VM. Gate 5 needs the x86-
    resp=$(curl -s -H 'Authorization: Bearer dev' -d "{\"user_id\":1,\"challenge_slug\":\"$slug\"}" http://127.0.0.1:8081/internal/sessions)
    sid=$(jq -r .session_id <<<"$resp"); echo "http://127.0.0.1:8082/dev/term?session=$sid&t=$(jq -r .ws_token <<<"$resp")"
    ```
-   Open the URL within 60 s. In the lab (`/opt/lab`), `cat README.md`, then check three things:
+   Open the URL within 60 s. The shell starts in `/opt/lab`, which holds only the binary, `README.md` and `src/` (ADR 0014; if it starts in `/home/lab`, labd is older than this branch). `cat README.md`, then check three things:
    - a plain `./<binary>` shows the bug;
-   - the hints in the lab's `manifest.yaml`, read in order, each move you forward (lab 5 has none);
-   - the intended path works without `solution.md`, ending in `report: LAB{...}`.
+   - each hint, read in order, moves you forward (lab 5 has none);
+   - the intended path works without reading the solution, ending in `report: LAB{...}`.
+
+   **The hints and the solution are not in the lab, on purpose.** They are private: the build fails if `manifest.yaml`, `solution.md` or `lesson.md` is in an image. Read them in the repo on the laptop, in a third terminal or your editor:
+
+   | Lab | Binary | Repo directory on the laptop |
+   | --- | --- | --- |
+   | `tier1-01-off-by-one` | `./scores` | `challenges/tier1-c-fundamentals/01-off-by-one/` |
+   | `tier1-02-null-deref` | `./greeter` | `challenges/tier1-c-fundamentals/02-null-deref/` |
+   | `tier1-03-uninitialized` | `./checkout` | `challenges/tier1-c-fundamentals/03-uninitialized/` |
+   | `tier1-04-unterminated` | `./badge` | `challenges/tier1-c-fundamentals/04-unterminated/` |
+   | `tier1-05-stack-overwrite` | `./packet` | `challenges/tier1-c-fundamentals/05-stack-overwrite/` |
+
+   The hints are the `hints:` list in that directory's `manifest.yaml`, one per line, cheapest first; reveal one at a time (`grep -A3 '^hints:' <dir>/manifest.yaml | sed -n 2p`, then `3p`, `4p`). `solution.md` in the same directory is the walkthrough; open it only after you have finished or are stuck. `lesson.md` there is what the learner reads before the lab. From Phase 6 the web page shows the lesson and reveals the hints one at a time; until then the repo is the only place to read them.
 
    Then stop the session before the next slug: `curl -s -X DELETE -H 'Authorization: Bearer dev' http://127.0.0.1:8081/internal/sessions/$sid`. After the last lab, Ctrl-C in A. Then, for each lab, add a line to this file starting at the first column: `Phase 5 human check <slug>: YYYY-MM-DD <initials> OK`. If a lab is confusing or a hint misleads, say so instead; that is a content fix, not an OK.
 3. **Commit and run the gate.**
