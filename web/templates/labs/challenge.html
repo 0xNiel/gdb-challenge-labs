@@ -1,2 +1,25 @@
 {% extends "base.html" %}
-{% block main %}<h1>{{ challenge.title }}</h1>{% endblock %}
+{% block title %}{{ challenge.title }} · gdb Challenge Labs{% endblock %}
+{% block main %}
+<p class="muted small"><a href="{% url 'learn' %}">Learn</a> › Tier {{ challenge.tier.number }}: {{ challenge.tier.title }}</p>
+<h1>{{ challenge.title }} {% if solved %}<span class="badge solved">solved</span>{% endif %}{% if challenge.boss %} <span class="badge">boss</span>{% endif %}</h1>
+<p class="muted">Difficulty {{ challenge.difficulty }} · about {{ challenge.estimated_minutes }} min{% if challenge.tags %} · {{ challenge.tags|join:", " }}{% endif %}</p>
+
+<div class="lab-actions card">
+  {% if active_here %}
+    <p>Your lab is {{ active.state }}.</p>
+    <a class="button" href="{% url 'lab_session' challenge.slug %}">Open the terminal</a>
+    <form method="post" action="{% url 'lab_stop' challenge.slug %}" class="inline">{% csrf_token %}<button class="secondary">Stop the lab</button></form>
+  {% elif active %}
+    <p>You have a lab running for <a href="{% url 'challenge' active.challenge_slug %}">{{ active.challenge_slug }}</a>. Stop it before starting this one.</p>
+  {% elif not challenge.enabled %}
+    <p class="muted">This lab is not available right now.</p>
+  {% else %}
+    <form method="post" action="{% url 'lab_start' challenge.slug %}">{% csrf_token %}<button class="primary">Start the lab</button></form>
+    <p class="muted small">A sandboxed terminal opens with the program and gdb. It stops after {{ challenge.limits.idle_minutes|default:15 }} idle minutes.</p>
+  {% endif %}
+  {% if challenge.lesson %}<p class="small"><a href="{% url 'lesson' challenge.tier.slug challenge.lesson.slug %}">Read the lesson first: {{ challenge.lesson.title }}</a></p>{% endif %}
+</div>
+
+<article class="prose card">{{ readme }}</article>
+{% endblock %}

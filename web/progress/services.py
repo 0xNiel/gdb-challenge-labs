@@ -7,10 +7,17 @@ admin) also unlocks.
 """
 
 from dataclasses import dataclass
+from datetime import timedelta
+
+from django.utils import timezone
 
 from curriculum.models import Challenge
 
-from .models import Progress
+from .models import FlagAttempt, Progress
+
+# Flag rate limit (spec "Flag submission rules"): 10 attempts per challenge per 10 minutes.
+ATTEMPT_LIMIT = 10
+ATTEMPT_WINDOW = timedelta(minutes=10)
 
 LOCKED, UNLOCKED, SOLVED = Progress.State.LOCKED, Progress.State.UNLOCKED, Progress.State.SOLVED
 
@@ -76,3 +83,24 @@ def next_after(challenge: Challenge) -> Challenge | None:
         if c.id == challenge.id:
             return seq[i + 1] if i + 1 < len(seq) else None
     return None
+
+
+def attempts_in_window(user, challenge: Challenge) -> int:
+    since = timezone.now() - ATTEMPT_WINDOW
+    return FlagAttempt.objects.filter(user=user, challenge=challenge, ts__gte=since).count()
+
+
+def lab_panel(user, challenge: Challenge) -> dict:
+    """What the challenge and terminal pages show beside the lab: hints so far, the flag form's
+    state, and past attempts."""
+    p = Progress.objects.filter(user=user, challenge=challenge).first()
+    shown = p.hints_used if p else 0
+    hints = challenge.hints or []
+    return {
+        "solved": bool(p and p.state == SOLVED),
+        "hints_shown": [{"n": i + 1, **h} for i, h in enumerate(hints[:shown])],
+        "next_hint": {"n": shown + 1, **hints[shown]} if shown < len(hints) else None,
+        "hints_total": len(hints),
+        "attempts": FlagAttempt.objects.filter(user=user, challenge=challenge).order_by("-ts")[:10],
+        "attempts_left": max(ATTEMPT_LIMIT - attempts_in_window(user, challenge), 0),
+    }

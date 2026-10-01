@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}{{ challenge.title }} (lab) · gdb Challenge Labs{% endblock %}
+{% block main %}
+<h1>{{ challenge.title }}</h1>
+<p class="notice" id="capture-notice">Commands are recorded to improve hints.</p>
+<div id="term" data-session="{{ session.id }}"></div>
+{% endblock %}

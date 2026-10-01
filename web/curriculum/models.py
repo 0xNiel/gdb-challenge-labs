@@ -54,6 +54,7 @@ class Challenge(models.Model):
     )
     solution_md = models.TextField(blank=True)
     source = models.TextField(blank=True)  # src/main.c, shown read-only beside the terminal
+    readme_md = models.TextField(blank=True)  # README.md, the lab's description (also in the image)
 
     class Meta:
         db_table = "challenges"

@@ -56,3 +56,13 @@ def imported(db, challenges_doc, write_doc):
     from curriculum.models import Challenge
 
     return list(Challenge.objects.order_by("tier__order", "order"))
+
+
+@pytest.fixture
+def fake_labd():
+    from labs.fake_labd import FakeLabd
+
+    FakeLabd.calls = []
+    FakeLabd.fail_with = None
+    FakeLabd.start_state = "running"
+    return FakeLabd

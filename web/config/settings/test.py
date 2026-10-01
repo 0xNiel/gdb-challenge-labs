@@ -15,3 +15,4 @@ LABD_INTERNAL_SECRET = "test-internal-secret"
 WS_TOKEN_KEY = "test-ws-token-key"
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]  # fast tests only
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+LABD_CLIENT = "labs.fake_labd.FakeLabd"

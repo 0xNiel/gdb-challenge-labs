@@ -11,7 +11,7 @@ urlpatterns = [
     path("login", account.login, name="login"),
     path("signup", account.signup, name="signup"),
     path("accounts/", include("allauth.urls")),
-    path("learn", include("curriculum.urls")),
+    path("", include("curriculum.urls")),
     path("lab/", include("labs.urls")),
     path("", include("progress.urls")),
     path("admin/", admin.site.urls),

@@ -51,6 +51,10 @@ def _read(repo: Path, rel: str, what: str) -> str:
     return path.read_text()
 
 
+def _optional(path: Path) -> str:
+    return path.read_text() if path.is_file() else ""
+
+
 def _split_title(md: str, fallback: str) -> tuple[str, str]:
     """A lesson's first line '# Title' becomes its title; the rest is the body."""
     first, _, rest = md.partition("\n")
@@ -110,8 +114,9 @@ def import_challenges(json_path: Path, repo: Path) -> Result:
             {"slug": slug},
             {"tier": tier, "title": title, "body_md": body, "order": entry["order"]},
         )
-        src = PurePosixPath(entry["lesson_path"]).parent / "src" / "main.c"
-        source = (repo / src).read_text() if (repo / src).is_file() else ""
+        cdir = PurePosixPath(entry["lesson_path"]).parent
+        source = _optional(repo / cdir / "src" / "main.c")
+        readme = _optional(repo / cdir / "README.md")
         _, cstate = _upsert(
             Challenge,
             {"slug": slug},
@@ -130,6 +135,7 @@ def import_challenges(json_path: Path, repo: Path) -> Result:
                 "lesson": lesson,
                 "solution_md": _read(repo, entry["solution_path"], "solution"),
                 "source": source,
+                "readme_md": readme,
             },
         )
         state = cstate if cstate != "unchanged" else lstate

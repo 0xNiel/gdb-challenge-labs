@@ -128,3 +128,6 @@ LOGIN_URL = "/login"
 LOGIN_REDIRECT_URL = "/learn"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_SIGNUP_REDIRECT_URL = "/learn"
+
+# The labd client class; tests use labs.fake_labd.FakeLabd.
+LABD_CLIENT = "labs.labd_client.LabdClient"
