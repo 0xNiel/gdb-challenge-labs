@@ -1,0 +1,16 @@
+{% extends "analytics/base.html" %}
+{% block dash %}
+<h1>Usage, last 30 days</h1>
+<h2>Labs started and unique users per day</h2>
+{{ labs_chart }}
+<h2>Start latency per day (request to running)</h2>
+{{ latency_chart }}
+<table class="dash">
+  <thead><tr><th>Day</th><th>Labs started</th><th>Users</th><th>Median session</th><th>Start p50</th><th>Start p95</th></tr></thead>
+  <tbody>{% for r in rows reversed %}<tr><td>{{ r.day|date:"M j" }}</td><td>{{ r.labs }}</td><td>{{ r.users }}</td>
+    <td>{% if r.median_min is not None %}{{ r.median_min }} min{% else %}—{% endif %}</td>
+    <td>{% if r.start_p50 is not None %}{{ r.start_p50 }} ms{% else %}—{% endif %}</td>
+    <td>{% if r.start_p95 is not None %}{{ r.start_p95 }} ms{% else %}—{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="6" class="muted">No labs yet.</td></tr>{% endfor %}</tbody>
+</table>
+{% endblock %}

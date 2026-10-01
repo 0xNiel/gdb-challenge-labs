@@ -93,3 +93,20 @@ table.source code { background: none; padding: 0; }
 .tier-progress { margin: .8rem 0; }
 .bar { height: .6rem; background: var(--line); border-radius: 999px; overflow: hidden; margin-top: .3rem; }
 .bar span { display: block; height: 100%; background: var(--ok); }
+
+/* ---- staff dashboards (Phase 7) */
+main.wide { max-width: 72rem; }
+nav.dash-tabs { display: flex; gap: 1rem; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: .5rem; flex-wrap: wrap; }
+nav.dash-tabs a[aria-current="page"] { font-weight: 700; color: var(--fg); text-decoration: none; }
+nav.dash-tabs .muted { margin-left: auto; }
+svg.chart { width: 100%; height: auto; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+svg.chart .grid { stroke: var(--line); stroke-width: 1; }
+svg.chart .axis, svg.chart .empty, svg.chart .legend { font: 11px system-ui, sans-serif; fill: var(--muted); }
+svg.chart .series { fill: none; stroke-width: 2; }
+svg.chart .s0 { stroke: var(--accent); fill: var(--accent); } svg.chart .s1 { stroke: var(--warn); fill: var(--warn); }
+svg.chart .s2 { stroke: var(--ok); fill: var(--ok); } svg.chart .s3 { stroke: var(--bad); fill: var(--bad); }
+svg.chart polyline.series { fill: none; }
+svg.chart text.legend { stroke: none; }
+svg.chart .bar { fill: var(--accent); }
+table.dash { width: 100%; margin: .5rem 0 1.5rem; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+table.dash th { font-size: .85rem; color: var(--muted); }

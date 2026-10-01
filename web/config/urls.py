@@ -14,5 +14,7 @@ urlpatterns = [
     path("", include("curriculum.urls")),
     path("lab/", include("labs.urls")),
     path("", include("progress.urls")),
+    # Staff pages under /admin/, before Django admin's own catch-all (Phase 7).
+    path("", include("analytics.urls")),
     path("admin/", admin.site.urls),
 ]

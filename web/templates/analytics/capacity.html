@@ -1,0 +1,15 @@
+{% extends "analytics/base.html" %}
+{% block dash %}
+<h1>Capacity</h1>
+<p class="muted">{% if stats %}max_sessions {{ stats.max_sessions }}, {{ stats.active }} active now; {% endif %}peak today {{ peak_today|floatformat:0 }}. See <code>docs/metrics/vps-capacity.md</code> for what the box can hold.</p>
+<h2>Memory per active lab, last 24 hours</h2>
+{{ rss_chart }}
+<h2>Memory per active lab, last 30 days (hourly p95)</h2>
+{{ rss_30d_chart }}
+<h2>Peak concurrent labs per day</h2>
+{{ peak_chart }}
+<h2>Host memory used, last 24 hours</h2>
+{{ host_chart }}
+<h2>Host CPU, last 24 hours</h2>
+{{ cpu_chart }}
+{% endblock %}

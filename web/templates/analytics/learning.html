@@ -1,0 +1,18 @@
+{% extends "analytics/base.html" %}
+{% block dash %}
+<h1>Learning, last 30 days</h1>
+<h2>Funnel per tier</h2>
+<table class="dash"><thead><tr><th>Tier</th><th>Learners who started a lab</th><th>Solves</th></tr></thead>
+<tbody>{% for t in tiers %}<tr><td>{{ t.tier }}</td><td>{{ t.started }}</td><td>{{ t.solved }}</td></tr>{% endfor %}</tbody></table>
+<h2>Per challenge</h2>
+<table class="dash"><thead><tr><th>Challenge</th><th>Started</th><th>Solved</th><th>Median time to solve</th><th>Hints per learner</th></tr></thead>
+<tbody>{% for r in rows %}<tr><td>{{ r.challenge.slug }}</td><td>{{ r.started }}</td><td>{{ r.solved }}</td>
+  <td>{% if r.median_solve_min is not None %}{{ r.median_solve_min }} min{% else %}—{% endif %}</td>
+  <td>{% if r.hints is not None %}{{ r.hints }}{% else %}—{% endif %}</td></tr>{% endfor %}</tbody></table>
+<h2>Solves per challenge</h2>
+{{ funnel }}
+<h2>Commands typed in the last 5 minutes before giving up</h2>
+<p class="muted small">Labs that ended (idle, time limit, closed, stopped) without a solve.</p>
+<table class="dash"><thead><tr><th>Command</th><th>Times</th></tr></thead>
+<tbody>{% for verb, n in abandon %}<tr><td><code>{{ verb }}</code></td><td>{{ n }}</td></tr>{% empty %}<tr><td colspan="2" class="muted">None yet.</td></tr>{% endfor %}</tbody></table>
+{% endblock %}

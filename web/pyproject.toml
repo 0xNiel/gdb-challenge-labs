@@ -36,3 +36,4 @@ ignore = ["S101"]  # asserts are how pytest works
 [tool.ruff.lint.per-file-ignores]
 "config/settings/dev.py" = ["S105"]
 "config/settings/test.py" = ["S105"]
+"analytics/svg.py" = ["E501"]  # SVG markup in f-strings reads better unbroken
