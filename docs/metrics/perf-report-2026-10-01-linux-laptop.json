@@ -3,19 +3,19 @@
     "rss_mb": {
       "p50": 24.6,
       "p95": 25.5,
-      "max": 27.2
+      "max": 27.7
     },
     "cpu_pct_avg": 0.03,
-    "disk_mb": 0,
+    "disk_mb": 0.0078,
     "ws_bps_in": 3.4,
     "ws_bps_out": 60.9
   },
   "host_at_100": {
-    "mem_used_mb": 8758.1,
+    "mem_used_mb": 9813.4,
     "cpu_pct": 32.55,
     "start_latency_ms": {
-      "p50": 1663,
-      "p95": 1839
+      "p50": 1657,
+      "p95": 1832
     },
     "echo_latency_ms": {
       "p50": 0.9,
@@ -33,12 +33,12 @@
     "fifos": 0
   },
   "derived": {
-    "max_sessions_at_25pct_headroom": 454
+    "max_sessions_at_25pct_headroom": 394
   },
   "meta": {
     "host": "linux-laptop",
     "arch": "x86_64",
-    "date": "2026-10-01T03:18:12Z",
+    "date": "2026-10-01T04:06:35Z",
     "sources": {
       "derived.max_sessions_at_25pct_headroom": "run-P2-2026-10-01-linux-laptop.json",
       "gvisor_overhead.sentry_rss_mb": "run-P2-2026-10-01-linux-laptop.json",
@@ -57,27 +57,27 @@
   },
   "extra": {
     "at_n": {
-      "containerd_rss_mb": 87.5,
-      "host_baseline_mb": 5352.4,
-      "host_per_lab_mb": 42.3,
+      "containerd_rss_mb": 89.6,
+      "host_baseline_mb": 4795.2,
+      "host_per_lab_mb": 50.2,
       "lab_host_rss_mb": {
-        "n": 22888,
+        "n": 22900,
         "p50": 93.2,
         "p95": 93.8,
-        "p99": 94,
-        "max": 94.2
+        "p99": 94.2,
+        "max": 94.5
       },
       "labd_goroutines": 917,
-      "labd_rss_mb": 66.4,
+      "labd_rss_mb": 67.4,
       "n": 100,
       "oom_kills": 0,
       "psi_max": {
-        "cpu_some_avg10": 35.62,
+        "cpu_some_avg10": 37.31,
         "memory_some_avg10": 0,
-        "io_some_avg10": 0
+        "io_some_avg10": 0.69
       },
       "sentry_rss_mb": {
-        "n": 22888,
+        "n": 22900,
         "p50": 46.6,
         "p95": 47.1,
         "p99": 47.3,
@@ -87,12 +87,12 @@
     "bandwidth_aggregate_bps_out": 6090,
     "criteria_missed": {},
     "derived_inputs": {
-      "baseline_mb": 5352.4,
+      "baseline_mb": 4795.2,
       "box_mb": 32768,
       "note": "baseline is host memory used with 0 labs on linux-laptop; per lab is the larger of the cgroup p95 and the host's (used - idle) / labs, which includes each lab's shim",
       "per_lab_cgroup_p95_mb": 25.5,
-      "per_lab_host_mb": 42.3,
-      "per_lab_mb": 42.3
+      "per_lab_host_mb": 50.2,
+      "per_lab_mb": 50.2
     },
     "images_mib": {
       "challenges_200_estimate_basis": 88,
