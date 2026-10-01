@@ -1,0 +1,17 @@
+slug: tier1-05-stack-overwrite
+title: The overwritten neighbour
+tier: 1
+order: 5
+difficulty: 4
+estimated_minutes: 40
+flag_format: "LAB{...}"
+image: ""
+limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60, idle_minutes: 15, extend_minutes: 15}
+hints: []
+boss: true
+tags: [c, memory, stack, watchpoints, structs]
+key_expr: "f.checksum in receive(): the value computed before the copy"
+key_value: 2983120728
+build:
+  flags: "-O0 -g -fno-stack-protector"
+  entry: packet
