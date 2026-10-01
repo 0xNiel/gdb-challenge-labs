@@ -45,3 +45,4 @@ What becomes easier, what becomes harder, what to revisit and when.
 | [0011](0011-sessions-table-columns.md) | `sessions` stores `challenge_slug`, not web's `challenge_id`; adds `image`, `extended` | accepted | Phase 2 |
 | [0012](0012-ws-token-nonce.md) | WebSocket tokens carry a random nonce, so two per second are distinct | accepted | Phase 3 |
 | [0013](0013-max-sessions.md) | Production `max_sessions` is 100: CPU under abuse is the limit, not memory (derived 394) | accepted | Phase 4 |
+| [0014](0014-lab-cwd-from-image.md) | The lab's starting directory is the image's `WORKDIR`, else `/home/lab` | accepted | Phase 5, owner's laptop check |
