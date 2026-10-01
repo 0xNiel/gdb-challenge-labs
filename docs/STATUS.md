@@ -156,6 +156,12 @@ Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than
 
 ## Log
 
+### 2026-10-01 — A correct flag stops the lab (ADR 0016)
+- The owner asked, after the Phase 6 gate passed, that a lab stop once its flag is accepted. **ADR 0016** overrides the spec's "kept open independently of the flag".
+- web stops the user's live session for that challenge with reason `solved`; the page shows "the lab has ended: the challenge was solved" and hides Stop. A wrong flag, a resubmission, or a solve with no lab stops nothing; if the stop fails, the solve still counts and the lab idles out as before.
+- Tests: five new view tests (107 web tests); the e2e test expects `ended/solved` right after the flag and still covers the Stop button in its timed runs. It passes in the arm64 VM (labs under runc).
+- Optional on the laptop: `git pull` on `main`, then `./run.sh test --e2e` to see it under gVisor.
+
 ### 2026-10-01 — Phase 6 gate passed on the x86-64 laptop
 - The owner ran the e2e test under gVisor and played lab 1 through the Django page (human check 2026-10-01).
 - **Start latency** (`docs/metrics/web-2026-10-01-linux-laptop.md`, 10 runs, runsc): click Start to the terminal page p95 418 ms; click Start to the shell prompt p95 569 ms, against the spec's 2 s.

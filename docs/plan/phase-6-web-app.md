@@ -23,6 +23,7 @@ A user signs up, sees the tier 1 curriculum, reads a lesson, starts a lab, debug
 - **The stack for the lab page and e2e**: `scripts/web-stack.sh` (`./run.sh web-stack up|down|e2e|status`) runs labd and Django against the dev Postgres, with labd's `site_host` set to Django's origin. Labs run under runsc on x86-64 and runc on arm64, where gdb under gVisor cannot resume (Q13), as the challenge build does. `./run.sh test --e2e` is `web-stack.sh e2e`.
 - **e2e** also times nine more start-to-prompt runs; `scripts/web-metrics.sh` writes `docs/metrics/web-<date>-<host>.{json,md}`. The gate requires such a record from x86-64 under runsc (ADR 0001).
 - **Dashboard streak**: consecutive days with a solve, ending today, or yesterday before today's first solve.
+- **A correct flag stops the lab** (ADR 0016, the owner's request after the gate passed; overrides the spec's "kept open independently of the flag"): reason `solved`; the page says so. The learner can start it again.
 
 ## Design fixed by this document
 

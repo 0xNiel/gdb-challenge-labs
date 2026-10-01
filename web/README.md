@@ -22,7 +22,7 @@ The Django app (Django 5.2 LTS, Python 3.13, `uv`; ADR 0002). It owns users, the
 | `/lab/<slug>` | challenge page: description, Start or Stop, hints, flag form, past attempts |
 | `/lab/<slug>/session` | the terminal page, while the session is live |
 | `/lab/<slug>/session/token?session=<id>` | a fresh WebSocket token (JSON), for the page's own session only |
-| `POST /lab/<slug>/start`, `/stop`, `/flag`, `/hint` | actions; `/flag` and `/hint` return a partial when sent `X-Partial: 1` |
+| `POST /lab/<slug>/start`, `/stop`, `/flag`, `/hint` | actions; `/flag` and `/hint` return a partial when sent `X-Partial: 1`. A correct flag stops the user's lab for that challenge (ADR 0016) |
 | `/dashboard` | solved, time in labs, hints, streak, tier completion |
 | `/admin/` | Django admin |
 
