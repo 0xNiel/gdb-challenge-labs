@@ -1,0 +1,62 @@
+{
+  "host": "linux-laptop",
+  "date": "2026-10-01",
+  "arch": "amd64",
+  "challenges": [
+    {
+      "slug": "tier1-01-off-by-one",
+      "arch": "amd64",
+      "runtime": "runsc",
+      "host": "linux-laptop",
+      "date": "2026-10-01T11:20:30Z",
+      "layer_kib": 242,
+      "build_s": 17,
+      "oracle_s": 1,
+      "sha256": "4518a90952047aafb0217ae70b2850c287e5624afadc689d0bff59c079da962c"
+    },
+    {
+      "slug": "tier1-02-null-deref",
+      "arch": "amd64",
+      "runtime": "runsc",
+      "host": "linux-laptop",
+      "date": "2026-10-01T11:20:46Z",
+      "layer_kib": 247,
+      "build_s": 16,
+      "oracle_s": 2,
+      "sha256": "eb447f3a6f6e3fe7fc879f642e93dd955ca385ddc6b85923d5a52c44ee495593"
+    },
+    {
+      "slug": "tier1-03-uninitialized",
+      "arch": "amd64",
+      "runtime": "runsc",
+      "host": "linux-laptop",
+      "date": "2026-10-01T11:21:01Z",
+      "layer_kib": 248,
+      "build_s": 15,
+      "oracle_s": 2,
+      "sha256": "1e454a1ade1899bde0e4ca9249ceb7b3e9538a4cd0e1c79c2ef697266381d1c2"
+    },
+    {
+      "slug": "tier1-04-unterminated",
+      "arch": "amd64",
+      "runtime": "runsc",
+      "host": "linux-laptop",
+      "date": "2026-10-01T11:21:17Z",
+      "layer_kib": 248,
+      "build_s": 16,
+      "oracle_s": 1,
+      "sha256": "e132c5218a79a0b63b7eb8295318351ca62c839581201439d61c2660dad3b023"
+    },
+    {
+      "slug": "tier1-05-stack-overwrite",
+      "arch": "amd64",
+      "runtime": "runsc",
+      "host": "linux-laptop",
+      "date": "2026-10-01T11:21:32Z",
+      "layer_kib": 247,
+      "build_s": 15,
+      "oracle_s": 2,
+      "sha256": "2f549ada97f76af1f3ce709096770d5241ec2f8be4958fa85fdce223af591c38"
+    }
+  ]
+}
