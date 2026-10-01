@@ -146,3 +146,17 @@ func TestChallengeImages_SkipsDisabledAndEmpty(t *testing.T) {
 		t.Fatalf("%v", got)
 	}
 }
+
+// ADR 0018: the admin banner counts enabled challenges whose image is not present.
+func TestMissingImages(t *testing.T) {
+	t.Parallel()
+	f := &fakeImages{imgs: map[string]ImageInfo{"a@sha256:1": {Name: "a@sha256:1"}}}
+	got := MissingImages(context.Background(), f, ChallengeImages([]Challenge{
+		{Slug: "a", Image: "a@sha256:1", Enabled: true},
+		{Slug: "b", Image: "b@sha256:2", Enabled: true},
+		{Slug: "c", Image: "c@sha256:3", Enabled: false}, // disabled: not needed
+	}))
+	if len(got) != 1 || got[0] != "b@sha256:2" {
+		t.Fatalf("missing %v, want [b@sha256:2]", got)
+	}
+}

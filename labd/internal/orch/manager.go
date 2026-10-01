@@ -62,18 +62,20 @@ type Manager struct {
 	base []byte
 	rtID string
 
-	mu           sync.Mutex
-	closed       bool
-	cap          int
-	maxQueue     int
-	inUse        int // sessions holding a slot: creating, running, ending
-	defaults     config.Limits
-	queueTimeout time.Duration
-	wsGrace      time.Duration
-	challenges   map[string]Challenge
-	sessions     map[string]*Session // every session not yet ended, failed or abandoned
-	byUser       map[int64]*Session  // the user's queued, creating or running session
-	queue        []*Session          // FIFO; head is next to be admitted
+	mu            sync.Mutex
+	closed        bool
+	cap           int // effective max_sessions: 0 while draining
+	configuredCap int // max_sessions from labd.yaml (ADR 0018)
+	draining      bool
+	maxQueue      int
+	inUse         int // sessions holding a slot: creating, running, ending
+	defaults      config.Limits
+	queueTimeout  time.Duration
+	wsGrace       time.Duration
+	challenges    map[string]Challenge
+	sessions      map[string]*Session // every session not yet ended, failed or abandoned
+	byUser        map[int64]*Session  // the user's queued, creating or running session
+	queue         []*Session          // FIFO; head is next to be admitted
 
 	ops sync.WaitGroup // create and teardown goroutines
 }
@@ -91,7 +93,7 @@ func NewManager(cfg ManagerConfig, rt Runtime, st store.Store, clk clock.Clock, 
 	}
 	m := &Manager{
 		rt: rt, st: st, clk: clk, log: log, base: cfg.BaseSpec, rtID: cfg.Runtime,
-		cap: cfg.MaxSessions, maxQueue: cfg.MaxQueue, defaults: cfg.DefaultLimits,
+		cap: cfg.MaxSessions, configuredCap: cfg.MaxSessions, maxQueue: cfg.MaxQueue, defaults: cfg.DefaultLimits,
 		queueTimeout: cfg.QueueTimeout, wsGrace: cfg.WSGrace,
 		sessions: map[string]*Session{}, byUser: map[int64]*Session{},
 	}
@@ -295,6 +297,10 @@ type Stats struct {
 	MaxSessions int `json:"max_sessions"`
 	SlotsFree   int `json:"slots_free"`
 	MaxQueue    int `json:"max_queue"`
+	// Draining: effective max_sessions is 0 until resumed (ADR 0018); ConfiguredMaxSessions is
+	// what labd.yaml says.
+	Draining              bool `json:"draining"`
+	ConfiguredMaxSessions int  `json:"configured_max_sessions"`
 }
 
 // Running returns the ids of running sessions (the metrics sampler measures these).
@@ -332,7 +338,7 @@ func (m *Manager) Stats() Stats {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	st := Stats{Active: m.inUse, Queued: len(m.queue), MaxSessions: m.cap, MaxQueue: m.maxQueue,
-		SlotsFree: max(m.cap-m.inUse, 0)}
+		SlotsFree: max(m.cap-m.inUse, 0), Draining: m.draining, ConfiguredMaxSessions: m.configuredCap}
 	for _, s := range m.sessions {
 		switch s.State {
 		case StateCreating:
@@ -350,10 +356,29 @@ func (m *Manager) Stats() Stats {
 // withholds slots as sessions end and never kills a running one (spec).
 func (m *Manager) SetCap(n int) {
 	m.mu.Lock()
-	m.cap = max(n, 0)
+	m.configuredCap = max(n, 0)
+	if !m.draining {
+		m.cap = m.configuredCap
+	}
 	admitted := m.dispatchLocked()
 	m.mu.Unlock()
 	m.launchAdmitted(admitted)
+}
+
+// SetDrain turns draining on or off (ADR 0018). While draining the effective cap is 0:
+// nothing is admitted, running labs are untouched. Off restores the configured cap.
+func (m *Manager) SetDrain(on bool) {
+	m.mu.Lock()
+	m.draining = on
+	if on {
+		m.cap = 0
+	} else {
+		m.cap = m.configuredCap
+	}
+	admitted := m.dispatchLocked()
+	m.mu.Unlock()
+	m.launchAdmitted(admitted)
+	m.log.Info("drain", "draining", on, "max_sessions", m.Stats().MaxSessions)
 }
 
 // SetMaxQueue changes max_queue. Sessions already queued stay queued.

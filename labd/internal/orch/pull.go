@@ -138,6 +138,23 @@ func (r *ContainerdRuntime) Pull(ctx context.Context, refs []string) ([]PullResu
 	return PullImages(r.nsctx(ctx), containerdImages{r}, refs)
 }
 
+// MissingImages returns the refs that are not in the content store (ADR 0018: the admin
+// page's "pending pull" banner).
+func MissingImages(ctx context.Context, s ImageStore, refs []string) []string {
+	var out []string
+	for _, ref := range refs {
+		if _, err := s.Get(ctx, ref); err != nil {
+			out = append(out, ref)
+		}
+	}
+	return out
+}
+
+// Missing is MissingImages against this runtime's containerd.
+func (r *ContainerdRuntime) Missing(ctx context.Context, refs []string) []string {
+	return MissingImages(r.nsctx(ctx), containerdImages{r}, refs)
+}
+
 // Prune is Prune against this runtime's containerd.
 func (r *ContainerdRuntime) Prune(ctx context.Context, referenced []string, now time.Time, dryRun bool) ([]PruneResult, error) {
 	return Prune(r.nsctx(ctx), containerdImages{r}, referenced, now, dryRun)

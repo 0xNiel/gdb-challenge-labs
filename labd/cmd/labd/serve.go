@@ -75,6 +75,7 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 	if err != nil {
 		return err
 	}
+	srv.PendingPull = pendingPull(m, rt)
 	tokens := term.NewTokens([]byte(cfg.WSTokenKey))
 	if cfg.DevMintTokens {
 		log.Warn("dev_mint_tokens is on: POST /internal/sessions returns a ws_token (never in production, ADR 0015)")
@@ -140,6 +141,25 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 	return serveAll(ctx, log, gw.Shutdown,
 		listener{"internal API", lnAPI, srv.Handler()},
 		listener{"terminal gateway", lnWS, wsMux})
+}
+
+// pendingPull counts enabled challenges whose image is not in containerd, for the admin
+// page (ADR 0018). The answer is kept 30 s: the dashboards poll stats.
+func pendingPull(m *orch.Manager, rt *orch.ContainerdRuntime) func(context.Context) int {
+	var (
+		mu   sync.Mutex
+		at   time.Time
+		last int
+	)
+	return func(ctx context.Context) int {
+		mu.Lock()
+		defer mu.Unlock()
+		if time.Since(at) < 30*time.Second {
+			return last
+		}
+		last, at = len(rt.Missing(ctx, orch.ChallengeImages(m.Challenges()))), time.Now()
+		return last
+	}
 }
 
 // containerdRoot is containerd's default root (provision.sh keeps it): host.disk_used_gb is

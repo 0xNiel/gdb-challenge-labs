@@ -26,6 +26,7 @@ type stubSessions struct {
 	byUser map[int64]orch.SessionInfo
 	byID   map[string]orch.SessionInfo
 	n      int
+	drain  bool
 }
 
 func newStub() *stubSessions {
@@ -81,8 +82,16 @@ func (s *stubSessions) List() []orch.SessionInfo {
 }
 
 func (s *stubSessions) Stats() orch.Stats {
-	return orch.Stats{Active: 1, Running: 1, MaxSessions: 1, MaxQueue: 1}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	st := orch.Stats{Active: 1, Running: 1, MaxSessions: 1, MaxQueue: 1, ConfiguredMaxSessions: 1, Draining: s.drain}
+	if s.drain {
+		st.MaxSessions = 0
+	}
+	return st
 }
+
+func (s *stubSessions) SetDrain(on bool) { s.mu.Lock(); s.drain = on; s.mu.Unlock() }
 
 func newTestServer(t *testing.T, reload ReloadFunc) *httptest.Server {
 	t.Helper()
@@ -121,7 +130,7 @@ func TestAPI_AuthRequired(t *testing.T) {
 	ts := newTestServer(t, nil)
 	for _, r := range []struct{ method, path string }{
 		{"POST", "/internal/sessions"}, {"DELETE", "/internal/sessions/x"}, {"GET", "/internal/sessions"},
-		{"GET", "/internal/stats"}, {"POST", "/internal/reload"},
+		{"GET", "/internal/stats"}, {"POST", "/internal/reload"}, {"POST", "/internal/drain"},
 	} {
 		for _, tok := range []string{"", "wrong", secret + "x"} {
 			if code, _ := call(t, ts, r.method, r.path, `{}`, tok); code != http.StatusUnauthorized {
@@ -205,7 +214,8 @@ func TestAPI_ListAndStats(t *testing.T) {
 	if code != 200 {
 		t.Fatalf("stats: %d", code)
 	}
-	for _, k := range []string{"active", "queued", "slots_free", "max_sessions", "host", "labd", "sessions"} {
+	for _, k := range []string{"active", "queued", "slots_free", "max_sessions", "host", "labd", "sessions",
+		"draining", "configured_max_sessions", "pending_pull"} {
 		if _, ok := st[k]; !ok {
 			t.Errorf("stats lacks %s", k)
 		}
@@ -260,4 +270,38 @@ func TestAPI_RefusesEmptySecretAndNonLoopback(t *testing.T) {
 		t.Fatal(err)
 	}
 	ln.Close()
+}
+
+// ADR 0018: POST /internal/drain turns draining on and off and answers with the stats.
+func TestAPI_Drain(t *testing.T) {
+	t.Parallel()
+	ts := newTestServer(t, nil)
+	code, st := call(t, ts, "POST", "/internal/drain", `{"drain": true}`, secret)
+	if code != 200 || st["draining"] != true || st["max_sessions"] != 0.0 || st["configured_max_sessions"] != 1.0 {
+		t.Fatalf("drain on: %d %v", code, st)
+	}
+	code, st = call(t, ts, "POST", "/internal/drain", `{"drain": false}`, secret)
+	if code != 200 || st["draining"] != false || st["max_sessions"] != 1.0 {
+		t.Fatalf("drain off: %d %v", code, st)
+	}
+	for _, bad := range []string{`{}`, `{"drain":"yes"}`, `not json`} {
+		if code, _ := call(t, ts, "POST", "/internal/drain", bad, secret); code != 400 {
+			t.Errorf("body %s: %d, want 400", bad, code)
+		}
+	}
+}
+
+func TestAPI_PendingPull(t *testing.T) {
+	t.Parallel()
+	srv, err := New(newStub(), secret, nil, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv.ReadRSS = func(string) float64 { return 0 }
+	srv.PendingPull = func(context.Context) int { return 3 }
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+	if _, st := call(t, ts, "GET", "/internal/stats", "", secret); st["pending_pull"] != 3.0 {
+		t.Fatalf("pending_pull %v", st["pending_pull"])
+	}
 }

@@ -426,3 +426,33 @@ func TestManager_EventLifecycle(t *testing.T) {
 		t.Errorf("lab_queued data %v", byUser[2][1].Data)
 	}
 }
+
+// ADR 0018: draining admits nothing and leaves running labs alone; a config reload (SetCap)
+// while draining keeps the drain; resuming admits the queue.
+func TestManager_Drain(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 2, 5)
+	a := h.start(t, 1)
+	h.m.Settle()
+	h.m.SetDrain(true)
+	if st := h.m.Stats(); !st.Draining || st.MaxSessions != 0 || st.ConfiguredMaxSessions != 2 {
+		t.Fatalf("draining stats %+v", st)
+	}
+	b := h.start(t, 2)
+	h.m.Settle()
+	if b.State != StateQueued || h.state(t, a.ID) != StateRunning {
+		t.Fatalf("while draining: new %s, running one %s", b.State, h.state(t, a.ID))
+	}
+	h.m.SetCap(3) // a reload while draining
+	if st := h.m.Stats(); !st.Draining || st.MaxSessions != 0 || st.ConfiguredMaxSessions != 3 {
+		t.Fatalf("reload ended the drain: %+v", st)
+	}
+	h.m.SetDrain(false)
+	h.m.Settle()
+	if st := h.m.Stats(); st.Draining || st.MaxSessions != 3 {
+		t.Fatalf("resumed stats %+v", st)
+	}
+	if h.state(t, b.ID) != StateRunning {
+		t.Fatalf("queued session is %s after resume, want running", h.state(t, b.ID))
+	}
+}

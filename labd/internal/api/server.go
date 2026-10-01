@@ -25,6 +25,7 @@ type Sessions interface {
 	Stop(ctx context.Context, id, reason string) (orch.SessionInfo, error)
 	List() []orch.SessionInfo
 	Stats() orch.Stats
+	SetDrain(on bool)
 }
 
 // ReloadFunc re-reads labd.yaml and challenges.json and applies them; it returns a summary.
@@ -44,6 +45,9 @@ type Server struct {
 	log      *slog.Logger
 	// ReadRSS returns a lab's cgroup memory in MiB; replaceable in tests.
 	ReadRSS func(cgroupPath string) float64
+	// PendingPull counts enabled challenges whose image is not in containerd (admin banner,
+	// ADR 0018). nil reports 0.
+	PendingPull func(ctx context.Context) int
 	// MintToken returns a fresh ws_token for a session (term.Tokens.Mint). Set only with
 	// dev_mint_tokens; web mints the browser's tokens (ADR 0015). nil leaves it "".
 	MintToken func(sessionID string, userID int64) string
@@ -82,6 +86,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /internal/sessions", s.auth(s.listSessions))
 	mux.Handle("GET /internal/stats", s.auth(s.stats))
 	mux.Handle("POST /internal/reload", s.auth(s.doReload))
+	mux.Handle("POST /internal/drain", s.auth(s.drain))
 	return mux
 }
 
@@ -193,8 +198,26 @@ func (s *Server) rss(in orch.SessionInfo) float64 {
 	return s.ReadRSS(in.CgroupPath)
 }
 
-func (s *Server) stats(w http.ResponseWriter, _ *http.Request) {
+// drain turns draining on or off (ADR 0018) and answers with the stats.
+func (s *Server) drain(w http.ResponseWriter, r *http.Request) {
+	var b struct {
+		Drain *bool `json:"drain"`
+	}
+	if err := decode(r, &b); err != nil || b.Drain == nil {
+		writeError(w, http.StatusBadRequest, "bad_request", `want {"drain": true|false}`)
+		return
+	}
+	s.sessions.SetDrain(*b.Drain)
+	s.log.Info("drain set by the internal API", "draining", *b.Drain)
+	s.stats(w, r)
+}
+
+func (s *Server) stats(w http.ResponseWriter, r *http.Request) {
 	st := s.sessions.Stats()
+	pending := 0
+	if s.PendingPull != nil {
+		pending = s.PendingPull(r.Context())
+	}
 	var per []map[string]any
 	for _, in := range s.sessions.List() {
 		if in.State == orch.StateRunning {
@@ -206,6 +229,7 @@ func (s *Server) stats(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"active": st.Active, "creating": st.Creating, "running": st.Running, "ending": st.Ending,
 		"queued": st.Queued, "max_sessions": st.MaxSessions, "slots_free": st.SlotsFree, "max_queue": st.MaxQueue,
+		"draining": st.Draining, "configured_max_sessions": st.ConfiguredMaxSessions, "pending_pull": pending,
 		"host": readHost(),
 		"labd": map[string]any{
 			"goroutines": runtime.NumGoroutine(),
