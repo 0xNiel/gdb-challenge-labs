@@ -30,3 +30,12 @@ flag = "LAB{" + body + "}"
 
 - Any language can reproduce the flag from the vectors; drift is caught by tests in two languages.
 - The XOR scheme is obfuscation, not encryption; it only needs to defeat `strings` and `call report()` with a wrong key, which it does. A determined user with the binary can brute-force a 32-bit key offline, but that user also has the source and the bug, so the lab is already "solved" in the sense that matters. Accepted for MVP.
+
+## Amendment (2026-10-01, Phase 5)
+
+Two corrections found while implementing it:
+
+- **Length.** `LAB{` + 24 + `}` is 29 bytes, not 28. `FLAG_BLOB` is 30 bytes with the NUL, and `flag_decode` writes `out[30]`. With a wrong key it prints 29 bytes of garbage.
+- **Seed.** A random `FLAG_SEED_MIX` per build breaks the plan's reproducible build: two builds must give the same hash. The seed is now `HMAC-SHA256(DEPLOY_SECRET, "flagblob-seed|" + slug)`, first 4 bytes, big-endian (`flag.SeedMix`). It is deterministic per deploy and slug, and still unknowable without the secret.
+
+The test vectors hold `{slug, secret, flag}` per entry, computed with `openssl dgst -sha256 -hmac` and coreutils `base32`; the command is in the file.

@@ -1,0 +1,55 @@
+{
+  "comment": "ADR 0005 test vectors, computed outside Go and Python: printf '%s' SLUG | openssl dgst -sha256 -hmac SECRET -binary | base32 | tr -d '=\\n' | cut -c1-24, wrapped in LAB{...}. Go (labd/internal/flag) and Python (web/progress/flag.py) must reproduce every one.",
+  "vectors": [
+    {
+      "slug": "tier1-01-off-by-one",
+      "secret": "test-secret-do-not-use",
+      "flag": "LAB{Y3AVAMAUNSASC2AVOLHZV4NK}"
+    },
+    {
+      "slug": "tier1-02-null-deref",
+      "secret": "test-secret-do-not-use",
+      "flag": "LAB{GRTP4SEOH7QQ6VZAF4HHYZ23}"
+    },
+    {
+      "slug": "tier1-03-uninitialized",
+      "secret": "test-secret-do-not-use",
+      "flag": "LAB{NPLEMCX3VCEMSEFD6DOY7OVA}"
+    },
+    {
+      "slug": "tier1-04-unterminated",
+      "secret": "test-secret-do-not-use",
+      "flag": "LAB{PKK3ATVZ6KOBN6THPJWXLOFS}"
+    },
+    {
+      "slug": "tier1-05-stack-overwrite",
+      "secret": "test-secret-do-not-use",
+      "flag": "LAB{3APVCZYWEAGQKMMNTOX7EURF}"
+    },
+    {
+      "slug": "tier2-01-inlined-crash",
+      "secret": "test-secret-do-not-use",
+      "flag": "LAB{OUM6UOGS4QEQ3TUGAE3JY7NU}"
+    },
+    {
+      "slug": "tier3-04-join-order",
+      "secret": "test-secret-do-not-use",
+      "flag": "LAB{FI2LETSUK4AIU22V3LZGXVMV}"
+    },
+    {
+      "slug": "perf",
+      "secret": "test-secret-do-not-use",
+      "flag": "LAB{DVDUNMC3I4ILWZWHJTKYYKYD}"
+    },
+    {
+      "slug": "a",
+      "secret": "test-secret-do-not-use",
+      "flag": "LAB{MWJJRRYLPWWEOASTPGP5VDN6}"
+    },
+    {
+      "slug": "tier1-99-ünïcode",
+      "secret": "test-secret-do-not-use",
+      "flag": "LAB{LNO7YG7UCD4WQSYICMHXDC65}"
+    }
+  ]
+}
