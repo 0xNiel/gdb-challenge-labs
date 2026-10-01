@@ -5,7 +5,7 @@
 {% block main %}
 <nav class="dash-tabs">
   {% for key, label in pages %}<a href="/admin/analytics/{{ key }}" {% if key == page %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
-  <a href="/admin/live">Live sessions (kill, drain)</a>
+  <a href="{% url 'admin_live' %}">Live sessions (kill, drain)</a>
   <span class="muted small">refreshes every 30 s</span>
 </nav>
 {% block dash %}{% endblock %}

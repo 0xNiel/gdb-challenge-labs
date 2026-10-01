@@ -54,11 +54,34 @@ class FakeLabd(LabdClient):
             raise LabdError("not_found", status=404)
         return {"session_id": str(session_id), "state": "ending"}
 
+    draining = False
+    max_sessions = 100
+    pending_pull = 0
+
     def list(self):
         return [
-            {"session_id": str(s.id), "user_id": s.user_id, "state": s.state}
+            {
+                "session_id": str(s.id),
+                "user_id": s.user_id,
+                "challenge_slug": s.challenge_slug,
+                "state": s.state,
+                "created_at": s.created_at.isoformat(),
+                "commands": s.commands,
+                "ws_attached": True,
+                "rss_mb": 25.5,
+            }  # fmt: skip
             for s in Session.objects.filter(state__in=ACTIVE_STATES)
         ]
 
     def stats(self):
-        return {"active": Session.objects.filter(state__in=ACTIVE_STATES).count()}
+        active = Session.objects.filter(state__in=("creating", "running", "ending")).count()
+        cap = 0 if FakeLabd.draining else FakeLabd.max_sessions
+        return {"active": active, "queued": Session.objects.filter(state="queued").count(),
+                "max_sessions": cap, "configured_max_sessions": FakeLabd.max_sessions,
+                "slots_free": max(cap - active, 0), "draining": FakeLabd.draining,
+                "pending_pull": FakeLabd.pending_pull, "host": {"mem_used_mb": 5000}}  # fmt: skip
+
+    def drain(self, on):
+        FakeLabd.calls.append(("drain", on))
+        FakeLabd.draining = on
+        return self.stats()

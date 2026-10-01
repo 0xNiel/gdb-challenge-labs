@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Live sessions · admin{% endblock %}
+{% block head %}<meta http-equiv="refresh" content="10">{% endblock %}
+{% block main_class %}page wide{% endblock %}
+{% block main %}
+<nav class="dash-tabs">
+  <a href="/admin/analytics/live">Analytics</a>
+  <a href="{% url 'admin_live' %}" aria-current="page">Live sessions</a>
+  <a href="{% url 'admin:index' %}">Django admin</a>
+  <span class="muted small">refreshes every 10 s</span>
+</nav>
+<h1>Live sessions</h1>
+{% if error %}
+  <p class="bad">labd is not reachable: {{ error }}</p>
+{% else %}
+  {% if stats.draining %}<p class="banner-warn"><strong>Draining:</strong> no new lab starts until you resume. Running labs continue.</p>{% endif %}
+  {% if stats.pending_pull %}<p class="banner-warn">{{ stats.pending_pull }} challenge{{ stats.pending_pull|pluralize }} pending pull: their image is not on this host yet (<code>labd pull</code>).</p>{% endif %}
+  <div class="stats">
+    <div class="stat" id="gauge"><span class="num">{{ stats.active }} / {{ stats.max_sessions }}</span><span class="label">slots in use{% if stats.draining %} (configured {{ stats.configured_max_sessions }}){% endif %}</span>
+      <div class="bar{% if pct >= 90 %} hot{% endif %}" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ pct }}%"></span></div></div>
+    <div class="stat"><span class="num">{{ stats.queued }}</span><span class="label">queued</span></div>
+    {% if stats.host %}<div class="stat"><span class="num">{{ stats.host.mem_used_mb|floatformat:0 }}</span><span class="label">MB host memory used</span></div>{% endif %}
+    <div class="stat">
+      <form method="post" action="{% url 'admin_drain' %}">{% csrf_token %}
+        {% if stats.draining %}<input type="hidden" name="drain" value="0"><button class="primary">Resume</button>
+        {% else %}<input type="hidden" name="drain" value="1"><button class="secondary" onclick="return confirm('Stop new lab starts? Running labs continue.')">Drain</button>{% endif %}
+      </form>
+      <span class="label">kill switch: no new starts</span>
+    </div>
+  </div>
+  <table class="dash" id="sessions">
+    <thead><tr><th>Session</th><th>User</th><th>Challenge</th><th>State</th><th>Age</th><th>Memory</th><th>Commands</th><th>Terminal</th><th></th></tr></thead>
+    <tbody>
+    {% for s in sessions %}
+      <tr>
+        <td><code>{{ s.session_id|slice:":8" }}</code></td><td>{{ s.email }}</td><td>{{ s.challenge_slug }}</td>
+        <td>{{ s.state }}{% if s.queue_position %} ({{ s.queue_position }}){% endif %}</td>
+        <td>{% if s.age_s is not None %}{% widthratio s.age_s 60 1 %} min{% endif %}</td>
+        <td>{% if s.rss_mb %}{{ s.rss_mb|floatformat:1 }} MiB{% else %}—{% endif %}</td>
+        <td>{{ s.commands }}</td><td>{% if s.ws_attached %}attached{% else %}—{% endif %}</td>
+        <td><form method="post" action="{% url 'admin_kill' s.session_id %}">{% csrf_token %}<button class="secondary danger" onclick="return confirm('Kill this lab?')">Kill</button></form></td>
+      </tr>
+    {% empty %}<tr><td colspan="9" class="muted">No live sessions.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+<h2>Challenges</h2>
+<table class="dash">
+  <thead><tr><th>Challenge</th><th>Tier</th><th>Image</th><th>Enabled</th><th></th></tr></thead>
+  <tbody>{% for c in challenges %}<tr><td>{{ c.slug }}</td><td>{{ c.tier.number }}</td><td class="small"><code>{{ c.image_digest|default:"—"|truncatechars:48 }}</code></td>
+    <td>{% if c.enabled %}<span class="ok">yes</span>{% else %}<span class="bad">no</span>{% endif %}</td>
+    <td><form method="post" action="{% url 'admin_toggle' c.slug %}">{% csrf_token %}<button class="secondary">{% if c.enabled %}Disable{% else %}Enable{% endif %}</button></form></td></tr>{% endfor %}</tbody>
+</table>
+{% endblock %}

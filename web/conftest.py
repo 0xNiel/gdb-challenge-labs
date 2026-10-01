@@ -72,4 +72,6 @@ def fake_labd():
     FakeLabd.fail_with = None
     FakeLabd.start_state = "running"
     FakeLabd.stop_fails = False
+    FakeLabd.draining = False
+    FakeLabd.pending_pull = 0
     return FakeLabd

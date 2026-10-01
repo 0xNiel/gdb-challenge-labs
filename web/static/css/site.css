@@ -110,3 +110,6 @@ svg.chart text.legend { stroke: none; }
 svg.chart .bar { fill: var(--accent); }
 table.dash { width: 100%; margin: .5rem 0 1.5rem; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
 table.dash th { font-size: .85rem; color: var(--muted); }
+.banner-warn { padding: .6rem .9rem; background: #fdf3e2; border: 1px solid #f0d9a8; border-radius: 6px; }
+.bar.hot span { background: var(--bad); }
+button.danger { color: var(--bad); border-color: #f0c2bf; }

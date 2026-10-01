@@ -72,6 +72,10 @@ class LabdClient:
     def stats(self) -> dict:
         return self._call("GET", "/internal/stats")
 
+    def drain(self, on: bool) -> dict:
+        """Drain (effective max_sessions 0) or resume (ADR 0018). Returns the stats."""
+        return self._call("POST", "/internal/drain", {"drain": on})
+
 
 def get_client():
     return import_string(settings.LABD_CLIENT)()
