@@ -161,6 +161,31 @@ Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than
 - web stops the user's live session for that challenge with reason `solved`; the page shows "the lab has ended: the challenge was solved" and hides Stop. A wrong flag, a resubmission, or a solve with no lab stops nothing; if the stop fails, the solve still counts and the lab idles out as before.
 - Tests: five new view tests (107 web tests); the e2e test expects `ended/solved` right after the flag and still covers the Stop button in its timed runs. It passes in the arm64 VM (labs under runc).
 - Optional on the laptop: `git pull` on `main`, then `./run.sh test --e2e` to see it under gVisor.
+- Merged into `main` (fast-forward) after gate 6 passed again on the Mac with the change (its x86-64 record and human check are the laptop's, from before the change):
+```
+==> gate for phase 6 — 2026-10-01T14:31Z — macbook.local
+==> [gate 6] preflight: no labd running, namespace labs empty
+==> preflight ok: no labd running, namespace labs empty
+  PASS  no labd running, namespace labs empty
+==> [gate 6] web: lint, unit and view tests, migrations
+  PASS  ruff check
+  PASS  pytest (unit and view, fake labd)
+  PASS  makemigrations --check clean
+==> [gate 6] shared vectors (S12, S15)
+  PASS  flag vectors in Python
+  PASS  WebSocket token vectors in Python
+  PASS  WebSocket token vectors in Go
+==> [gate 6] command-recording notice on the lab page (S19)
+  PASS  template test
+==> [gate 6] end to end on this host (sign up, solve lab 1 in the browser, unlock lab 2, stop)
+  PASS  run.sh test --e2e
+  PASS  no containers left in namespace labs
+==> [gate 6] authoritative end-to-end run (x86-64, labs under runsc; ADR 0001)
+  PASS  x86-64 e2e record (web-2026-10-01-linux-laptop.json): click-to-prompt p95 569 ms
+==> [gate 6] human check (task 6.7: lab 1 solved through the Django lab page)
+  PASS  STATUS.md records 'Phase 6 human check'
+==> GATE 6 PASSED. Paste this output into docs/STATUS.md.
+```
 
 ### 2026-10-01 — Phase 6 gate passed on the x86-64 laptop
 - The owner ran the e2e test under gVisor and played lab 1 through the Django page (human check 2026-10-01).
