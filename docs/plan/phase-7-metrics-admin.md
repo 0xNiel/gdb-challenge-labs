@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Depends on | Phase 6 |
-| Unblocks | Phase 8 |
+| Unblocks | Phase 8 (optional, ADR 0017) |
 | Spec sections | "Metrics & analytics" (entire), "Data model" rows `samples`, `rollups_1m`, `rollups_1h`, "Web app → adminpanel", "Orchestrator → Internal HTTP API" (`/internal/stats`, `DELETE`) |
 | Effort | one to two weeks |
 
@@ -60,8 +60,25 @@
 Run `labd-perf run --scenario P2 --n 20 --hold 5m` in the VM while a human watches the admin live page: gauge moves, per-session RSS updates, killing one session ends that vuser (the driver logs `state ended reason admin_kill`). Take a screenshot into `docs/metrics/`.
 **Done when:** STATUS.md records the check and the screenshot exists.
 
+### 7.10 Learner profile (ADR 0017)
+A `learner` profile in labd-perf that works the five real tier-1 labs, not the perf image. A script file, `labd/perf/learner.txt`, holds one episode per lab: a plain run of the binary; `gdb -q`; a look around (`list`, `info locals`, `bt`); the lab's own path to the fix (its `solve.gdb`); a watchpoint where the lesson teaches one; `quit`. It repeats, at about 6 commands a minute with 20 % idle. Shell lines wait for the shell's prompt, gdb lines for gdb's. Each learner works one lab, round-robin over the five. The command timings record `gdb_start`, `shell_run`, `run`, `next` and `watch` separately.
+**Done when:** unit tests parse the script and drive a fake terminal through one episode; a 3-learner P10 run at a single count in the VM finishes with no command errors.
+
+### 7.11 P10: capacity search on an 8-CPU host
+`labd/perf/capacity.sh --steps "60 90 120 150 180" --hold 8m` runs P10 at each count: 90 % learners, 10 % abusers (perf image), labs under runsc. It stops early once a count fails a criterion. On the laptop, CPUs 8–15 are offline for the whole run (`sudo chcpu -d 8-15`; `chcpu -e 8-15` after), so the host has 8, like the VPS. `labd-perf capacity` reads the run files and writes `docs/metrics/capacity-search-<date>-<host>.{json,md}`: one row per count, and the largest count that passes. Criteria per count:
+- lab start p95 < 2 s;
+- echo p95 < 100 ms;
+- `next` p95 < 250 ms;
+- no command errors and no OOM kills.
+
+**Done when:** the record exists from the laptop with `cpus == 8`, x86-64, runsc.
+
+### 7.12 The VPS estimate
+Rewrite `docs/metrics/vps-capacity.md` from the P10 record: the measured learner CPU, memory per lab under learners, the CPU knee on 8 CPUs, and a margin for a VPS vCPU. Propose `max_sessions` for the VPS; if it differs from 100, write an ADR that supersedes ADR 0013.
+**Done when:** `vps-capacity.md` has no *est.* in its CPU section.
+
 ### 7.9 Wire the gate
-**Done when:** `./run.sh gate --phase 7` exits 0.
+**Done when:** `./run.sh gate --phase 7` exits 0. (Done last, after 7.10–7.12.)
 
 ## Tests
 
@@ -76,6 +93,8 @@ Go unit: sampler parsing, event emission. Go integration: samples written. Djang
 2. Integration: after a 60 s run with 2 sessions, `SELECT count(DISTINCT metric) FROM samples` ≥ 10.
 3. `manage.py rollup --minute` on that data produces rows; `--hour` produces rows.
 4. STATUS.md has `Phase 7 human check: <date> <who> OK` and the screenshot exists.
+5. A P10 capacity-search record from x86-64 with 8 CPUs online and labs under runsc (`docs/metrics/capacity-search-*.json`, task 7.11).
+6. `docs/metrics/vps-capacity.md` has no *est.* left in its CPU section (task 7.12).
 
 ## Metrics to record
 

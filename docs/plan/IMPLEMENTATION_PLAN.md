@@ -42,8 +42,8 @@ flowchart LR
 | 4 | [phase-4-perf-suite.md](phase-4-perf-suite.md) | `labd-perf` driver, P1–P9, `perf-report.json`, capacity table replaced | All scenarios produce numbers on an x86-64 box; pass criteria met or failures have decisions | M4 |
 | 5 | [phase-5-challenge-pipeline.md](phase-5-challenge-pipeline.md) | Manifest schema, build tooling, flag derivation, 5 tier-1 challenges, `challenges.json`, local build scripts (no CI, ADR 0008) | Every challenge builds reproducibly, passes leak and solve/no-solve checks; `labd pull` works | M5 |
 | 6 | [phase-6-web-app.md](phase-6-web-app.md) | Django: accounts, curriculum, lab page with xterm.js, flags, progress, dashboard | Unit tests; end-to-end: sign up, start lab, solve, submit flag, next unlocked | M6 |
-| 7 | [phase-7-metrics-admin.md](phase-7-metrics-admin.md) | events/samples emission, rollups, retention, dashboards, admin live view with kill | Rollup tests; admin watches a 20-lab `labd-perf` run live and kills one | M7 |
-| 8 | [phase-8-production.md](phase-8-production.md) | Provisioning, Caddy TLS, systemd, backups, hardening, tiers 2–3 (≥ 15 challenges), beta | Production checklist; 20-lab smoke on the VPS; backup restored into VM; 10 beta users | M8 |
+| 7 | [phase-7-metrics-admin.md](phase-7-metrics-admin.md) | events/samples emission, rollups, retention, dashboards, admin live view with kill; **the VPS capacity estimate measured on the laptop at 8 CPUs** (ADR 0017) | Rollup tests; admin watches a 20-lab `labd-perf` run live and kills one; P10 record; `vps-capacity.md` | M7 |
+| 8 | [phase-8-production.md](phase-8-production.md) | **Optional** (ADR 0017): provisioning, Caddy TLS, systemd, backups, hardening, tiers 2–3 (≥ 15 challenges), beta | Production checklist; 20-lab smoke on the VPS; backup restored into VM; 10 beta users | M8 |
 
 ## How to execute a phase
 
@@ -80,6 +80,9 @@ Follow this protocol exactly. It is designed to survive context loss between ses
 | Perf | `labd-perf` scenarios P0–P9 | x86-64 Linux box | gates 1, 3, 4, 8 |
 
 ## What "done" means for the MVP
+
+Phase 8 is optional for now (ADR 0017): the items below that need the VPS are deferred, and the capacity answer for the target VPS comes from Phase 7 (`docs/metrics/vps-capacity.md`).
+
 
 - `docs/metrics/capacity.md` has no row marked *est.*
 - `docs/metrics/perf-report-<date>-<host>.json` exists for the production box with all P1–P9 present.

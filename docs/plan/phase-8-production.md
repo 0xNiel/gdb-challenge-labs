@@ -7,6 +7,8 @@
 | Spec sections | "Deployment on the Hostinger VPS" (entire), "Lab images → Registry", "Curriculum ladder" tiers 2–3, "Success criteria", "Open questions & risks" |
 | Effort | one week for the box; content in parallel |
 
+**Status: optional, deferred by the owner on 2026-10-01 (ADR 0017).** Nothing depends on this phase. The capacity answer for the target VPS comes from Phase 7's laptop run (`docs/metrics/vps-capacity.md`). When a VPS exists, start with 8.1 and 8.8.
+
 ## Objective
 
 The platform runs on the Hostinger VPS behind Caddy with TLS, all as systemd units, provisioned by one idempotent script, backed up nightly off-box, with tiers 1–3 (≥ 15 challenges) imported. Ten beta users use it. The capacity numbers are re-checked on the production box itself.

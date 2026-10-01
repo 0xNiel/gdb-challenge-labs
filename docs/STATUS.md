@@ -14,7 +14,9 @@ Phase 6 human check: 2026-10-01 <OG> OK
 
 ## Current phase
 
-**Phase 6 — Django web app: done** (gate passed on the laptop 2026-10-01; merged into `main`). **Phase 7 (metrics, rollups, admin live view) is next and not started:** it starts only when the owner says to continue.
+**Phase 7 — Metrics, rollups, admin live view, and the VPS capacity estimate: in progress** on branch `phase-7-metrics-admin`. The owner made Phase 8 optional and asked for a measured estimate of concurrent labs on the target VPS (8 vCPU, 32 GB, 400 GB NVMe, 32 TB). ADR 0017 moves that into Phase 7 (tasks 7.10–7.12), measured on the laptop with 8 CPUs online.
+
+First estimate (`docs/metrics/vps-capacity.md`): memory allows about 425 labs in typical use and 166 if every lab filled its memory limit; bandwidth and disk allow thousands. CPU decides, and its two inputs (a real learner's CPU, the share of busy loops) are not measured yet: about 80 to 130 at 75 % CPU with 10 % busy loops. `max_sessions` stays 100 until P10 measures it.
 
 <details><summary>Phase 6 laptop checklist (done 2026-10-01)</summary>
 
@@ -136,10 +138,10 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 4 | Perf suite and measured capacity | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
 | 5 | Challenge pipeline and tier 1 content | done; merged to `main` | passed on the Mac; x86-64 builds and human checks from the laptop | 2026-10-01 |
 | 6 | Django web app | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
-| 7 | Metrics, rollups, admin live view | not started (waiting for the owner) | — | — |
-| 8 | Production on the VPS, tiers 2–3, beta | blocked on 4, 7 | — | — |
+| 7 | Metrics, rollups, admin live view; VPS capacity (ADR 0017) | in progress | — | — |
+| 8 | Production on the VPS, tiers 2–3, beta | optional (deferred by the owner, ADR 0017) | — | — |
 
-States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`.
+States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`, `optional`.
 
 ## Open blockers
 
