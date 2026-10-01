@@ -14,7 +14,9 @@ Phase 6 human check: 2026-10-01 <OG> OK
 
 ## Current phase
 
-**Phase 6 — Django web app: in progress** on branch `phase-6-web-app`. Every task (6.1–6.13) is built and committed. On the Mac, gate 6 passes everything except the two laptop items: an end-to-end record from x86-64 with labs under gVisor, and the human check.
+**Phase 6 — Django web app: done** (gate passed on the laptop 2026-10-01; merged into `main`). **Phase 7 (metrics, rollups, admin live view) is next and not started:** it starts only when the owner says to continue.
+
+<details><summary>Phase 6 laptop checklist (done 2026-10-01)</summary>
 
 **On the laptop, in this order** (about 30 minutes):
 
@@ -51,6 +53,8 @@ Phase 6 human check: 2026-10-01 <OG> OK
    git add docs/metrics docs/STATUS.md && git commit -m "[P6] metrics: laptop e2e; human check" && git push
    ./run.sh gate --phase 6
    ```
+
+</details>
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -131,8 +135,8 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 3 | Terminal gateway (WebSocket ↔ PTY) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 4 | Perf suite and measured capacity | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
 | 5 | Challenge pipeline and tier 1 content | done; merged to `main` | passed on the Mac; x86-64 builds and human checks from the laptop | 2026-10-01 |
-| 6 | Django web app | in progress: built; e2e passes in the arm64 VM; needs the laptop e2e record and the human check | Mac: all but the laptop items | 2026-10-01 |
-| 7 | Metrics, rollups, admin live view | blocked on 6 | — | — |
+| 6 | Django web app | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
+| 7 | Metrics, rollups, admin live view | not started (waiting for the owner) | — | — |
 | 8 | Production on the VPS, tiers 2–3, beta | blocked on 4, 7 | — | — |
 
 States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`.
@@ -151,6 +155,38 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-10-01 — Phase 6 gate passed on the x86-64 laptop
+- The owner ran the e2e test under gVisor and played lab 1 through the Django page (human check 2026-10-01).
+- **Start latency** (`docs/metrics/web-2026-10-01-linux-laptop.md`, 10 runs, runsc): click Start to the terminal page p95 418 ms; click Start to the shell prompt p95 569 ms, against the spec's 2 s.
+- Phase 6 merged into `main` (fast-forward) and pushed.
+- **Next:** the owner asked that a correct flag stop the lab; then Phase 7 when the owner says to continue.
+
+Phase 6 gate on the Linux laptop:
+```
+==> gate for phase 6 — 2026-10-01T14:24Z — linux-laptop
+==> [gate 6] preflight: no labd running, namespace labs empty
+==> preflight ok: no labd running, namespace labs empty
+  PASS  no labd running, namespace labs empty
+==> [gate 6] web: lint, unit and view tests, migrations
+  PASS  ruff check
+  PASS  pytest (unit and view, fake labd)
+  PASS  makemigrations --check clean
+==> [gate 6] shared vectors (S12, S15)
+  PASS  flag vectors in Python
+  PASS  WebSocket token vectors in Python
+  PASS  WebSocket token vectors in Go
+==> [gate 6] command-recording notice on the lab page (S19)
+  PASS  template test
+==> [gate 6] end to end on this host (sign up, solve lab 1 in the browser, unlock lab 2, stop)
+  PASS  run.sh test --e2e
+  PASS  no containers left in namespace labs
+==> [gate 6] authoritative end-to-end run (x86-64, labs under runsc; ADR 0001)
+  PASS  x86-64 e2e record (web-2026-10-01-linux-laptop.json): click-to-prompt p95 569 ms
+==> [gate 6] human check (task 6.7: lab 1 solved through the Django lab page)
+  PASS  STATUS.md records 'Phase 6 human check'
+==> GATE 6 PASSED. Paste this output into docs/STATUS.md.
+```
 
 ### 2026-10-01 — Phase 6 built: the Django web app
 - **Models and import** (6.1, 6.3): six apps; `tiers`, `lessons`, `challenges`, `progress`, `flag_attempts`; labd's `sessions` and `events` as unmanaged models, with a test that compares their columns to labd's SQL. `migrate` as role web on the VM's Postgres works, and the models read labd's rows. `import_challenges` upserts, disables absent ones, never deletes.
