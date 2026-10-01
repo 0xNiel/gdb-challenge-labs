@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gdb-labs/challenges/schema/manifest.schema.json",
+  "title": "Challenge manifest (challenges/<tier>/<NN-slug>/manifest.yaml)",
+  "description": "The spec's manifest keys (Lab images > Per-challenge layer) plus key_expr, key_value, boss and build (Phase 5 plan, ADR 0005). labd/cmd/manifestlint applies this file; it also checks that slug, tier and order match the directory.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["slug", "title", "tier", "order", "difficulty", "estimated_minutes", "flag_format", "image", "limits", "hints", "tags", "key_expr", "key_value", "build"],
+  "properties": {
+    "slug": {"type": "string", "pattern": "^tier[1-9]-[0-9]{2}-[a-z0-9]+(-[a-z0-9]+)*$"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 80},
+    "tier": {"type": "integer", "minimum": 1, "maximum": 9},
+    "order": {"type": "integer", "minimum": 1, "maximum": 99},
+    "difficulty": {"type": "integer", "minimum": 1, "maximum": 5},
+    "estimated_minutes": {"type": "integer", "minimum": 1, "maximum": 240},
+    "flag_format": {"type": "string", "enum": ["LAB{...}"]},
+    "image": {
+      "description": "Written by scripts/challenge-build.sh: a GHCR digest after --push, or local/lab-<slug>@sha256:... in dev (accepted only with --allow-local). Empty before the first build.",
+      "type": "string",
+      "pattern": "^$|^ghcr\\.io/[a-z0-9-]+/lab-[a-z0-9-]+@sha256:[a-f0-9]{64}$"
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["memory_mb", "cpu_millicores", "pids", "ttl_minutes", "idle_minutes", "extend_minutes"],
+      "properties": {
+        "memory_mb": {"type": "integer", "minimum": 32, "maximum": 1024},
+        "cpu_millicores": {"type": "integer", "minimum": 100, "maximum": 2000},
+        "pids": {"type": "integer", "minimum": 4, "maximum": 32},
+        "ttl_minutes": {"type": "integer", "minimum": 5, "maximum": 240},
+        "idle_minutes": {"type": "integer", "minimum": 1, "maximum": 60},
+        "extend_minutes": {"type": "integer", "minimum": 0, "maximum": 60}
+      }
+    },
+    "hints": {
+      "description": "Escalating: hint 1 names the gdb command, hint 2 the variable, hint 3 the fix. A boss has none.",
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["cost", "text"],
+        "properties": {
+          "cost": {"type": "integer", "minimum": 0, "maximum": 3},
+          "text": {"type": "string", "minLength": 1, "maxLength": 400}
+        }
+      }
+    },
+    "tags": {"type": "array", "maxItems": 10, "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}},
+    "boss": {"type": "boolean", "description": "The tier's last challenge: no hints."},
+    "key_expr": {"type": "string", "minLength": 1, "maxLength": 200, "description": "What runtime value report() decodes the flag with, in words or C (e.g. total)."},
+    "key_value": {"type": "integer", "minimum": 0, "maximum": 4294967295, "description": "That value when the state is right: flagblob's --key. Never in the image."},
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["flags", "entry"],
+      "properties": {
+        "flags": {"type": "string", "description": "gcc flags; the build adds -static -no-pie -fno-pie (ADR 0010)."},
+        "entry": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$", "description": "The binary's name in /opt/lab."}
+      }
+    }
+  }
+}
