@@ -10,16 +10,18 @@ func TestParseChallenges(t *testing.T) {
 	cs, err := ParseChallenges([]byte(`{"version":1,"challenges":[
 		{"slug":"perf","image":"docker.io/gdblabs/perf:dev","enabled":true,"title":"ignored",
 		 "limits":{"memory_mb":256}},
-		{"slug":"b","image":"x","enabled":false}]}`))
+		{"slug":"b","image":"x","enabled":false},
+		{"slug":"c","enabled":false}]}`))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(cs) != 2 || cs[0].Limits.MemoryMB != 256 || !cs[0].Enabled || cs[1].Enabled {
+	// A disabled challenge may have no image yet (not pushed): labd never starts it.
+	if len(cs) != 3 || cs[0].Limits.MemoryMB != 256 || !cs[0].Enabled || cs[1].Enabled || cs[2].Image != "" {
 		t.Fatalf("%+v", cs)
 	}
 	for name, doc := range map[string]string{
 		"empty slug":   `{"challenges":[{"slug":"","image":"x"}]}`,
-		"no image":     `{"challenges":[{"slug":"a"}]}`,
+		"no image":     `{"challenges":[{"slug":"a","enabled":true}]}`,
 		"duplicate":    `{"challenges":[{"slug":"a","image":"x"},{"slug":"a","image":"y"}]}`,
 		"negative":     `{"challenges":[{"slug":"a","image":"x","limits":{"pids":-1}}]}`,
 		"not json":     `{`,

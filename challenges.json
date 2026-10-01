@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "generated_at": "2026-10-01T04:57:45Z",
+  "challenges": [
+    {
+      "slug": "tier1-01-off-by-one",
+      "title": "Off by one",
+      "tier": 1,
+      "order": 1,
+      "difficulty": 1,
+      "estimated_minutes": 15,
+      "image": "",
+      "limits": {
+        "memory_mb": 128,
+        "cpu_millicores": 500,
+        "pids": 32,
+        "ttl_minutes": 60,
+        "idle_minutes": 15,
+        "extend_minutes": 15
+      },
+      "hints": [
+        {
+          "cost": 0,
+          "text": "Stop inside the loop with `break sum_scores`, `run`, then step with `next` and watch the counter with `display i`."
+        },
+        {
+          "cost": 1,
+          "text": "Look at how far `i` goes, and compare `total` with the sum of `print scores[0]@5`."
+        },
+        {
+          "cost": 2,
+          "text": "Let `sum_scores` return (`finish`, then `next`), `set var total = \u003cthe true sum\u003e`, then `continue`."
+        }
+      ],
+      "tags": [
+        "c",
+        "loops",
+        "arrays"
+      ],
+      "boss": false,
+      "enabled": false,
+      "lesson_path": "challenges/tier1-c-fundamentals/01-off-by-one/lesson.md",
+      "solution_path": "challenges/tier1-c-fundamentals/01-off-by-one/solution.md"
+    },
+    {
+      "slug": "tier1-02-null-deref",
+      "title": "Null dereference",
+      "tier": 1,
+      "order": 2,
+      "difficulty": 2,
+      "estimated_minutes": 20,
+      "image": "",
+      "limits": {
+        "memory_mb": 128,
+        "cpu_millicores": 500,
+        "pids": 32,
+        "ttl_minutes": 60,
+        "idle_minutes": 15,
+        "extend_minutes": 15
+      },
+      "hints": [
+        {
+          "cost": 0,
+          "text": "Let it crash under gdb, then `bt` to see which frames led there."
+        },
+        {
+          "cost": 1,
+          "text": "Look at the pointer `greet` received with `info args`, and at what `find_user` compares: `break find_user`, then `print users[i].name` and `print name` each time round."
+        },
+        {
+          "cost": 2,
+          "text": "Stop at the start of `greet`, point `u` at the real record with `set var u = \u0026users[2]`, then `continue`."
+        }
+      ],
+      "tags": [
+        "c",
+        "pointers",
+        "crash",
+        "stack"
+      ],
+      "boss": false,
+      "enabled": false,
+      "lesson_path": "challenges/tier1-c-fundamentals/02-null-deref/lesson.md",
+      "solution_path": "challenges/tier1-c-fundamentals/02-null-deref/solution.md"
+    },
+    {
+      "slug": "tier1-03-uninitialized",
+      "title": "Uninitialized",
+      "tier": 1,
+      "order": 3,
+      "difficulty": 2,
+      "estimated_minutes": 20,
+      "image": "",
+      "limits": {
+        "memory_mb": 128,
+        "cpu_millicores": 500,
+        "pids": 32,
+        "ttl_minutes": 60,
+        "idle_minutes": 15,
+        "extend_minutes": 15
+      },
+      "hints": [
+        {
+          "cost": 0,
+          "text": "Stop in the function that checks the code (`break lookup`) and watch the variable it returns with `watch found`."
+        },
+        {
+          "cost": 1,
+          "text": "Does anything ever write `found` when the code is not in the list? Look at its value with `x/dw \u0026found` before the loop runs."
+        },
+        {
+          "cost": 2,
+          "text": "At the start of `lookup`, `set var found = 0`, then `continue`."
+        }
+      ],
+      "tags": [
+        "c",
+        "memory",
+        "stack",
+        "watchpoints"
+      ],
+      "boss": false,
+      "enabled": false,
+      "lesson_path": "challenges/tier1-c-fundamentals/03-uninitialized/lesson.md",
+      "solution_path": "challenges/tier1-c-fundamentals/03-uninitialized/solution.md"
+    },
+    {
+      "slug": "tier1-04-unterminated",
+      "title": "Unterminated string",
+      "tier": 1,
+      "order": 4,
+      "difficulty": 3,
+      "estimated_minutes": 25,
+      "image": "",
+      "limits": {
+        "memory_mb": 128,
+        "cpu_millicores": 500,
+        "pids": 32,
+        "ttl_minutes": 60,
+        "idle_minutes": 15,
+        "extend_minutes": 15
+      },
+      "hints": [
+        {
+          "cost": 0,
+          "text": "Stop after the badge is filled in (`break badge_key`, `run`) and look at the name's raw bytes with `x/16xb card.name`."
+        },
+        {
+          "cost": 1,
+          "text": "Compare `x/s card.name` with what `name` should hold, and look at what comes right after it in the struct: `ptype /o struct badge`."
+        },
+        {
+          "cost": 2,
+          "text": "Put the missing terminator after the 8 characters: `set var card.role[0] = 0` (the byte at `card.name + 8`), then `continue`."
+        }
+      ],
+      "tags": [
+        "c",
+        "strings",
+        "memory",
+        "structs"
+      ],
+      "boss": false,
+      "enabled": false,
+      "lesson_path": "challenges/tier1-c-fundamentals/04-unterminated/lesson.md",
+      "solution_path": "challenges/tier1-c-fundamentals/04-unterminated/solution.md"
+    },
+    {
+      "slug": "tier1-05-stack-overwrite",
+      "title": "The overwritten neighbour",
+      "tier": 1,
+      "order": 5,
+      "difficulty": 4,
+      "estimated_minutes": 40,
+      "image": "",
+      "limits": {
+        "memory_mb": 128,
+        "cpu_millicores": 500,
+        "pids": 32,
+        "ttl_minutes": 60,
+        "idle_minutes": 15,
+        "extend_minutes": 15
+      },
+      "hints": [],
+      "tags": [
+        "c",
+        "memory",
+        "stack",
+        "watchpoints",
+        "structs"
+      ],
+      "boss": true,
+      "enabled": false,
+      "lesson_path": "challenges/tier1-c-fundamentals/05-stack-overwrite/lesson.md",
+      "solution_path": "challenges/tier1-c-fundamentals/05-stack-overwrite/solution.md"
+    }
+  ]
+}

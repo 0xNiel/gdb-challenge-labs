@@ -9,7 +9,8 @@ import (
 )
 
 // LoadChallenges reads challenges.json: {"challenges": [{slug, image, limits, enabled}]}.
-// Phase 5 generates it; unknown fields (title, tier, hints, ...) are for web and ignored.
+// Phase 5 generates it; unknown fields (title, tier, hints, ...) are for web and ignored. A
+// disabled challenge may have no image yet (not pushed): labd never starts it.
 func LoadChallenges(path string) ([]Challenge, error) {
 	raw, err := os.ReadFile(path)
 	if err != nil {
@@ -35,7 +36,7 @@ func ParseChallenges(raw []byte) ([]Challenge, error) {
 			errs = append(errs, fmt.Errorf("challenges[%d]: slug is empty", i))
 		case seen[c.Slug]:
 			errs = append(errs, fmt.Errorf("challenges[%d]: duplicate slug %q", i, c.Slug))
-		case c.Image == "":
+		case c.Image == "" && c.Enabled:
 			errs = append(errs, fmt.Errorf("challenge %q: image is empty", c.Slug))
 		}
 		l := c.Limits

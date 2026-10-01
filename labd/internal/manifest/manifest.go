@@ -50,7 +50,7 @@ type Hint struct {
 }
 
 // LocalImage is a dev build's image reference (scripts/challenge-build.sh without --push).
-var LocalImage = regexp.MustCompile(`^local/lab-[a-z0-9-]+@sha256:[a-f0-9]{64}$`)
+var localRef = regexp.MustCompile(`^local/lab-[a-z0-9-]+@sha256:[a-f0-9]{64}$`)
 
 var challengeDir = regexp.MustCompile(`^tier([1-9])-[a-z0-9-]+/([0-9]{2})-([a-z0-9-]+)$`)
 
@@ -78,7 +78,7 @@ func Lint(path, schemaPath string, allowLocal bool) (Manifest, []string) {
 	doc = normalise(doc)
 	obj, _ := doc.(map[string]any)
 	var errs []string
-	if img, _ := obj["image"].(string); allowLocal && LocalImage.MatchString(img) {
+	if img, _ := obj["image"].(string); allowLocal && localRef.MatchString(img) {
 		obj["image"] = "" // the schema allows only GHCR digests; a dev build may use local/
 	}
 	errs = append(errs, validate(schema, doc, "manifest")...)
