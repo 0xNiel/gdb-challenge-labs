@@ -1,0 +1,6654 @@
+{
+ "meta": {
+  "scenario": "P1",
+  "host": "linux-laptop",
+  "arch": "x86_64",
+  "kernel": "7.0.0-34-generic",
+  "runtime": "io.containerd.runc.v2",
+  "label": "runc",
+  "date": "2026-10-01T02:47:19Z",
+  "n": 1,
+  "ramp_per_s": 5,
+  "hold_s": 600,
+  "mix": {
+   "stepper": 1
+  },
+  "max_sessions": 100,
+  "host_mem_total_mb": 15582,
+  "cpus": 16,
+  "command": "labd-perf run --scenario P1 --ramp 5 --api http://127.0.0.1:18081 --ws ws://127.0.0.1:18082 --script ~/labbing-platform/images/perf/session.gdb --out ~/labbing-platform/docs/metrics --host linux-laptop --runtime io.containerd.runc.v2 --platform  --label runc --partial ",
+  "duration_s": 614
+ },
+ "summary": {
+  "sessions": 1,
+  "vuser_errors": 0,
+  "commands": 205,
+  "command_errors": 0,
+  "start_to_prompt_ms": {
+   "n": 1,
+   "p50": 411.898,
+   "p95": 411.898,
+   "p99": 411.898,
+   "max": 411.898
+  },
+  "create_http_ms": {
+   "n": 1,
+   "p50": 8.469,
+   "p95": 8.469,
+   "p99": 8.469,
+   "max": 8.469
+  },
+  "queue_wait_ms": {
+   "n": 1,
+   "p50": 163.313,
+   "p95": 163.313,
+   "p99": 163.313,
+   "max": 163.313
+  },
+  "echo_ms": {
+   "n": 207,
+   "p50": 1.255,
+   "p95": 1.439,
+   "p99": 1.526,
+   "max": 1.537
+  },
+  "echo_ms_by_profile": {
+   "stepper": {
+    "n": 207,
+    "p50": 1.255,
+    "p95": 1.439,
+    "p99": 1.526,
+    "max": 1.537
+   }
+  },
+  "step_cmd_ms": {
+   "n": 78,
+   "p50": 3.055,
+   "p95": 5.101,
+   "p99": 6.633,
+   "max": 6.633
+  },
+  "cmd_ms": {
+   "break": {
+    "n": 15,
+    "p50": 1.847,
+    "p95": 3.028,
+    "p99": 3.028,
+    "max": 3.028
+   },
+   "call": {
+    "n": 3,
+    "p50": 2.981,
+    "p95": 2.993,
+    "p99": 2.993,
+    "max": 2.993
+   },
+   "continue": {
+    "n": 25,
+    "p50": 2.812,
+    "p95": 5.175,
+    "p99": 5.226,
+    "max": 5.226
+   },
+   "delete": {
+    "n": 3,
+    "p50": 1.521,
+    "p95": 1.574,
+    "p99": 1.574,
+    "max": 1.574
+   },
+   "display": {
+    "n": 7,
+    "p50": 1.615,
+    "p95": 1.816,
+    "p99": 1.816,
+    "max": 1.816
+   },
+   "finish": {
+    "n": 6,
+    "p50": 2.688,
+    "p95": 2.993,
+    "p99": 2.993,
+    "max": 2.993
+   },
+   "info": {
+    "n": 10,
+    "p50": 1.771,
+    "p95": 5.203,
+    "p99": 5.203,
+    "max": 5.203
+   },
+   "next": {
+    "n": 74,
+    "p50": 3.055,
+    "p95": 5.101,
+    "p99": 6.633,
+    "max": 6.633
+   },
+   "print": {
+    "n": 24,
+    "p50": 1.758,
+    "p95": 3.953,
+    "p99": 4.325,
+    "max": 4.325
+   },
+   "print/x": {
+    "n": 3,
+    "p50": 1.393,
+    "p95": 1.528,
+    "p99": 1.528,
+    "max": 1.528
+   },
+   "run": {
+    "n": 4,
+    "p50": 6.488,
+    "p95": 15.743,
+    "p99": 15.743,
+    "max": 15.743
+   },
+   "set": {
+    "n": 12,
+    "p50": 1.629,
+    "p95": 2.829,
+    "p99": 2.829,
+    "max": 2.829
+   },
+   "step": {
+    "n": 4,
+    "p50": 2.888,
+    "p95": 3.148,
+    "p99": 3.148,
+    "max": 3.148
+   },
+   "tbreak": {
+    "n": 3,
+    "p50": 1.869,
+    "p95": 1.971,
+    "p99": 1.971,
+    "max": 1.971
+   },
+   "thread": {
+    "n": 3,
+    "p50": 8.144,
+    "p95": 11.099,
+    "p99": 11.099,
+    "max": 11.099
+   },
+   "undisplay": {
+    "n": 3,
+    "p50": 1.267,
+    "p95": 1.345,
+    "p99": 1.345,
+    "max": 1.345
+   },
+   "watch": {
+    "n": 3,
+    "p50": 1.495,
+    "p95": 1.622,
+    "p99": 1.622,
+    "max": 1.622
+   },
+   "x/16xb": {
+    "n": 3,
+    "p50": 2.145,
+    "p95": 2.473,
+    "p99": 2.473,
+    "max": 2.473
+   }
+  },
+  "hold_labs": 1,
+  "hold_samples": 115,
+  "lab_mem_mb": {
+   "n": 113,
+   "p50": 13.06,
+   "p95": 13.74,
+   "p99": 14.24,
+   "max": 14.41
+  },
+  "sentry_rss_mb": {
+   "n": 0,
+   "p50": 0,
+   "p95": 0,
+   "p99": 0,
+   "max": 0
+  },
+  "lab_host_rss_mb": {
+   "n": 0,
+   "p50": 0,
+   "p95": 0,
+   "p99": 0,
+   "max": 0
+  },
+  "lab_cpu_pct_avg": 0.06,
+  "lab_cpu_pct_by_profile": {
+   "stepper": 0.06
+  },
+  "host_baseline_mb": 5350,
+  "host_after_mb": 5350,
+  "host_mem_used_mb": {
+   "p50": 5372.1,
+   "p95": 5402.8,
+   "max": 5416.3
+  },
+  "host_per_lab_mb": 66.3,
+  "host_cpu_pct": {
+   "p50": 1.03,
+   "p95": 3.56,
+   "max": 4.63
+  },
+  "psi_max": {
+   "cpu_some_avg10": 0.68,
+   "memory_some_avg10": 0,
+   "io_some_avg10": 0
+  },
+  "oom_kills": 0,
+  "labd_rss_mb": {
+   "idle": 25.6,
+   "peak": 29.4,
+   "after": 29.1
+  },
+  "labd_goroutines": {
+   "idle": 17,
+   "peak": 26,
+   "after": 17
+  },
+  "containerd_rss_mb": {
+   "idle": 67.1,
+   "peak": 67.2,
+   "after": 62.5
+  },
+  "containers_max": 1,
+  "ws_bps_in": 3.5,
+  "ws_bps_out": 61.5,
+  "ws_bps_out_aggregate": 61,
+  "leaks": {
+   "containers": 0,
+   "goroutines": 0,
+   "fifos": 0
+  }
+ },
+ "criteria": [
+  {
+   "criterion": "start latency p95 \u003c 2 s",
+   "measured": "412 ms (n=1: one start per session)",
+   "pass": true
+  },
+  {
+   "criterion": "every simulated user completes",
+   "measured": "0 of 1 failed",
+   "pass": true
+  }
+ ],
+ "timeline": [
+  {
+   "t": 10,
+   "event": "baseline taken"
+  },
+  {
+   "t": 10,
+   "event": "ramp: 1 sessions at 5.0/s"
+  },
+  {
+   "t": 40.2,
+   "event": "hold start: all sessions running"
+  },
+  {
+   "t": 608.5,
+   "event": "hold end: first session finished"
+  },
+  {
+   "t": 614,
+   "event": "teardown done"
+  }
+ ],
+ "vusers": [
+  {
+   "user_id": 22839001,
+   "profile": "stepper",
+   "session_id": "bd096bb0-c6b8-40c0-98f4-038edc18ef9b",
+   "start_state": "creating",
+   "queue_position": 0,
+   "create_http_ms": 8.469,
+   "queue_wait_ms": 163.313,
+   "start_to_prompt_ms": 411.898,
+   "commands": 205,
+   "errors": 0,
+   "echo_ms": {
+    "n": 207,
+    "p50": 1.255,
+    "p95": 1.439,
+    "p99": 1.526,
+    "max": 1.537
+   },
+   "ws_bytes_in": 2080,
+   "ws_bytes_out": 36763,
+   "hold_s": 598
+  }
+ ],
+ "samples": [
+  {
+   "t": 0,
+   "mem_used_mb": 5347.7,
+   "mem_available_mb": 10234,
+   "cpu_pct": 0,
+   "psi": {
+    "cpu_some_avg10": 0.68,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 25.6
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 67.1,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 10,
+   "mem_used_mb": 5371.9,
+   "mem_available_mb": 10209.8,
+   "cpu_pct": 1.02,
+   "psi": {
+    "cpu_some_avg10": 0.33,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 25.6
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 67.1,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 5,
+   "mem_used_mb": 5379.6,
+   "mem_available_mb": 10202.1,
+   "cpu_pct": 1.68,
+   "psi": {
+    "cpu_some_avg10": 0.49,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 25.6
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 67.1,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 15,
+   "mem_used_mb": 5398,
+   "mem_available_mb": 10183.7,
+   "cpu_pct": 2.1,
+   "psi": {
+    "cpu_some_avg10": 0.33,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 27.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.68,
+    "p95": 12.68,
+    "max": 12.68
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 20,
+   "mem_used_mb": 5392.4,
+   "mem_available_mb": 10189.3,
+   "cpu_pct": 1.13,
+   "psi": {
+    "cpu_some_avg10": 0.22,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 27.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.65,
+    "p95": 12.65,
+    "max": 12.65
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.06,
+    "p95": 0.06,
+    "max": 0.06
+   },
+   "lab_cpu_pct_sum": 0.06
+  },
+  {
+   "t": 25,
+   "mem_used_mb": 5414.6,
+   "mem_available_mb": 10167.1,
+   "cpu_pct": 5.9,
+   "psi": {
+    "cpu_some_avg10": 0.12,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 27.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.63,
+    "p95": 13.63,
+    "max": 13.63
+   },
+   "lab_mem_sum_mb": 13.6,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.31,
+    "p95": 0.31,
+    "max": 0.31
+   },
+   "lab_cpu_pct_sum": 0.31
+  },
+  {
+   "t": 30,
+   "mem_used_mb": 5408.1,
+   "mem_available_mb": 10173.6,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 0.08,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 27.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.44,
+    "p95": 13.44,
+    "max": 13.44
+   },
+   "lab_mem_sum_mb": 13.4,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 35,
+   "mem_used_mb": 5403.6,
+   "mem_available_mb": 10178,
+   "cpu_pct": 1.03,
+   "psi": {
+    "cpu_some_avg10": 0.04,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 27.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.08,
+    "p95": 13.08,
+    "max": 13.08
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.07,
+    "p95": 0.07,
+    "max": 0.07
+   },
+   "lab_cpu_pct_sum": 0.07
+  },
+  {
+   "t": 40,
+   "mem_used_mb": 5402.6,
+   "mem_available_mb": 10179.1,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 0.02,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 27.9
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.97,
+    "p95": 12.97,
+    "max": 12.97
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.06,
+    "p95": 0.06,
+    "max": 0.06
+   },
+   "lab_cpu_pct_sum": 0.06
+  },
+  {
+   "t": 45,
+   "mem_used_mb": 5389.3,
+   "mem_available_mb": 10192.4,
+   "cpu_pct": 1.4,
+   "psi": {
+    "cpu_some_avg10": 0.01,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 27.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.97,
+    "p95": 12.97,
+    "max": 12.97
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.01,
+    "p95": 0.01,
+    "max": 0.01
+   },
+   "lab_cpu_pct_sum": 0.01
+  },
+  {
+   "t": 50,
+   "mem_used_mb": 5388.8,
+   "mem_available_mb": 10192.9,
+   "cpu_pct": 1.11,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 27.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.98,
+    "p95": 12.98,
+    "max": 12.98
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 55,
+   "mem_used_mb": 5388.1,
+   "mem_available_mb": 10193.6,
+   "cpu_pct": 0.97,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.2,
+    "p95": 13.2,
+    "max": 13.2
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.1,
+    "p95": 0.1,
+    "max": 0.1
+   },
+   "lab_cpu_pct_sum": 0.1
+  },
+  {
+   "t": 60,
+   "mem_used_mb": 5387.1,
+   "mem_available_mb": 10194.6,
+   "cpu_pct": 1.02,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.94,
+    "p95": 12.94,
+    "max": 12.94
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 65,
+   "mem_used_mb": 5387.2,
+   "mem_available_mb": 10194.5,
+   "cpu_pct": 0.94,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.91,
+    "p95": 12.91,
+    "max": 12.91
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 70,
+   "mem_used_mb": 5416.3,
+   "mem_available_mb": 10165.4,
+   "cpu_pct": 3.8,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.1
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.48,
+    "p95": 12.48,
+    "max": 12.48
+   },
+   "lab_mem_sum_mb": 12.5,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 75,
+   "mem_used_mb": 5406.2,
+   "mem_available_mb": 10175.5,
+   "cpu_pct": 2.31,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.61,
+    "p95": 12.61,
+    "max": 12.61
+   },
+   "lab_mem_sum_mb": 12.6,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 80,
+   "mem_used_mb": 5390.2,
+   "mem_available_mb": 10191.5,
+   "cpu_pct": 1.07,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.09,
+    "p95": 13.09,
+    "max": 13.09
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 85,
+   "mem_used_mb": 5391.4,
+   "mem_available_mb": 10190.3,
+   "cpu_pct": 1.19,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.2
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.29,
+    "p95": 13.29,
+    "max": 13.29
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 90,
+   "mem_used_mb": 5386.8,
+   "mem_available_mb": 10194.9,
+   "cpu_pct": 0.89,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.2
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.27,
+    "p95": 13.27,
+    "max": 13.27
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 95,
+   "mem_used_mb": 5386.7,
+   "mem_available_mb": 10195,
+   "cpu_pct": 0.96,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.3
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.02,
+    "p95": 13.02,
+    "max": 13.02
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 100,
+   "mem_used_mb": 5386,
+   "mem_available_mb": 10195.7,
+   "cpu_pct": 0.93,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.3
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.64,
+    "p95": 12.64,
+    "max": 12.64
+   },
+   "lab_mem_sum_mb": 12.6,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.09,
+    "p95": 0.09,
+    "max": 0.09
+   },
+   "lab_cpu_pct_sum": 0.09
+  },
+  {
+   "t": 105,
+   "mem_used_mb": 5383.9,
+   "mem_available_mb": 10197.8,
+   "cpu_pct": 1.21,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.4
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.82,
+    "p95": 12.82,
+    "max": 12.82
+   },
+   "lab_mem_sum_mb": 12.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.14,
+    "p95": 0.14,
+    "max": 0.14
+   },
+   "lab_cpu_pct_sum": 0.14
+  },
+  {
+   "t": 110,
+   "mem_used_mb": 5386.7,
+   "mem_available_mb": 10195,
+   "cpu_pct": 0.93,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.4
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.76,
+    "p95": 12.76,
+    "max": 12.76
+   },
+   "lab_mem_sum_mb": 12.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 115,
+   "mem_used_mb": 5386.7,
+   "mem_available_mb": 10195,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.7
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.95,
+    "p95": 12.95,
+    "max": 12.95
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.11,
+    "p95": 0.11,
+    "max": 0.11
+   },
+   "lab_cpu_pct_sum": 0.11
+  },
+  {
+   "t": 120,
+   "mem_used_mb": 5381.8,
+   "mem_available_mb": 10199.9,
+   "cpu_pct": 1.08,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.69,
+    "p95": 12.69,
+    "max": 12.69
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 125,
+   "mem_used_mb": 5381.9,
+   "mem_available_mb": 10199.7,
+   "cpu_pct": 0.96,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.48,
+    "p95": 12.48,
+    "max": 12.48
+   },
+   "lab_mem_sum_mb": 12.5,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.01,
+    "p95": 0.01,
+    "max": 0.01
+   },
+   "lab_cpu_pct_sum": 0.01
+  },
+  {
+   "t": 130,
+   "mem_used_mb": 5381.6,
+   "mem_available_mb": 10200.1,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 67.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.94,
+    "p95": 12.94,
+    "max": 12.94
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.15,
+    "p95": 0.15,
+    "max": 0.15
+   },
+   "lab_cpu_pct_sum": 0.15
+  },
+  {
+   "t": 135,
+   "mem_used_mb": 5377.8,
+   "mem_available_mb": 10203.8,
+   "cpu_pct": 1.61,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.85,
+    "p95": 12.85,
+    "max": 12.85
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.12,
+    "p95": 0.12,
+    "max": 0.12
+   },
+   "lab_cpu_pct_sum": 0.12
+  },
+  {
+   "t": 140,
+   "mem_used_mb": 5377,
+   "mem_available_mb": 10204.7,
+   "cpu_pct": 1.06,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.8,
+    "p95": 12.8,
+    "max": 12.8
+   },
+   "lab_mem_sum_mb": 12.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.09,
+    "p95": 0.09,
+    "max": 0.09
+   },
+   "lab_cpu_pct_sum": 0.09
+  },
+  {
+   "t": 145,
+   "mem_used_mb": 5390.1,
+   "mem_available_mb": 10191.6,
+   "cpu_pct": 1.25,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.76,
+    "p95": 12.76,
+    "max": 12.76
+   },
+   "lab_mem_sum_mb": 12.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 150,
+   "mem_used_mb": 5384.8,
+   "mem_available_mb": 10196.9,
+   "cpu_pct": 1.04,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.74,
+    "p95": 13.74,
+    "max": 13.74
+   },
+   "lab_mem_sum_mb": 13.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.15,
+    "p95": 0.15,
+    "max": 0.15
+   },
+   "lab_cpu_pct_sum": 0.15
+  },
+  {
+   "t": 155,
+   "mem_used_mb": 5385,
+   "mem_available_mb": 10196.7,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.46,
+    "p95": 13.46,
+    "max": 13.46
+   },
+   "lab_mem_sum_mb": 13.5,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.21,
+    "p95": 0.21,
+    "max": 0.21
+   },
+   "lab_cpu_pct_sum": 0.21
+  },
+  {
+   "t": 160,
+   "mem_used_mb": 5384.6,
+   "mem_available_mb": 10197.1,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.87,
+    "p95": 13.87,
+    "max": 13.87
+   },
+   "lab_mem_sum_mb": 13.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.12,
+    "p95": 0.12,
+    "max": 0.12
+   },
+   "lab_cpu_pct_sum": 0.12
+  },
+  {
+   "t": 165,
+   "mem_used_mb": 5380.9,
+   "mem_available_mb": 10200.8,
+   "cpu_pct": 1.28,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.46,
+    "p95": 12.46,
+    "max": 12.46
+   },
+   "lab_mem_sum_mb": 12.5,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 170,
+   "mem_used_mb": 5380.4,
+   "mem_available_mb": 10201.2,
+   "cpu_pct": 0.97,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.18,
+    "p95": 13.18,
+    "max": 13.18
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.13,
+    "p95": 0.13,
+    "max": 0.13
+   },
+   "lab_cpu_pct_sum": 0.13
+  },
+  {
+   "t": 175,
+   "mem_used_mb": 5372.5,
+   "mem_available_mb": 10209.2,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.41,
+    "p95": 13.41,
+    "max": 13.41
+   },
+   "lab_mem_sum_mb": 13.4,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 180,
+   "mem_used_mb": 5372.7,
+   "mem_available_mb": 10209,
+   "cpu_pct": 1.02,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.41,
+    "p95": 13.41,
+    "max": 13.41
+   },
+   "lab_mem_sum_mb": 13.4,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.01,
+    "p95": 0.01,
+    "max": 0.01
+   },
+   "lab_cpu_pct_sum": 0.01
+  },
+  {
+   "t": 185,
+   "mem_used_mb": 5372.5,
+   "mem_available_mb": 10209.2,
+   "cpu_pct": 0.97,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.16,
+    "p95": 13.16,
+    "max": 13.16
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.06,
+    "p95": 0.06,
+    "max": 0.06
+   },
+   "lab_cpu_pct_sum": 0.06
+  },
+  {
+   "t": 190,
+   "mem_used_mb": 5372.6,
+   "mem_available_mb": 10209.1,
+   "cpu_pct": 1.07,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.93,
+    "p95": 12.93,
+    "max": 12.93
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 195,
+   "mem_used_mb": 5359.6,
+   "mem_available_mb": 10222.1,
+   "cpu_pct": 3.67,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.67,
+    "p95": 12.67,
+    "max": 12.67
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 200,
+   "mem_used_mb": 5355.3,
+   "mem_available_mb": 10226.3,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.2
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.65,
+    "p95": 12.65,
+    "max": 12.65
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 205,
+   "mem_used_mb": 5367.9,
+   "mem_available_mb": 10213.8,
+   "cpu_pct": 1.13,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.2
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.38,
+    "p95": 12.38,
+    "max": 12.38
+   },
+   "lab_mem_sum_mb": 12.4,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 210,
+   "mem_used_mb": 5367.8,
+   "mem_available_mb": 10213.9,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.2
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.63,
+    "p95": 12.63,
+    "max": 12.63
+   },
+   "lab_mem_sum_mb": 12.6,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 215,
+   "mem_used_mb": 5368.1,
+   "mem_available_mb": 10213.6,
+   "cpu_pct": 1.09,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.3
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.63,
+    "p95": 12.63,
+    "max": 12.63
+   },
+   "lab_mem_sum_mb": 12.6,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 220,
+   "mem_used_mb": 5368.1,
+   "mem_available_mb": 10213.6,
+   "cpu_pct": 0.92,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.3
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.95,
+    "p95": 12.95,
+    "max": 12.95
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.11,
+    "p95": 0.11,
+    "max": 0.11
+   },
+   "lab_cpu_pct_sum": 0.11
+  },
+  {
+   "t": 225,
+   "mem_used_mb": 5365.7,
+   "mem_available_mb": 10216,
+   "cpu_pct": 1.11,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.3
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.38,
+    "p95": 13.38,
+    "max": 13.38
+   },
+   "lab_mem_sum_mb": 13.4,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.07,
+    "p95": 0.07,
+    "max": 0.07
+   },
+   "lab_cpu_pct_sum": 0.07
+  },
+  {
+   "t": 230,
+   "mem_used_mb": 5365,
+   "mem_available_mb": 10216.7,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.4
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.32,
+    "p95": 13.32,
+    "max": 13.32
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 235,
+   "mem_used_mb": 5365.3,
+   "mem_available_mb": 10216.4,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.4
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.3,
+    "p95": 13.3,
+    "max": 13.3
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 240,
+   "mem_used_mb": 5364.6,
+   "mem_available_mb": 10217.1,
+   "cpu_pct": 1.04,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.08,
+    "p95": 13.08,
+    "max": 13.08
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.01,
+    "p95": 0.01,
+    "max": 0.01
+   },
+   "lab_cpu_pct_sum": 0.01
+  },
+  {
+   "t": 245,
+   "mem_used_mb": 5364,
+   "mem_available_mb": 10217.7,
+   "cpu_pct": 0.97,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.03,
+    "p95": 13.03,
+    "max": 13.03
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.09,
+    "p95": 0.09,
+    "max": 0.09
+   },
+   "lab_cpu_pct_sum": 0.09
+  },
+  {
+   "t": 250,
+   "mem_used_mb": 5363.2,
+   "mem_available_mb": 10218.5,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 63.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.99,
+    "p95": 12.99,
+    "max": 12.99
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.09,
+    "p95": 0.09,
+    "max": 0.09
+   },
+   "lab_cpu_pct_sum": 0.09
+  },
+  {
+   "t": 255,
+   "mem_used_mb": 5375.3,
+   "mem_available_mb": 10206.4,
+   "cpu_pct": 1.56,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.3,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.2,
+    "p95": 13.2,
+    "max": 13.2
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 260,
+   "mem_used_mb": 5370.3,
+   "mem_available_mb": 10211.4,
+   "cpu_pct": 0.94,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.3,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.05,
+    "p95": 13.05,
+    "max": 13.05
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 265,
+   "mem_used_mb": 5369,
+   "mem_available_mb": 10212.6,
+   "cpu_pct": 1.95,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.3,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.28,
+    "p95": 13.28,
+    "max": 13.28
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 270,
+   "mem_used_mb": 5380.3,
+   "mem_available_mb": 10201.4,
+   "cpu_pct": 1.26,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.3,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.26,
+    "p95": 13.26,
+    "max": 13.26
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 275,
+   "mem_used_mb": 5380.4,
+   "mem_available_mb": 10201.3,
+   "cpu_pct": 0.98,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.3,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.84,
+    "p95": 12.84,
+    "max": 12.84
+   },
+   "lab_mem_sum_mb": 12.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.06,
+    "p95": 0.06,
+    "max": 0.06
+   },
+   "lab_cpu_pct_sum": 0.06
+  },
+  {
+   "t": 280,
+   "mem_used_mb": 5380.2,
+   "mem_available_mb": 10201.5,
+   "cpu_pct": 1.08,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.8
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.93,
+    "p95": 12.93,
+    "max": 12.93
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 285,
+   "mem_used_mb": 5380.3,
+   "mem_available_mb": 10201.4,
+   "cpu_pct": 1.07,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.16,
+    "p95": 13.16,
+    "max": 13.16
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 290,
+   "mem_used_mb": 5380.9,
+   "mem_available_mb": 10200.8,
+   "cpu_pct": 0.97,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.39,
+    "p95": 13.39,
+    "max": 13.39
+   },
+   "lab_mem_sum_mb": 13.4,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.07,
+    "p95": 0.07,
+    "max": 0.07
+   },
+   "lab_cpu_pct_sum": 0.07
+  },
+  {
+   "t": 295,
+   "mem_used_mb": 5381.1,
+   "mem_available_mb": 10200.6,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.82,
+    "p95": 13.82,
+    "max": 13.82
+   },
+   "lab_mem_sum_mb": 13.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.1,
+    "p95": 0.1,
+    "max": 0.1
+   },
+   "lab_cpu_pct_sum": 0.1
+  },
+  {
+   "t": 300,
+   "mem_used_mb": 5380.3,
+   "mem_available_mb": 10201.4,
+   "cpu_pct": 0.97,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.79,
+    "p95": 13.79,
+    "max": 13.79
+   },
+   "lab_mem_sum_mb": 13.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 305,
+   "mem_used_mb": 5379.5,
+   "mem_available_mb": 10202.2,
+   "cpu_pct": 0.93,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.51,
+    "p95": 13.51,
+    "max": 13.51
+   },
+   "lab_mem_sum_mb": 13.5,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.1,
+    "p95": 0.1,
+    "max": 0.1
+   },
+   "lab_cpu_pct_sum": 0.1
+  },
+  {
+   "t": 310,
+   "mem_used_mb": 5380.5,
+   "mem_available_mb": 10201.2,
+   "cpu_pct": 1.09,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.26,
+    "p95": 13.26,
+    "max": 13.26
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 315,
+   "mem_used_mb": 5373,
+   "mem_available_mb": 10208.7,
+   "cpu_pct": 2.51,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.48,
+    "p95": 13.48,
+    "max": 13.48
+   },
+   "lab_mem_sum_mb": 13.5,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 320,
+   "mem_used_mb": 5374.5,
+   "mem_available_mb": 10207.1,
+   "cpu_pct": 2.93,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.2,
+    "p95": 13.2,
+    "max": 13.2
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.11,
+    "p95": 0.11,
+    "max": 0.11
+   },
+   "lab_cpu_pct_sum": 0.11
+  },
+  {
+   "t": 325,
+   "mem_used_mb": 5402.9,
+   "mem_available_mb": 10178.7,
+   "cpu_pct": 4.13,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.21,
+    "p95": 13.21,
+    "max": 13.21
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 330,
+   "mem_used_mb": 5407.2,
+   "mem_available_mb": 10174.4,
+   "cpu_pct": 1.12,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.71,
+    "p95": 13.71,
+    "max": 13.71
+   },
+   "lab_mem_sum_mb": 13.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.11,
+    "p95": 0.11,
+    "max": 0.11
+   },
+   "lab_cpu_pct_sum": 0.11
+  },
+  {
+   "t": 335,
+   "mem_used_mb": 5405.2,
+   "mem_available_mb": 10176.5,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.46,
+    "p95": 13.46,
+    "max": 13.46
+   },
+   "lab_mem_sum_mb": 13.5,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 340,
+   "mem_used_mb": 5402.8,
+   "mem_available_mb": 10178.9,
+   "cpu_pct": 1.18,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 14.41,
+    "p95": 14.41,
+    "max": 14.41
+   },
+   "lab_mem_sum_mb": 14.4,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.12,
+    "p95": 0.12,
+    "max": 0.12
+   },
+   "lab_cpu_pct_sum": 0.12
+  },
+  {
+   "t": 345,
+   "mem_used_mb": 5400.5,
+   "mem_available_mb": 10181.1,
+   "cpu_pct": 1.17,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 14.24,
+    "p95": 14.24,
+    "max": 14.24
+   },
+   "lab_mem_sum_mb": 14.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.19,
+    "p95": 0.19,
+    "max": 0.19
+   },
+   "lab_cpu_pct_sum": 0.19
+  },
+  {
+   "t": 350,
+   "mem_used_mb": 5395.9,
+   "mem_available_mb": 10185.7,
+   "cpu_pct": 1.07,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.72,
+    "p95": 13.72,
+    "max": 13.72
+   },
+   "lab_mem_sum_mb": 13.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.06,
+    "p95": 0.06,
+    "max": 0.06
+   },
+   "lab_cpu_pct_sum": 0.06
+  },
+  {
+   "t": 355,
+   "mem_used_mb": 5395.9,
+   "mem_available_mb": 10185.8,
+   "cpu_pct": 1.03,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.46,
+    "p95": 13.46,
+    "max": 13.46
+   },
+   "lab_mem_sum_mb": 13.5,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 360,
+   "mem_used_mb": 5397,
+   "mem_available_mb": 10184.7,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.45,
+    "p95": 13.45,
+    "max": 13.45
+   },
+   "lab_mem_sum_mb": 13.5,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.13,
+    "p95": 0.13,
+    "max": 0.13
+   },
+   "lab_cpu_pct_sum": 0.13
+  },
+  {
+   "t": 365,
+   "mem_used_mb": 5397.5,
+   "mem_available_mb": 10184.2,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.21,
+    "p95": 13.21,
+    "max": 13.21
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 370,
+   "mem_used_mb": 5401.8,
+   "mem_available_mb": 10179.8,
+   "cpu_pct": 4.63,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.4,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.05,
+    "p95": 13.05,
+    "max": 13.05
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 375,
+   "mem_used_mb": 5385.1,
+   "mem_available_mb": 10196.6,
+   "cpu_pct": 2.08,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.98,
+    "p95": 12.98,
+    "max": 12.98
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 380,
+   "mem_used_mb": 5379.2,
+   "mem_available_mb": 10202.5,
+   "cpu_pct": 1.04,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.23,
+    "p95": 13.23,
+    "max": 13.23
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 385,
+   "mem_used_mb": 5376.8,
+   "mem_available_mb": 10204.9,
+   "cpu_pct": 1.04,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.21,
+    "p95": 13.21,
+    "max": 13.21
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 390,
+   "mem_used_mb": 5374.4,
+   "mem_available_mb": 10207.2,
+   "cpu_pct": 1.06,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.92,
+    "p95": 12.92,
+    "max": 12.92
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 395,
+   "mem_used_mb": 5372.8,
+   "mem_available_mb": 10208.8,
+   "cpu_pct": 0.87,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.68,
+    "p95": 12.68,
+    "max": 12.68
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 400,
+   "mem_used_mb": 5372.1,
+   "mem_available_mb": 10209.6,
+   "cpu_pct": 0.94,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.92,
+    "p95": 12.92,
+    "max": 12.92
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 405,
+   "mem_used_mb": 5368.8,
+   "mem_available_mb": 10212.9,
+   "cpu_pct": 1.09,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.02,
+    "p95": 13.02,
+    "max": 13.02
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.13,
+    "p95": 0.13,
+    "max": 0.13
+   },
+   "lab_cpu_pct_sum": 0.13
+  },
+  {
+   "t": 410,
+   "mem_used_mb": 5368.2,
+   "mem_available_mb": 10213.5,
+   "cpu_pct": 0.96,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.26,
+    "p95": 13.26,
+    "max": 13.26
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.06,
+    "p95": 0.06,
+    "max": 0.06
+   },
+   "lab_cpu_pct_sum": 0.06
+  },
+  {
+   "t": 415,
+   "mem_used_mb": 5366,
+   "mem_available_mb": 10215.7,
+   "cpu_pct": 1.03,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.26,
+    "p95": 13.26,
+    "max": 13.26
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 420,
+   "mem_used_mb": 5365.2,
+   "mem_available_mb": 10216.5,
+   "cpu_pct": 1.02,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.15,
+    "p95": 13.15,
+    "max": 13.15
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 425,
+   "mem_used_mb": 5365.6,
+   "mem_available_mb": 10216.1,
+   "cpu_pct": 1.03,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.91,
+    "p95": 12.91,
+    "max": 12.91
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 430,
+   "mem_used_mb": 5369.9,
+   "mem_available_mb": 10211.7,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.15,
+    "p95": 13.15,
+    "max": 13.15
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 435,
+   "mem_used_mb": 5370.2,
+   "mem_available_mb": 10211.5,
+   "cpu_pct": 1.47,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.15,
+    "p95": 13.15,
+    "max": 13.15
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 440,
+   "mem_used_mb": 5368.3,
+   "mem_available_mb": 10213.4,
+   "cpu_pct": 0.96,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.13,
+    "p95": 13.13,
+    "max": 13.13
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 445,
+   "mem_used_mb": 5367.5,
+   "mem_available_mb": 10214.1,
+   "cpu_pct": 1.04,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.13,
+    "p95": 13.13,
+    "max": 13.13
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.01,
+    "p95": 0.01,
+    "max": 0.01
+   },
+   "lab_cpu_pct_sum": 0.01
+  },
+  {
+   "t": 450,
+   "mem_used_mb": 5343.7,
+   "mem_available_mb": 10237.9,
+   "cpu_pct": 4.11,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.13,
+    "p95": 13.13,
+    "max": 13.13
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 455,
+   "mem_used_mb": 5338.6,
+   "mem_available_mb": 10243.1,
+   "cpu_pct": 0.98,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.14,
+    "p95": 13.14,
+    "max": 13.14
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 460,
+   "mem_used_mb": 5337.3,
+   "mem_available_mb": 10244.4,
+   "cpu_pct": 1.04,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.41,
+    "p95": 13.41,
+    "max": 13.41
+   },
+   "lab_mem_sum_mb": 13.4,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.07,
+    "p95": 0.07,
+    "max": 0.07
+   },
+   "lab_cpu_pct_sum": 0.07
+  },
+  {
+   "t": 465,
+   "mem_used_mb": 5335.6,
+   "mem_available_mb": 10246.1,
+   "cpu_pct": 1.04,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.18,
+    "p95": 13.18,
+    "max": 13.18
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 470,
+   "mem_used_mb": 5330.1,
+   "mem_available_mb": 10251.6,
+   "cpu_pct": 1.08,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.17,
+    "p95": 13.17,
+    "max": 13.17
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 475,
+   "mem_used_mb": 5329.5,
+   "mem_available_mb": 10252.2,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.18,
+    "p95": 13.18,
+    "max": 13.18
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.1,
+    "p95": 0.1,
+    "max": 0.1
+   },
+   "lab_cpu_pct_sum": 0.1
+  },
+  {
+   "t": 480,
+   "mem_used_mb": 5354.3,
+   "mem_available_mb": 10227.3,
+   "cpu_pct": 2.58,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.18,
+    "p95": 13.18,
+    "max": 13.18
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.1,
+    "p95": 0.1,
+    "max": 0.1
+   },
+   "lab_cpu_pct_sum": 0.1
+  },
+  {
+   "t": 485,
+   "mem_used_mb": 5352.1,
+   "mem_available_mb": 10229.6,
+   "cpu_pct": 1.16,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.93,
+    "p95": 12.93,
+    "max": 12.93
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.06,
+    "p95": 0.06,
+    "max": 0.06
+   },
+   "lab_cpu_pct_sum": 0.06
+  },
+  {
+   "t": 490,
+   "mem_used_mb": 5349.6,
+   "mem_available_mb": 10232.1,
+   "cpu_pct": 1.09,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.3,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.93,
+    "p95": 12.93,
+    "max": 12.93
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.06,
+    "p95": 0.06,
+    "max": 0.06
+   },
+   "lab_cpu_pct_sum": 0.06
+  },
+  {
+   "t": 495,
+   "mem_used_mb": 5356.9,
+   "mem_available_mb": 10224.8,
+   "cpu_pct": 1.28,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.18,
+    "p95": 13.18,
+    "max": 13.18
+   },
+   "lab_mem_sum_mb": 13.2,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.09,
+    "p95": 0.09,
+    "max": 0.09
+   },
+   "lab_cpu_pct_sum": 0.09
+  },
+  {
+   "t": 500,
+   "mem_used_mb": 5360.3,
+   "mem_available_mb": 10221.4,
+   "cpu_pct": 3.56,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.7,
+    "p95": 12.7,
+    "max": 12.7
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 505,
+   "mem_used_mb": 5359.7,
+   "mem_available_mb": 10221.9,
+   "cpu_pct": 1.03,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.77,
+    "p95": 12.77,
+    "max": 12.77
+   },
+   "lab_mem_sum_mb": 12.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 510,
+   "mem_used_mb": 5360,
+   "mem_available_mb": 10221.7,
+   "cpu_pct": 0.97,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.77,
+    "p95": 12.77,
+    "max": 12.77
+   },
+   "lab_mem_sum_mb": 12.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 515,
+   "mem_used_mb": 5359.6,
+   "mem_available_mb": 10222.1,
+   "cpu_pct": 0.98,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.76,
+    "p95": 12.76,
+    "max": 12.76
+   },
+   "lab_mem_sum_mb": 12.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.1,
+    "p95": 0.1,
+    "max": 0.1
+   },
+   "lab_cpu_pct_sum": 0.1
+  },
+  {
+   "t": 520,
+   "mem_used_mb": 5357.5,
+   "mem_available_mb": 10224.2,
+   "cpu_pct": 2.58,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.75,
+    "p95": 12.75,
+    "max": 12.75
+   },
+   "lab_mem_sum_mb": 12.8,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.07,
+    "p95": 0.07,
+    "max": 0.07
+   },
+   "lab_cpu_pct_sum": 0.07
+  },
+  {
+   "t": 525,
+   "mem_used_mb": 5350.8,
+   "mem_available_mb": 10230.9,
+   "cpu_pct": 1.06,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.25,
+    "p95": 13.25,
+    "max": 13.25
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 530,
+   "mem_used_mb": 5350.2,
+   "mem_available_mb": 10231.5,
+   "cpu_pct": 0.97,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.12,
+    "p95": 13.12,
+    "max": 13.12
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.21,
+    "p95": 0.21,
+    "max": 0.21
+   },
+   "lab_cpu_pct_sum": 0.21
+  },
+  {
+   "t": 535,
+   "mem_used_mb": 5347.2,
+   "mem_available_mb": 10234.4,
+   "cpu_pct": 0.97,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.59,
+    "p95": 12.59,
+    "max": 12.59
+   },
+   "lab_mem_sum_mb": 12.6,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.09,
+    "p95": 0.09,
+    "max": 0.09
+   },
+   "lab_cpu_pct_sum": 0.09
+  },
+  {
+   "t": 540,
+   "mem_used_mb": 5346.7,
+   "mem_available_mb": 10235,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.56,
+    "p95": 12.56,
+    "max": 12.56
+   },
+   "lab_mem_sum_mb": 12.6,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.05,
+    "p95": 0.05,
+    "max": 0.05
+   },
+   "lab_cpu_pct_sum": 0.05
+  },
+  {
+   "t": 545,
+   "mem_used_mb": 5347.2,
+   "mem_available_mb": 10234.4,
+   "cpu_pct": 0.96,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.1,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.68,
+    "p95": 12.68,
+    "max": 12.68
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.08,
+    "p95": 0.08,
+    "max": 0.08
+   },
+   "lab_cpu_pct_sum": 0.08
+  },
+  {
+   "t": 550,
+   "mem_used_mb": 5346.9,
+   "mem_available_mb": 10234.8,
+   "cpu_pct": 0.92,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.92,
+    "p95": 12.92,
+    "max": 12.92
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.11,
+    "p95": 0.11,
+    "max": 0.11
+   },
+   "lab_cpu_pct_sum": 0.11
+  },
+  {
+   "t": 555,
+   "mem_used_mb": 5361,
+   "mem_available_mb": 10220.7,
+   "cpu_pct": 1.16,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.66,
+    "p95": 12.66,
+    "max": 12.66
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.01,
+    "p95": 0.01,
+    "max": 0.01
+   },
+   "lab_cpu_pct_sum": 0.01
+  },
+  {
+   "t": 560,
+   "mem_used_mb": 5359.2,
+   "mem_available_mb": 10222.4,
+   "cpu_pct": 0.98,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.67,
+    "p95": 12.67,
+    "max": 12.67
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.06,
+    "p95": 0.06,
+    "max": 0.06
+   },
+   "lab_cpu_pct_sum": 0.06
+  },
+  {
+   "t": 565,
+   "mem_used_mb": 5361.9,
+   "mem_available_mb": 10219.8,
+   "cpu_pct": 1.06,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.05,
+    "p95": 13.05,
+    "max": 13.05
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 570,
+   "mem_used_mb": 5360.1,
+   "mem_available_mb": 10221.6,
+   "cpu_pct": 1.02,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.28,
+    "p95": 13.28,
+    "max": 13.28
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 575,
+   "mem_used_mb": 5360.8,
+   "mem_available_mb": 10220.9,
+   "cpu_pct": 1.04,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.28,
+    "p95": 13.28,
+    "max": 13.28
+   },
+   "lab_mem_sum_mb": 13.3,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 580,
+   "mem_used_mb": 5361.2,
+   "mem_available_mb": 10220.5,
+   "cpu_pct": 2.57,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": 1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.73,
+    "p95": 12.73,
+    "max": 12.73
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.03,
+    "p95": 0.03,
+    "max": 0.03
+   },
+   "lab_cpu_pct_sum": 0.03
+  },
+  {
+   "t": 585,
+   "mem_used_mb": 5352.6,
+   "mem_available_mb": 10229.1,
+   "cpu_pct": 1.02,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.73,
+    "p95": 12.73,
+    "max": 12.73
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.02,
+    "p95": 0.02,
+    "max": 0.02
+   },
+   "lab_cpu_pct_sum": 0.02
+  },
+  {
+   "t": 590,
+   "mem_used_mb": 5353.3,
+   "mem_available_mb": 10228.4,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.73,
+    "p95": 12.73,
+    "max": 12.73
+   },
+   "lab_mem_sum_mb": 12.7,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 595,
+   "mem_used_mb": 5351.3,
+   "mem_available_mb": 10230.4,
+   "cpu_pct": 1.01,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 28.9
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13.06,
+    "p95": 13.06,
+    "max": 13.06
+   },
+   "lab_mem_sum_mb": 13.1,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.15,
+    "p95": 0.15,
+    "max": 0.15
+   },
+   "lab_cpu_pct_sum": 0.15
+  },
+  {
+   "t": 600,
+   "mem_used_mb": 5352.6,
+   "mem_available_mb": 10229.1,
+   "cpu_pct": 0.99,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 13,
+    "p95": 13,
+    "max": 13
+   },
+   "lab_mem_sum_mb": 13,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.06,
+    "p95": 0.06,
+    "max": 0.06
+   },
+   "lab_cpu_pct_sum": 0.06
+  },
+  {
+   "t": 605,
+   "mem_used_mb": 5352.9,
+   "mem_available_mb": 10228.8,
+   "cpu_pct": 1.03,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 1,
+    "creating": 0,
+    "running": 1,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 26,
+     "rss_mb": 29
+    }
+   },
+   "containers": -1,
+   "containerd_rss_mb": 62.2,
+   "fifos": 1,
+   "labs": 1,
+   "lab_mem_mb": {
+    "p50": 12.89,
+    "p95": 12.89,
+    "max": 12.89
+   },
+   "lab_mem_sum_mb": 12.9,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0.04,
+    "p95": 0.04,
+    "max": 0.04
+   },
+   "lab_cpu_pct_sum": 0.04
+  },
+  {
+   "t": 610,
+   "mem_used_mb": 5345.7,
+   "mem_available_mb": 10236,
+   "cpu_pct": 1.53,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 62.6,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  },
+  {
+   "t": 614,
+   "mem_used_mb": 5350,
+   "mem_available_mb": 10231.6,
+   "cpu_pct": 2.26,
+   "psi": {
+    "cpu_some_avg10": 0,
+    "memory_some_avg10": 0,
+    "io_some_avg10": 0
+   },
+   "oom_kills": 8,
+   "labd_stats": {
+    "active": 0,
+    "creating": 0,
+    "running": 0,
+    "ending": 0,
+    "queued": 0,
+    "max_sessions": 100,
+    "max_queue": 50,
+    "labd": {
+     "goroutines": 17,
+     "rss_mb": 29.1
+    }
+   },
+   "containers": 0,
+   "containerd_rss_mb": 62.5,
+   "fifos": 0,
+   "labs": 0,
+   "lab_mem_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_mem_sum_mb": 0,
+   "sentry_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_host_rss_mb": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct": {
+    "p50": 0,
+    "p95": 0,
+    "max": 0
+   },
+   "lab_cpu_pct_sum": 0
+  }
+ ]
+}

@@ -1,0 +1,351 @@
+{
+  "per_lab": {
+    "rss_mb": {
+      "p50": 24.6,
+      "p95": 25.5,
+      "max": 27.2
+    },
+    "cpu_pct_avg": 0.03,
+    "disk_mb": 0,
+    "ws_bps_in": 3.4,
+    "ws_bps_out": 60.9
+  },
+  "host_at_100": {
+    "mem_used_mb": 8758.1,
+    "cpu_pct": 32.55,
+    "start_latency_ms": {
+      "p50": 1663,
+      "p95": 1839
+    },
+    "echo_latency_ms": {
+      "p50": 0.9,
+      "p95": 2.5
+    }
+  },
+  "gvisor_overhead": {
+    "sentry_rss_mb": 46.6,
+    "step_cmd_ms_runc": 3.06,
+    "step_cmd_ms_runsc": 10.3
+  },
+  "leaks": {
+    "containers": 0,
+    "goroutines": 0,
+    "fifos": 0
+  },
+  "derived": {
+    "max_sessions_at_25pct_headroom": 454
+  },
+  "meta": {
+    "host": "linux-laptop",
+    "arch": "x86_64",
+    "date": "2026-10-01T03:18:12Z",
+    "sources": {
+      "derived.max_sessions_at_25pct_headroom": "run-P2-2026-10-01-linux-laptop.json",
+      "gvisor_overhead.sentry_rss_mb": "run-P2-2026-10-01-linux-laptop.json",
+      "gvisor_overhead.step_cmd_ms_runc": "run-P1-2026-10-01-linux-laptop-runc.json",
+      "gvisor_overhead.step_cmd_ms_runsc": "run-P1-2026-10-01-linux-laptop.json",
+      "host_at_100.cpu_pct": "run-P3-2026-10-01-linux-laptop.json",
+      "host_at_100.echo_latency_ms": "run-P3-2026-10-01-linux-laptop.json",
+      "host_at_100.mem_used_mb": "run-P2-2026-10-01-linux-laptop.json",
+      "host_at_100.start_latency_ms": "run-P2-2026-10-01-linux-laptop.json",
+      "per_lab.cpu_pct_avg": "run-P2-2026-10-01-linux-laptop.json",
+      "per_lab.disk_mb": "run-P2-2026-10-01-linux-laptop.json",
+      "per_lab.rss_mb": "run-P2-2026-10-01-linux-laptop.json",
+      "per_lab.ws_bps_in": "run-P8-2026-10-01-linux-laptop.json",
+      "per_lab.ws_bps_out": "run-P8-2026-10-01-linux-laptop.json"
+    }
+  },
+  "extra": {
+    "at_n": {
+      "containerd_rss_mb": 87.5,
+      "host_baseline_mb": 5352.4,
+      "host_per_lab_mb": 42.3,
+      "lab_host_rss_mb": {
+        "n": 22888,
+        "p50": 93.2,
+        "p95": 93.8,
+        "p99": 94,
+        "max": 94.2
+      },
+      "labd_goroutines": 917,
+      "labd_rss_mb": 66.4,
+      "n": 100,
+      "oom_kills": 0,
+      "psi_max": {
+        "cpu_some_avg10": 35.62,
+        "memory_some_avg10": 0,
+        "io_some_avg10": 0
+      },
+      "sentry_rss_mb": {
+        "n": 22888,
+        "p50": 46.6,
+        "p95": 47.1,
+        "p99": 47.3,
+        "max": 47.5
+      }
+    },
+    "bandwidth_aggregate_bps_out": 6090,
+    "criteria_missed": {},
+    "derived_inputs": {
+      "baseline_mb": 5352.4,
+      "box_mb": 32768,
+      "note": "baseline is host memory used with 0 labs on linux-laptop; per lab is the larger of the cgroup p95 and the host's (used - idle) / labs, which includes each lab's shim",
+      "per_lab_cgroup_p95_mb": 25.5,
+      "per_lab_host_mb": 42.3,
+      "per_lab_mb": 42.3
+    },
+    "images_mib": {
+      "challenges_200_estimate_basis": 88,
+      "file": "run-P2-2026-10-01-linux-laptop.json",
+      "labbase": 28.1,
+      "perf": 28.4,
+      "program_layer": 0.3
+    },
+    "p1_kvm": {
+      "echo_ms": {
+        "n": 205,
+        "p50": 3.397,
+        "p95": 5.854,
+        "p99": 6.405,
+        "max": 7.398
+      },
+      "file": "run-P1-2026-10-01-linux-laptop-kvm.json",
+      "host_per_lab_mb": 114.3,
+      "lab_cpu_pct_avg": 0.44,
+      "lab_mem_mb": {
+        "n": 113,
+        "p50": 28.69,
+        "p95": 29.6,
+        "p99": 29.66,
+        "max": 29.89
+      },
+      "start_to_prompt_ms": {
+        "n": 1,
+        "p50": 1505.406,
+        "p95": 1505.406,
+        "p99": 1505.406,
+        "max": 1505.406
+      },
+      "step_cmd_ms": {
+        "n": 78,
+        "p50": 9.333,
+        "p95": 16.531,
+        "p99": 20.72,
+        "max": 20.72
+      }
+    },
+    "p2_kvm": {
+      "echo_ms": {
+        "n": 5101,
+        "p50": 3.158,
+        "p95": 6.204,
+        "p99": 8.328,
+        "max": 79.013
+      },
+      "file": "run-P2-2026-10-01-linux-laptop-kvm.json",
+      "host_per_lab_mb": 46.2,
+      "lab_cpu_pct_avg": 0.03,
+      "lab_mem_mb": {
+        "n": 22830,
+        "p50": 24.64,
+        "p95": 25.5,
+        "p99": 26.11,
+        "max": 27.46
+      },
+      "start_to_prompt_ms": {
+        "n": 100,
+        "p50": 1669.551,
+        "p95": 1777.206,
+        "p99": 1791.995,
+        "max": 1796.202
+      },
+      "step_cmd_ms": {
+        "n": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      }
+    },
+    "p2_runc": {
+      "echo_ms": {
+        "n": 5097,
+        "p50": 1.128,
+        "p95": 1.396,
+        "p99": 1.541,
+        "max": 73.863
+      },
+      "file": "run-P2-2026-10-01-linux-laptop-runc.json",
+      "host_per_lab_mb": 54.3,
+      "lab_cpu_pct_avg": 0,
+      "lab_mem_mb": {
+        "n": 22819,
+        "p50": 11.21,
+        "p95": 11.45,
+        "p99": 11.46,
+        "max": 11.87
+      },
+      "start_to_prompt_ms": {
+        "n": 100,
+        "p50": 420.219,
+        "p95": 457.508,
+        "p99": 467.346,
+        "max": 480.125
+      },
+      "step_cmd_ms": {
+        "n": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      }
+    },
+    "p3": {
+      "echo_ms_by_profile": {
+        "abuser": {
+          "n": 294,
+          "p50": 0.906,
+          "p95": 52.646,
+          "p99": 91.462,
+          "max": 100.855
+        },
+        "reader": {
+          "n": 3055,
+          "p50": 1.067,
+          "p95": 2.787,
+          "p99": 4.626,
+          "max": 76.03
+        },
+        "stepper": {
+          "n": 12199,
+          "p50": 0.9,
+          "p95": 2.315,
+          "p99": 3.536,
+          "max": 75.823
+        }
+      },
+      "host_cpu_pct": {
+        "p50": 32.55,
+        "p95": 33.55,
+        "max": 34.96
+      },
+      "host_mem_used_mb": {
+        "p50": 8815.4,
+        "p95": 8863.5,
+        "max": 8890
+      },
+      "lab_cpu_pct_by_profile": {
+        "abuser": 50,
+        "reader": 0.01,
+        "stepper": 0.17
+      },
+      "psi_max": {
+        "cpu_some_avg10": 49.62,
+        "memory_some_avg10": 0,
+        "io_some_avg10": 0
+      }
+    },
+    "p3_runc": {
+      "echo_ms": {
+        "n": 15545,
+        "p50": 0.413,
+        "p95": 0.643,
+        "p99": 0.97,
+        "max": 76.415
+      },
+      "file": "run-P3-2026-10-01-linux-laptop-runc.json",
+      "host_per_lab_mb": 41.4,
+      "lab_cpu_pct_avg": 4.93,
+      "lab_mem_mb": {
+        "n": 23062,
+        "p50": 11.21,
+        "p95": 11.95,
+        "p99": 12.33,
+        "max": 13.12
+      },
+      "start_to_prompt_ms": {
+        "n": 100,
+        "p50": 303.806,
+        "p95": 460.677,
+        "p99": 468.389,
+        "max": 532.872
+      },
+      "step_cmd_ms": {
+        "n": 4726,
+        "p50": 1.088,
+        "p95": 1.764,
+        "p99": 2.205,
+        "max": 6.717
+      }
+    },
+    "p4": {
+      "sessions": 460,
+      "start_to_prompt_ms": {
+        "n": 460,
+        "p50": 2220.34,
+        "p95": 2521.012,
+        "p99": 2589.04,
+        "max": 2622.576
+      }
+    },
+    "p5": {
+      "adopted_ms": 16.626,
+      "down_ms": 3611.154,
+      "file": "run-P5-2026-09-30-linux-laptop.json",
+      "recovered_ms": 3627.781
+    },
+    "p6": {
+      "admitted": 100,
+      "admitted_from_queue": 50,
+      "cap": 100,
+      "drained_fifo": true,
+      "max_queue": 50,
+      "never_over_cap": true,
+      "over_cap": null,
+      "positions_in_order": true,
+      "queue_wait_ms": {
+        "max": 12570.452,
+        "n": 50,
+        "p50": 6908.07,
+        "p95": 12122.826,
+        "p99": 12570.452
+      },
+      "queued": 50,
+      "rejected": 0,
+      "requests": 150
+    },
+    "p7": {
+      "after_pull_start_to_prompt_ms": {
+        "max": 2363.861,
+        "n": 10,
+        "p50": 2322.735,
+        "p95": 2363.861,
+        "p99": 2363.861
+      },
+      "pull_ms": 1295.126,
+      "warm_start_to_prompt_ms": {
+        "max": 2247.548,
+        "n": 10,
+        "p50": 2181.398,
+        "p95": 2247.548,
+        "p99": 2247.548
+      },
+      "without_image": {
+        "ended": "create_failed",
+        "err": "lab ended before running: create_failed"
+      }
+    },
+    "p9": {
+      "events_kb_per_session_minute": 1.02,
+      "events_mb_per_hour": 5.71,
+      "events_rows_per_hour": 22171.43,
+      "events_rows_per_session_minute": 3.85,
+      "hours": 2.01,
+      "journal_mb_per_hour": 7.97,
+      "samples_rows_per_hour": 0,
+      "session_minutes": 11557,
+      "sessions_rows_per_hour": 765.96,
+      "snapshots_mb_per_hour": 0
+    }
+  }
+}
