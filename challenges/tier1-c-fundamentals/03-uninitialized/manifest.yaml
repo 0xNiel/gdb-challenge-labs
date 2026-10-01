@@ -1,0 +1,19 @@
+slug: tier1-03-uninitialized
+title: Uninitialized
+tier: 1
+order: 3
+difficulty: 2
+estimated_minutes: 20
+flag_format: "LAB{...}"
+image: ""
+limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60, idle_minutes: 15, extend_minutes: 15}
+hints:
+  - {cost: 0, text: "Stop in the function that checks the code (`break lookup`) and watch the variable it returns with `watch found`."}
+  - {cost: 1, text: "Does anything ever write `found` when the code is not in the list? Look at its value with `x/dw &found` before the loop runs."}
+  - {cost: 2, text: "At the start of `lookup`, `set var found = 0`, then `continue`."}
+tags: [c, memory, stack, watchpoints]
+key_expr: "price in main when report() runs: the cart total with no discount"
+key_value: 4999
+build:
+  flags: "-O0 -g -fno-stack-protector"
+  entry: checkout
