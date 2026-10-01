@@ -11,6 +11,23 @@
 
 Five tier-1 challenges exist as source, lesson, manifest, oracle and solution; a deterministic build script turns each into a pinned image that passes the leak check and the solve/no-solve oracle; `challenges.json` is produced; CI does the same on GitHub; `labd pull` retrieves the images. Flag derivation is specified to the byte with shared test vectors so Django (Phase 6) matches.
 
+## As built (2026-10-01) — read this before the design below
+
+- **Flag** (ADR 0005, amended): the flag is 29 bytes, so `FLAG_BLOB` is 30. `FLAG_SEED_MIX` is derived from the secret and slug (`flag.SeedMix`), not random, so two builds are byte-identical. The vectors were computed with `openssl` and coreutils `base32`.
+- **Manifest**: adds `key_value` (the correct runtime key, flagblob's `--key`; never in the image) and `boss` (no hints). `manifestlint` applies `manifest.schema.json` itself, through a small validator for the keywords it uses, with no new dependency, plus the directory, boss and hint-order rules.
+- **flagblob test** compiles the generated header with the host's `cc` (it skips without one) instead of an integration test in the build image. The build script repeats the leak check on every real binary.
+- **Build script**:
+  - Images are built for the **lab host's architecture**. On the laptop that is x86-64 with the oracle under runsc, which is authoritative. On a Mac it is arm64 in the VM with the oracle under runc (Q13), which is the authoring loop. `--push` refuses anything but amd64.
+  - The **oracle runs in the lab image itself** under the sandbox spec (`specrun`), as uid 1000. `solve.gdb` is typed in through the terminal into `/tmp` and ended by ^D, so it is never in any image.
+  - Each challenge compiles with its directory mounted at `/opt/lab`, the path it has in the image, so `list` finds the source in the lab.
+  - The image check uses `ls -R`, because labbase has no `find`.
+  - Step 6 stops at `main` before reading the addresses, because `print &main` without running is trivially constant.
+- **Dev images** are recorded in `.scratch/local-images.json`, not written into `manifest.yaml`: a local digest belongs to one host, and writing it would dirty the tree on every build. Manifests carry only GHCR digests, from `--push`.
+- **challenges.json** adds `boss`. Until something is pushed (Q2: no GHCR namespace yet), every entry is `enabled: false` with an empty image, and labd now accepts an empty image only for a disabled challenge. `scripts/challenges-json.sh --local` enables them with this host's dev images. `challenges/README.md` describes how to play them in the dev page.
+- **Prune** removes only images labelled `lab.keep`: the spec's rule alone would also delete labbase and other unmanaged images. `labd prune` deletes; `-dry-run` reports.
+- **Deterministic bugs**: labs 1, 4 and 5 put the overrun's neighbour in a struct. Lab 3's uninitialised `found` inherits `ok = 1` from `well_formed()`, a twin frame called just before. A first version using a stack array read 0 on arm64, and the build's "plain run must not print the flag" check caught it.
+- **Metrics**: each build appends to `.scratch/challenge-metrics.jsonl`. `scripts/challenges-metrics.sh` writes `docs/metrics/challenges-<date>-<host>.{json,md}`.
+
 ## Design fixed by this document
 
 - **Flag derivation** (ADR 0005): `flag = "LAB{" + base32_std_nopad(HMAC_SHA256(key=DEPLOY_SECRET, msg=slug))[:24] + "}"`. Base32 is RFC 4648 standard alphabet, uppercase, padding stripped, first 24 characters. `DEPLOY_SECRET` is UTF-8 bytes; `slug` is the manifest slug as UTF-8. Implemented in Go (`labd/internal/flag`) and Python (`web/progress/flag.py`), both tested against `challenges/schema/flag_vectors.json` (10 vectors with a fixed test secret).
@@ -104,11 +121,12 @@ Go unit: flag vectors, manifestlint cases, pull/prune. Integration: flagblob com
 ```
 ./run.sh gate --phase 5
 ```
+0. Preflight: no labd running, namespace `labs` empty.
 1. `go test ./...` green.
-2. `scripts/challenge-build.sh` on each of the five challenges exits 0 (steps 1–7, dev mode).
-3. `challenges.json` validates and has 5 entries.
+2. `scripts/challenge-build.sh` on each challenge exits 0 (every step, dev mode).
+3. `challenges.json` regenerates, validates, has 5 entries, and the committed file matches the manifests.
 4. `flag_vectors.json` passes in Go (Python check added to the Phase 6 gate).
-5. The x86-64 P0 run from Phase 1 exists (`docs/metrics/p0-*-<non-dev-vm host>.json`) — the oracle results on arm64 do not count for x86-specific lessons.
+5. The x86-64 P0 run from Phase 1 exists (`docs/metrics/p0-*-<non-dev-vm host>.json`), and `docs/metrics/challenges-*.json` records x86-64 builds of all five with the oracle under runsc (`LAB_HOST=linux-laptop scripts/challenges-metrics.sh` after building them on the laptop). The oracle results on arm64 do not count for x86-specific lessons.
 6. STATUS.md has five lines `Phase 5 human check <slug>: <date> <who> OK`.
 
 ## Metrics to record

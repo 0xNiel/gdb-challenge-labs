@@ -204,7 +204,38 @@ phase_4() {
   else pass "capacity.md has no est. value"; fi
   check_file "max_sessions ADR" "$ROOT/docs/decisions/*-max-sessions.md"
 }
-phase_5() { not_wired; }   # Phase 5, task 5.15
+phase_5() {
+  preflight
+  say "unit tests (flag vectors, manifestlint, challenges.json, pull and prune)"
+  check "run.sh test --go" "$RUN" test --go
+  check "flag_vectors.json passes in Go" bash -c "cd '$ROOT/labd' && go test -count=1 -run SharedVectors ./internal/flag"
+  say "every challenge builds and proves itself on this host (lint, flag, build, leak, image, oracle, addresses)"
+  local d slugs=()
+  for d in "$ROOT"/challenges/tier*/*/; do
+    d="${d%/}"
+    check "challenge-build.sh ${d#"$ROOT"/}" bash "$ROOT/scripts/challenge-build.sh" "$d"
+    slugs+=("$(sed -n 's/^slug: *//p' "$d/manifest.yaml")")
+  done
+  say "challenges.json"
+  local cj="$ROOT/challenges.json" fresh
+  fresh="$(mktemp)"
+  if "$ROOT/scripts/challenges-json.sh" > "$fresh" 2>/dev/null; then pass "challenges.json regenerates and validates"
+  else fail "scripts/challenges-json.sh failed"; fi
+  if [[ "$(jq '.challenges | length' "$cj")" == 5 && "$(jq -S 'del(.generated_at)' "$cj")" == "$(jq -S 'del(.generated_at)' "$fresh")" ]]; then
+    pass "committed challenges.json has 5 entries and matches the manifests"
+  else fail "challenges.json is stale or not 5 entries: scripts/challenges-json.sh > challenges.json, commit"; fi
+  rm -f "$fresh"
+  say "authoritative results (x86-64, ADR 0001)"
+  local p0 cm
+  p0="$(newest_json p0 '.arch == "x86_64" and .host != "dev-vm"')"
+  if [[ -n "$p0" ]]; then pass "x86-64 P0 from Phase 1 ($(basename "$p0"))"; else fail "no x86-64 P0 (Phase 1)"; fi
+  cm="$(newest_json challenges '.arch == "amd64" and (.challenges | length) == 5 and all(.challenges[]; .runtime == "runsc")')"
+  if [[ -n "$cm" ]]; then pass "x86-64 builds of all five, oracle under runsc ($(basename "$cm"))"
+  else fail "no x86-64 build record of all five: on the laptop run the gate, then LAB_HOST=linux-laptop scripts/challenges-metrics.sh, commit docs/metrics"; fi
+  say "human checks (task 5.6-5.10: each lab played once in the dev page)"
+  local s
+  for s in "${slugs[@]}"; do check_status_line "Phase 5 human check $s"; done
+}
 phase_6() { not_wired; }   # Phase 6, task 6.13
 phase_7() { not_wired; }   # Phase 7, task 7.9
 phase_8() { not_wired; }   # Phase 8, task 8.12
