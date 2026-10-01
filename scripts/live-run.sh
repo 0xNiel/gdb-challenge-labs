@@ -62,7 +62,16 @@ say "labd-perf: $N labs (readers) for $HOLD against the stack's labd; open http:
   --script "$ROOT/images/perf/session.gdb" --out "$OUT" --host "$HOST" --label live \
   >"$OUT/perf.log" 2>&1 &
 PERF=$!
-trap 'kill $PERF 2>/dev/null || true' EXIT
+# Interrupted: stop labd-perf and the labs it started, so the stack is clean for another run.
+stop_labs() {
+  kill "$PERF" 2>/dev/null || true
+  local id
+  for id in $(curl -s -H "Authorization: Bearer $LABD_INTERNAL_SECRET" http://127.0.0.1:8081/internal/sessions | jq -r '.sessions[].session_id'); do
+    curl -s -X DELETE -H "Authorization: Bearer $LABD_INTERNAL_SECRET" -d '{"reason":"user_stop"}' \
+      "http://127.0.0.1:8081/internal/sessions/$id" >/dev/null || true
+  done
+}
+trap stop_labs EXIT
 
 # The screenshot, once every lab is running.
 for _ in $(seq 1 120); do

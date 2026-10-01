@@ -90,3 +90,28 @@ def test_non_staff_403(client, imported, fake_labd, method, url):
     client.force_login(get_user_model().objects.create_user("bob", "bob@example.com", "pw"))
     assert getattr(client, method)(url).status_code == 403
     assert fake_labd.calls == []
+
+
+def test_403_page_explains_staff_only(client, imported, fake_labd):
+    client.force_login(get_user_model().objects.create_user("bob", "bob@example.com", "pw"))
+    for url in ("/admin/live", "/admin/analytics/capacity"):
+        resp = client.get(url)
+        html = resp.content.decode()
+        assert resp.status_code == 403
+        assert "This page is for staff accounts" in html and "bob@example.com" in html
+        assert "make_staff bob@example.com" in html
+    # Other refusals keep their own reason.
+    resp = client.get("/lab/tier1-02-null-deref")
+    assert resp.status_code == 403 and b"This challenge is locked." in resp.content
+
+
+def test_make_staff(db, capsys):
+    from django.core.management import CommandError, call_command
+
+    get_user_model().objects.create_user("bob", "bob@example.com", "pw")
+    call_command("make_staff", "BOB@example.com")
+    assert get_user_model().objects.get(username="bob").is_staff
+    call_command("make_staff", "bob@example.com", "--revoke")
+    assert not get_user_model().objects.get(username="bob").is_staff
+    with pytest.raises(CommandError):
+        call_command("make_staff", "nobody@example.com")

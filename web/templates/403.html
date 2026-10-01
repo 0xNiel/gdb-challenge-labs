@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Not allowed · gdb Challenge Labs{% endblock %}
+{% block main %}
+<h1>Not allowed</h1>
+{% if exception == "staff only" %}
+  <p>This page is for staff accounts.{% if user.is_authenticated %} You are signed in as <strong>{{ user.email|default:user.username }}</strong>, which is not one.{% endif %}</p>
+  <p>Sign in with a staff account, or make this one staff on the server: <code>./run.sh manage make_staff {{ user.email|default:"you@example.com" }}</code>.</p>
+  <form method="post" action="{% url 'account_logout' %}" class="inline">{% csrf_token %}
+    <input type="hidden" name="next" value="/login?next={{ request.path|urlencode }}">
+    <button class="primary">Sign in as another account</button>
+  </form>
+{% else %}
+  <p>{{ exception|default:"You cannot open this page." }}</p>
+  <p><a href="{% url 'learn' %}">Back to Learn</a></p>
+{% endif %}
+{% endblock %}
