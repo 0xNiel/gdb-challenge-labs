@@ -47,7 +47,7 @@ $1 = "Port"
 A loop that runs 500 times makes `break` + `continue` slow going. Add a condition:
 
 ```
-(gdb) break config.c:22 if strcmp(options[i].name, "port") == 0
+(gdb) break config.c:22 if (int) strcmp(options[i].name, "port") == 0
 ```
 
 The program stops at line 22 only when the condition is true. The condition can be any expression gdb can evaluate in that frame, including calls to functions in the program such as `strcmp`. Library functions have no debug information in these labs, so cast their result: `(int) strcmp(a, b) == 0`. `info breakpoints` lists breakpoints and their conditions; `condition 2` removes the condition from breakpoint 2; `delete 2` removes it altogether.
