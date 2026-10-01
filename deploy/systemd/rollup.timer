@@ -1,0 +1,12 @@
+# Every minute (spec "Rollup"). Each run re-rolls the last 10 minutes and 3 hours, so a missed
+# run is caught up by the next.
+[Unit]
+Description=gdb labs: rollups every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+AccuracySec=5s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

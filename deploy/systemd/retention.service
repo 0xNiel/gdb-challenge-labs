@@ -1,0 +1,13 @@
+# Raw retention (Phase 7, task 7.5): samples 7 days, events and rollups_1m 90 days.
+[Unit]
+Description=gdb labs: delete raw rows past retention
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=web
+Group=web
+WorkingDirectory=/srv/labbing-platform/web
+EnvironmentFile=/etc/web/web.env
+ExecStart=/usr/local/bin/uv run --no-sync python manage.py retention
+Nice=10

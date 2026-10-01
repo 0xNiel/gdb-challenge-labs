@@ -1,0 +1,14 @@
+# Minute and hour rollups of samples and events (Phase 7, task 7.4). Started by rollup.timer.
+# Phase 8 installs this unit; the paths follow its layout (deploy/README.md).
+[Unit]
+Description=gdb labs: roll up samples and events
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=web
+Group=web
+WorkingDirectory=/srv/labbing-platform/web
+EnvironmentFile=/etc/web/web.env
+ExecStart=/usr/local/bin/uv run --no-sync python manage.py rollup --minute --hour
+Nice=10

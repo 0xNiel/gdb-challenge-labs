@@ -1,0 +1,11 @@
+# Daily, at a quiet hour.
+[Unit]
+Description=gdb labs: daily retention
+
+[Timer]
+OnCalendar=*-*-* 04:15:00
+RandomizedDelaySec=10m
+Persistent=true
+
+[Install]
+WantedBy=timers.target
