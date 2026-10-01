@@ -16,6 +16,7 @@ class FakeLabd(LabdClient):
     calls: list[tuple] = []  # shared across instances; reset by the `fake_labd` fixture
     fail_with: str | None = None  # set to make the next start raise LabdError(fail_with)
     start_state = "running"
+    stop_fails = False  # make stop raise LabdError("unavailable")
 
     def __init__(self, *args, **kwargs):
         super().__init__(base_url="http://fake-labd", secret="fake")  # noqa: S106  test only
@@ -44,6 +45,8 @@ class FakeLabd(LabdClient):
 
     def stop(self, session_id, reason="user_stop"):
         FakeLabd.calls.append(("stop", str(session_id), reason))
+        if FakeLabd.stop_fails:
+            raise LabdError("unavailable")
         n = Session.objects.filter(id=session_id, state__in=ACTIVE_STATES).update(
             state="ended", end_reason=reason, ended_at=timezone.now()
         )

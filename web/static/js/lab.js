@@ -77,6 +77,7 @@
     setState("ended");
     $("lab-ttl").textContent = "";
     $("lab-extend").hidden = true;
+    $("lab-stop").hidden = true;
     term.options.disableStdin = true;
     const why = REASONS[reason] || reason || "it ended";
     banner(`The lab has ended: ${why}. <a href="${cfg.challengeUrl}">Back to the challenge</a> to start it again.`);

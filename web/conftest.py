@@ -65,4 +65,5 @@ def fake_labd():
     FakeLabd.calls = []
     FakeLabd.fail_with = None
     FakeLabd.start_state = "running"
+    FakeLabd.stop_fails = False
     return FakeLabd

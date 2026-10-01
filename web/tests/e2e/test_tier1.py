@@ -1,6 +1,7 @@
-"""Task 6.12: sign up, start lab 1, solve it in the browser's terminal, submit the flag, see lab 2
-unlock, stop the lab. Then time start and click-to-prompt over a few more runs (plan 6,
-"Metrics to record"), written to .scratch/e2e/web-metrics.json.
+"""Task 6.12: sign up, start lab 1, solve it in the browser's terminal, submit the flag, see the
+lab stop itself (ADR 0016) and lab 2 unlock. Then time start and click-to-prompt over a few
+more runs, each stopped with the Stop button (plan 6, "Metrics to record"), written to
+.scratch/e2e/web-metrics.json.
 """
 
 import json
@@ -81,9 +82,7 @@ def session_row(db, sid: str):
     return db.execute("SELECT state, end_reason FROM sessions WHERE id = %s", (sid,)).fetchone()
 
 
-def stop_lab(page, db, sid: str):
-    page.click("text=Stop lab")
-    page.wait_for_url(f"**/lab/{SLUG}")
+def wait_ended(db, sid: str):
     end = time.monotonic() + 30
     while time.monotonic() < end:
         row = session_row(db, sid)
@@ -91,6 +90,12 @@ def stop_lab(page, db, sid: str):
             return row
         time.sleep(0.2)
     raise AssertionError(f"session {sid} did not end: {session_row(db, sid)}")
+
+
+def stop_lab(page, db, sid: str):
+    page.click("text=Stop lab")
+    page.wait_for_url(f"**/lab/{SLUG}")
+    return wait_ended(db, sid)
 
 
 def test_tier1_lab1_end_to_end(page, db):
@@ -127,14 +132,13 @@ def test_tier1_lab1_end_to_end(page, db):
     page.fill("#flag-input", flag)
     page.click("#flag-panel button.primary")
     page.wait_for_selector("#flag-panel >> text=Correct!")
+    assert page.locator("#lab").get_attribute("data-session") == sid  # no reload
+    # ADR 0016: the solve stops the lab, and the page says why.
+    assert wait_ended(db, sid) == ("ended", "solved")
+    page.wait_for_selector("#lab-banner >> text=the challenge was solved")
+    assert page.locator("#lab-state").inner_text() == "ended"
+    assert not page.locator("#lab-stop").is_visible()
     shot(page, "2-flag-accepted")
-    assert page.locator("#lab").get_attribute("data-session") == sid  # no reload: still connected
-    assert (
-        "connected" in page.locator("#lab-state").inner_text()
-        or "running" in page.locator("#lab-state").inner_text()
-    )
-
-    assert stop_lab(page, db, sid) == ("ended", "user_stop")
 
     page.goto("/learn")
     states = page.locator("li.rung").evaluate_all("els => els.map(e => e.className)")
@@ -145,7 +149,7 @@ def test_tier1_lab1_end_to_end(page, db):
     for _ in range(int(os.environ.get("E2E_LATENCY_RUNS", "9"))):
         sid, t_page, t_prompt = start_lab(page)
         runs.append({"page_s": t_page, "prompt_s": t_prompt})
-        stop_lab(page, db, sid)
+        assert stop_lab(page, db, sid) == ("ended", "user_stop")
     write_metrics(runs)
 
 

@@ -18,7 +18,8 @@ from curriculum.models import Challenge
 from progress.services import lab_panel, state_of
 
 from .labd_client import LabdError, get_client
-from .models import ACTIVE_STATES, LIVE_STATES, Session
+from .models import LIVE_STATES, Session
+from .services import active_session
 
 LABD_ERRORS = {
     "queue_full": "Every lab slot is busy and the queue is full. Try again in a minute.",
@@ -34,15 +35,6 @@ def _challenge_for(request, slug) -> tuple[Challenge, str]:
     if state == "locked":
         raise PermissionDenied("This challenge is locked.")
     return ch, state
-
-
-def active_session(user) -> Session | None:
-    """The user's session that holds a slot or a queue place, if any (spec: one per user)."""
-    return (
-        Session.objects.filter(user_id=user.id, state__in=ACTIVE_STATES)
-        .order_by("-created_at")
-        .first()
-    )
 
 
 @login_required

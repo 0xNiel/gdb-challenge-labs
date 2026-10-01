@@ -5,6 +5,7 @@
   font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }  /* the hidden attribute wins over display rules */
 body { margin: 0; background: var(--bg); color: var(--fg); }
 a { color: var(--accent); }
 header.site { display: flex; align-items: center; justify-content: space-between; gap: 1rem;

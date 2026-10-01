@@ -17,7 +17,7 @@
       <span id="lab-ttl" class="muted"></span>
       <button id="lab-extend" class="secondary" hidden>Extend 15 min</button>
       <span id="lab-msg" class="warn"></span>
-      <form method="post" action="{% url 'lab_stop' challenge.slug %}" class="inline push-right">{% csrf_token %}<button class="secondary">Stop lab</button></form>
+      <form id="lab-stop" method="post" action="{% url 'lab_stop' challenge.slug %}" class="inline push-right">{% csrf_token %}<button class="secondary">Stop lab</button></form>
     </div>
     <p id="capture-notice" class="notice">Commands are recorded to improve hints. <button id="capture-ok" class="link">OK</button></p>
     <div id="lab-banner" class="banner" hidden></div>

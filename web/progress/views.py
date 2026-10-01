@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from curriculum.models import Challenge
+from labs.services import stop_on_solve
 
 from .services import (
     HintOrder,
@@ -51,6 +52,8 @@ def flag_submit(request, slug):
         msg = "You have already solved this challenge."
     elif res.correct:
         msg = "Correct! Challenge solved."
+        if stop_on_solve(request.user, ch.slug):
+            msg += " Your lab has been stopped."
         if res.next_challenge:
             msg += f" Next up: {res.next_challenge.title}."
     else:
