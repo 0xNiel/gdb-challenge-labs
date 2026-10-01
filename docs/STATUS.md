@@ -13,7 +13,9 @@ Phase 5 human check tier1-05-stack-overwrite: 2026-10-01 <OG> OK
 
 ## Current phase
 
+**Phase 5 — Challenge pipeline and tier 1: done** (gate passed 2026-10-01; merged into `main`). **Phase 6 (Django web app) is next and not started:** it starts only when the owner says to continue.
 
+<details><summary>Phase 5 laptop checklist (done 2026-10-01)</summary>
 
 **Phase 5 — Challenge pipeline and tier 1: in progress** on branch `phase-5-challenge-pipeline`. Every task is built:
 - flag derivation and vectors, `flagblob`, the manifest schema and `manifestlint`;
@@ -66,6 +68,8 @@ All five labs pass every build step in the Mac's arm64 VM. The x86-64 builds pas
    ```
    Send the gate's output. If you rebuilt any lab, also run `LAB_HOST=linux-laptop scripts/challenges-metrics.sh` and add `docs/metrics` to the commit.
 
+</details>
+
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
 <details><summary>Earlier checklist (done)</summary>
@@ -87,8 +91,8 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 2 | labd core (sessions, semaphore, reconciler) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 4 | Perf suite and measured capacity | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
-| 5 | Challenge pipeline and tier 1 content | in progress: built; five labs pass on arm64 and x86-64; needs the five human checks | Mac: all but the human checks (expected) | 2026-10-01 |
-| 6 | Django web app | blocked on 3, 5 | — | — |
+| 5 | Challenge pipeline and tier 1 content | done; merged to `main` | passed on the Mac; x86-64 builds and human checks from the laptop | 2026-10-01 |
+| 6 | Django web app | not started (waiting for the owner) | — | — |
 | 7 | Metrics, rollups, admin live view | blocked on 6 | — | — |
 | 8 | Production on the VPS, tiers 2–3, beta | blocked on 4, 7 | — | — |
 
@@ -108,6 +112,43 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-10-01 — Phase 5 gate passed
+- The owner played all five tier-1 labs on the laptop on 2026-10-01 and recorded one "ALL-Labs" stamp. At the owner's request it was expanded into the five per-lab lines gate 5 checks, same date and initials.
+- The x86-64 builds of all five passed on the laptop with the oracle under runsc (`docs/metrics/challenges-2026-10-01-linux-laptop.md`). On the laptop the gate then failed only on the human-check lines.
+- Gate 5 below was run on the Mac after the lines were added (arm64 builds, oracle under runc; the x86-64 checks read the laptop's record).
+- Phase 5 merged into `main` (fast-forward) and pushed.
+- **Next:** Phase 6, when the owner says to continue.
+
+Phase 5 gate on the Mac:
+```
+==> gate for phase 5 — 2026-10-01T13:34Z — macbook.local
+==> [gate 5] preflight: no labd running, namespace labs empty
+==> preflight ok: no labd running, namespace labs empty
+  PASS  no labd running, namespace labs empty
+==> [gate 5] unit tests (flag vectors, manifestlint, challenges.json, pull and prune)
+  PASS  run.sh test --go
+  PASS  flag_vectors.json passes in Go
+==> [gate 5] every challenge builds and proves itself on this host (lint, flag, build, leak, image, oracle, addresses)
+  PASS  challenge-build.sh challenges/tier1-c-fundamentals/01-off-by-one
+  PASS  challenge-build.sh challenges/tier1-c-fundamentals/02-null-deref
+  PASS  challenge-build.sh challenges/tier1-c-fundamentals/03-uninitialized
+  PASS  challenge-build.sh challenges/tier1-c-fundamentals/04-unterminated
+  PASS  challenge-build.sh challenges/tier1-c-fundamentals/05-stack-overwrite
+==> [gate 5] challenges.json
+  PASS  challenges.json regenerates and validates
+  PASS  committed challenges.json has 5 entries and matches the manifests
+==> [gate 5] authoritative results (x86-64, ADR 0001)
+  PASS  x86-64 P0 from Phase 1 (p0-2026-09-29-linux-laptop.json)
+  PASS  x86-64 builds of all five, oracle under runsc (challenges-2026-10-01-linux-laptop.json)
+==> [gate 5] human checks (task 5.6-5.10: each lab played once in the dev page)
+  PASS  STATUS.md records 'Phase 5 human check tier1-01-off-by-one'
+  PASS  STATUS.md records 'Phase 5 human check tier1-02-null-deref'
+  PASS  STATUS.md records 'Phase 5 human check tier1-03-uninitialized'
+  PASS  STATUS.md records 'Phase 5 human check tier1-04-unterminated'
+  PASS  STATUS.md records 'Phase 5 human check tier1-05-stack-overwrite'
+==> GATE 5 PASSED. Paste this output into docs/STATUS.md.
+```
 
 ### 2026-10-01 — Lab shell starts in /opt/lab; hints and solution are repo files
 The owner built all five labs on the laptop and played lab 1: the bug showed as designed (437, a garbage report line). Two problems, both fixed:
