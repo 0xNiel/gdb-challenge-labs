@@ -110,9 +110,9 @@ Go unit: sampler parsing, event emission. Go integration: samples written. Djang
 2. Integration (`./run.sh test --integration`): with 2 labs running, `samples` holds every metric name and at least 10 distinct (`TestMetrics_SamplesFromTwoLabs`).
 3. `./run.sh test --e2e`: lab 1 in the browser; a staff user kills a lab, drains and resumes. No container left afterwards.
 4. `manage.py rollup --minute` and `--hour` on the dev Postgres (the e2e run's data) write rows; `retention` runs as role web.
-4a. STATUS.md has `Phase 7 human check: <date> <who> OK` and `docs/metrics/admin-live-*.png` exists.
-5. A P10 capacity-search record from x86-64 with 8 CPUs online and labs under runsc (`docs/metrics/capacity-search-*.json`, task 7.11).
-6. `docs/metrics/vps-capacity.md` has no *est.* left in its CPU section (task 7.12).
+5. STATUS.md has `Phase 7 human check: <date> <who> OK` and `docs/metrics/admin-live-*.png` exists.
+6. A P10 capacity-search record from x86-64 with 8 CPUs online and labs under runsc (`docs/metrics/capacity-search-*.json`, task 7.11).
+7. `docs/metrics/vps-capacity.md` has no *est.* left in its CPU section (task 7.12).
 
 ## Metrics to record
 
