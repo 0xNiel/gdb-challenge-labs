@@ -96,14 +96,16 @@ func (p *Postgres) Migrate(ctx context.Context) ([]string, error) {
 func (p *Postgres) UpsertSession(ctx context.Context, s Session) error {
 	_, err := p.pool.Exec(ctx, `
 		INSERT INTO sessions (id, user_id, challenge_slug, image, state, created_at, started_at,
-		                      ended_at, end_reason, container_id, extended, commands)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		                      ended_at, end_reason, container_id, extended, commands, peak_rss_mb)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 		ON CONFLICT (id) DO UPDATE SET
 		    state = EXCLUDED.state, started_at = EXCLUDED.started_at, ended_at = EXCLUDED.ended_at,
 		    end_reason = EXCLUDED.end_reason, container_id = EXCLUDED.container_id,
-		    extended = EXCLUDED.extended, commands = EXCLUDED.commands`,
+		    extended = EXCLUDED.extended, commands = EXCLUDED.commands,
+		    -- GREATEST ignores NULL: an adopted session's lower reading never lowers the peak.
+		    peak_rss_mb = GREATEST(sessions.peak_rss_mb, EXCLUDED.peak_rss_mb)`,
 		s.ID, s.UserID, s.ChallengeSlug, s.Image, s.State, s.CreatedAt, nullTime(s.StartedAt),
-		nullTime(s.EndedAt), s.EndReason, s.ContainerID, s.Extended, s.Commands)
+		nullTime(s.EndedAt), s.EndReason, s.ContainerID, s.Extended, s.Commands, nullFloat(s.PeakRSSMB))
 	if err != nil {
 		return fmt.Errorf("upsert session %s: %w", s.ID, err)
 	}
@@ -159,6 +161,22 @@ func (p *Postgres) InsertEvents(ctx context.Context, evs ...Event) error {
 	return nil
 }
 
+// InsertSamples writes samples with COPY: one round trip per flush, however many labs.
+func (p *Postgres) InsertSamples(ctx context.Context, ss ...Sample) error {
+	if len(ss) == 0 {
+		return nil
+	}
+	_, err := p.pool.CopyFrom(ctx, pgx.Identifier{"samples"}, []string{"ts", "session_id", "metric", "value"},
+		pgx.CopyFromSlice(len(ss), func(i int) ([]any, error) {
+			s := ss[i]
+			return []any{s.TS, nullString(s.SessionID), s.Metric, s.Value}, nil
+		}))
+	if err != nil {
+		return fmt.Errorf("insert samples: %w", err)
+	}
+	return nil
+}
+
 // Session reads one row by id (tests and tools).
 func (p *Postgres) Session(ctx context.Context, id string) (Session, error) {
 	var s Session
@@ -184,6 +202,13 @@ func (p *Postgres) Session(ctx context.Context, id string) (Session, error) {
 	return s, nil
 }
 
+// QueryInt runs a query returning one integer (tests and tools).
+func (p *Postgres) QueryInt(ctx context.Context, sql string, args ...any) (int64, error) {
+	var n int64
+	err := p.pool.QueryRow(ctx, sql, args...).Scan(&n)
+	return n, err
+}
+
 // Exec runs one statement (tests and tools).
 func (p *Postgres) Exec(ctx context.Context, sql string, args ...any) error {
 	_, err := p.pool.Exec(ctx, sql, args...)
@@ -198,6 +223,13 @@ func nullTime(t time.Time) *time.Time {
 }
 
 func nullInt(v int64) *int64 {
+	if v == 0 {
+		return nil
+	}
+	return &v
+}
+
+func nullFloat(v float64) *float64 {
 	if v == 0 {
 		return nil
 	}

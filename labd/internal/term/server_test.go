@@ -797,3 +797,24 @@ func TestWS_RunningSoonAfterCreate(t *testing.T) {
 	}
 	t.Fatal("no state: running from the creating poll within 5 s")
 }
+
+// The sampler's ws.bytes_in and ws.bytes_out (Phase 7): payload bytes per session, kept
+// across a reconnect.
+func TestWS_ByteCounters(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, false, nil)
+	id := h.start(t, 1)
+	pty := h.rt.get(id)
+	c := h.dial(t, id, 1)
+	c.expect(t, "state")
+	c.send(t, "hello\n")
+	c.expectOutput(t, "hello\n") // the fake PTY echoes
+	pty.emit([]byte("from the lab"))
+	c.expectOutput(t, "from the lab")
+	waitFor(t, "6 in, 18 out", func() bool { b := h.srv.Bytes()[id]; return b == [2]int64{6, 18} })
+
+	c2 := h.dial(t, id, 1) // replaces the first; the counters carry on
+	c2.expect(t, "state")
+	c2.send(t, "ab")
+	waitFor(t, "8 in after a reconnect", func() bool { return h.srv.Bytes()[id][0] == 8 })
+}

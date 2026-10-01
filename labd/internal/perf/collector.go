@@ -1,16 +1,13 @@
 package perf
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
+
+	"gdblabs/labd/internal/metrics"
 )
 
 // Collector samples the host while a scenario runs (plan "Collector"): host memory, CPU and
@@ -28,7 +25,7 @@ type Collector struct {
 
 	mu      sync.Mutex // Sample keeps deltas between calls; the loop and teardown both call it
 	start   time.Time
-	prevCPU cpuTimes
+	prevCPU metrics.CPUTimes
 	prevLab map[string]labCPU
 	prevAt  time.Time
 }
@@ -89,8 +86,6 @@ type LabSample struct {
 	HostRSSMB float64 // sandbox + gofer + shim RSS (RSS counts shared pages)
 }
 
-type cpuTimes struct{ total, idle uint64 }
-
 type labCPU struct{ usec uint64 }
 
 func (c *Collector) path(p string) string { return filepath.Join(c.Root, p) }
@@ -107,11 +102,8 @@ func (c *Collector) Sample(ctx context.Context, now time.Time, count bool) Sampl
 	mi := procKV(c.path("proc/meminfo"))
 	s.MemAvailMB = round(float64(mi["MemAvailable"])/1024, 1)
 	s.MemUsedMB = round(float64(mi["MemTotal"]-mi["MemAvailable"])/1024, 1)
-	cpu := readCPU(c.path("proc/stat"))
-	if c.prevCPU.total > 0 && cpu.total > c.prevCPU.total {
-		dt := float64(cpu.total - c.prevCPU.total)
-		s.CPUPct = round(100*(dt-float64(cpu.idle-c.prevCPU.idle))/dt, 2)
-	}
+	cpu := metrics.ReadCPU(c.path("proc/stat"))
+	s.CPUPct = metrics.CPUPct(c.prevCPU, cpu)
 	c.prevCPU = cpu
 	s.PSI = PSI{CPU: readPSI(c.path("proc/pressure/cpu")), Memory: readPSI(c.path("proc/pressure/memory")), IO: readPSI(c.path("proc/pressure/io"))}
 	s.OOMKills = spaceKV(c.path("proc/vmstat"))["oom_kill"]
@@ -135,20 +127,20 @@ func (c *Collector) Sample(ctx context.Context, now time.Time, count bool) Sampl
 	}
 
 	procs := scanProcs(c.path("proc"))
-	s.ContainerdRSSMB = procs.containerd
+	s.ContainerdRSSMB = procs.Containerd
 	cgs := readLabCgroups(c.path(c.CgroupDir))
 	wall := now.Sub(c.prevAt)
 	lab := map[string]labCPU{}
 	var mem, sentry, host, cpus []float64
 	for id, cg := range cgs {
-		ls := LabSample{SessionID: id, MemMB: cg.memMB, CPUPct: -1, SentryMB: procs.sentry[id],
-			HostRSSMB: round(procs.sentry[id]+procs.gofer[id]+procs.shim[id], 1)}
-		if p, ok := c.prevLab[id]; ok && wall > 0 && cg.cpuUsec >= p.usec {
-			ls.CPUPct = round(100*float64(cg.cpuUsec-p.usec)/float64(wall.Microseconds()), 2)
+		ls := LabSample{SessionID: id, MemMB: cg.MemMB, CPUPct: -1, SentryMB: procs.Sentry[id],
+			HostRSSMB: round(procs.Sentry[id]+procs.Gofer[id]+procs.Shim[id], 1)}
+		if p, ok := c.prevLab[id]; ok && wall > 0 && cg.CPUUsec >= p.usec {
+			ls.CPUPct = round(100*float64(cg.CPUUsec-p.usec)/float64(wall.Microseconds()), 2)
 			cpus = append(cpus, ls.CPUPct)
 			s.LabCPUPctSum += ls.CPUPct
 		}
-		lab[id] = labCPU{usec: cg.cpuUsec}
+		lab[id] = labCPU{usec: cg.CPUUsec}
 		mem = append(mem, ls.MemMB)
 		s.LabMemSumMB += ls.MemMB
 		if ls.SentryMB > 0 {
@@ -169,168 +161,9 @@ func p3(xs []float64) P50P95Max {
 	return P50P95Max{P50: round(p.P50, 2), P95: round(p.P95, 2), Max: round(p.Max, 2)}
 }
 
-// procKV parses "Key:   123 kB" lines (meminfo, status), values as written (kB).
-func procKV(path string) map[string]int64 {
-	out := map[string]int64{}
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return out
-	}
-	for _, l := range strings.Split(string(b), "\n") {
-		k, v, ok := strings.Cut(l, ":")
-		if !ok {
-			continue
-		}
-		if f := strings.Fields(v); len(f) > 0 {
-			n, _ := strconv.ParseInt(f[0], 10, 64)
-			out[strings.TrimSpace(k)] = n
-		}
-	}
-	return out
-}
-
-// spaceKV parses "key value" lines (vmstat, cpu.stat).
-func spaceKV(path string) map[string]int64 {
-	out := map[string]int64{}
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return out
-	}
-	for _, l := range strings.Split(string(b), "\n") {
-		if f := strings.Fields(l); len(f) == 2 {
-			n, _ := strconv.ParseInt(f[1], 10, 64)
-			out[f[0]] = n
-		}
-	}
-	return out
-}
-
-// readCPU is the aggregate "cpu" line of /proc/stat: total and idle (idle + iowait) jiffies.
-func readCPU(path string) cpuTimes {
-	f, err := os.Open(path)
-	if err != nil {
-		return cpuTimes{}
-	}
-	defer f.Close()
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		fs := strings.Fields(sc.Text())
-		if len(fs) < 6 || fs[0] != "cpu" {
-			continue
-		}
-		var t cpuTimes
-		for i, v := range fs[1:] {
-			n, _ := strconv.ParseUint(v, 10, 64)
-			if i == 8 || i == 9 { // guest and guest_nice are already counted in user and nice
-				continue
-			}
-			t.total += n
-			if i == 3 || i == 4 {
-				t.idle += n
-			}
-		}
-		return t
-	}
-	return cpuTimes{}
-}
-
-// readPSI returns "some avg10" from a /proc/pressure file (0 if absent).
-func readPSI(path string) float64 {
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return 0
-	}
-	for _, l := range strings.Split(string(b), "\n") {
-		if !strings.HasPrefix(l, "some ") {
-			continue
-		}
-		for _, f := range strings.Fields(l) {
-			if v, ok := strings.CutPrefix(f, "avg10="); ok {
-				x, _ := strconv.ParseFloat(v, 64)
-				return x
-			}
-		}
-	}
-	return 0
-}
-
-type labCgroup struct {
-	memMB   float64
-	cpuUsec uint64
-}
-
-// readLabCgroups reads every lab-<session> cgroup under dir.
-func readLabCgroups(dir string) map[string]labCgroup {
-	out := map[string]labCgroup{}
-	es, err := os.ReadDir(dir)
-	if err != nil {
-		return out
-	}
-	for _, e := range es {
-		id, ok := strings.CutPrefix(e.Name(), "lab-")
-		if !ok || !e.IsDir() {
-			continue
-		}
-		d := filepath.Join(dir, e.Name())
-		b, err := os.ReadFile(filepath.Join(d, "memory.current"))
-		if err != nil {
-			continue // the lab went away between ReadDir and here
-		}
-		mem, _ := strconv.ParseFloat(strings.TrimSpace(string(b)), 64)
-		out[id] = labCgroup{memMB: round(mem/(1<<20), 2), cpuUsec: uint64(spaceKV(filepath.Join(d, "cpu.stat"))["usage_usec"])}
-	}
-	return out
-}
-
-// labID finds the session id in a gVisor process's arguments ("lab-<uuid>").
-var labID = regexp.MustCompile(`lab-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})`)
-
-type procRSS struct {
-	sentry, gofer, shim map[string]float64 // by session id, MiB
-	containerd          float64
-}
-
-// scanProcs reads comm, cmdline and VmRSS of every process under procDir. What counts:
-// runsc-sandbox (the Sentry; comm gvisor_sentry), runsc-gofer, containerd-shim-runsc-v1
-// (one per lab, outside the lab's cgroup) and containerd itself.
-func scanProcs(procDir string) procRSS {
-	out := procRSS{sentry: map[string]float64{}, gofer: map[string]float64{}, shim: map[string]float64{}}
-	es, err := os.ReadDir(procDir)
-	if err != nil {
-		return out
-	}
-	for _, e := range es {
-		if _, err := strconv.Atoi(e.Name()); err != nil {
-			continue
-		}
-		d := filepath.Join(procDir, e.Name())
-		cmd, err := os.ReadFile(filepath.Join(d, "cmdline"))
-		if err != nil || len(cmd) == 0 {
-			continue
-		}
-		args := bytes.Split(bytes.TrimRight(cmd, "\x00"), []byte{0})
-		arg0 := filepath.Base(string(args[0]))
-		var kind map[string]float64
-		switch arg0 {
-		case "runsc-sandbox":
-			kind = out.sentry
-		case "runsc-gofer":
-			kind = out.gofer
-		case "containerd-shim-runsc-v1":
-			kind = out.shim
-		case "containerd":
-			out.containerd += rssMB(d)
-			continue
-		default:
-			continue
-		}
-		if m := labID.FindSubmatch(cmd); m != nil {
-			kind[string(m[1])] += rssMB(d)
-		}
-	}
-	return out
-}
-
-func rssMB(procPidDir string) float64 {
-	return round(float64(procKV(filepath.Join(procPidDir, "status"))["VmRSS"])/1024, 1)
-}
+// The /proc and cgroup readers live in internal/metrics, which labd's sampler shares.
+func procKV(path string) map[string]int64                    { return metrics.ProcKV(path) }
+func spaceKV(path string) map[string]int64                   { return metrics.SpaceKV(path) }
+func readPSI(path string) float64                            { return metrics.ReadPSI(path) }
+func readLabCgroups(dir string) map[string]metrics.LabCgroup { return metrics.ReadLabCgroups(dir) }
+func scanProcs(procDir string) metrics.ProcRSS               { return metrics.ScanProcs(procDir) }

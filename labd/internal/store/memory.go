@@ -12,6 +12,7 @@ type Memory struct {
 	mu       sync.Mutex
 	sessions map[string]Session
 	events   []Event
+	samples  []Sample
 	fail     error
 }
 
@@ -46,6 +47,23 @@ func (m *Memory) OpenSessions(context.Context) ([]Session, error) {
 	}
 	slices.SortFunc(out, func(a, b Session) int { return a.CreatedAt.Compare(b.CreatedAt) })
 	return out, nil
+}
+
+func (m *Memory) InsertSamples(_ context.Context, ss ...Sample) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.fail != nil {
+		return m.fail
+	}
+	m.samples = append(m.samples, ss...)
+	return nil
+}
+
+// Samples returns a copy of every sample written.
+func (m *Memory) Samples() []Sample {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return append([]Sample(nil), m.samples...)
 }
 
 func (m *Memory) InsertEvents(_ context.Context, evs ...Event) error {

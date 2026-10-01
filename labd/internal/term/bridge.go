@@ -310,6 +310,7 @@ func (c *conn) input(ctx context.Context, data []byte) {
 		if err := s.o.Sessions.WriteInput(c.id, data); err != nil {
 			return
 		}
+		st.bytesIn.Add(int64(len(data)))
 	}
 	if len(lines) == 0 {
 		return
@@ -333,6 +334,7 @@ func (c *conn) input(ctx context.Context, data []byte) {
 func (c *conn) writeLoop(ctx context.Context, outReady <-chan outStream) {
 	s := c.srv
 	lim := newOutputLimiter(s.o.OutputRate, s.o.OutputBurst, s.o.Clock)
+	st := s.termState(c.id)
 	var out <-chan []byte
 	writeBinary := func(p []byte) bool {
 		for len(p) > 0 {
@@ -344,6 +346,7 @@ func (c *conn) writeLoop(ctx context.Context, outReady <-chan outStream) {
 				c.closeBy(closedByClient, websocket.StatusNormalClosure, "")
 				return false
 			}
+			st.bytesOut.Add(int64(n))
 			p = p[n:]
 		}
 		return true

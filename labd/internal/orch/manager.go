@@ -297,6 +297,36 @@ type Stats struct {
 	MaxQueue    int `json:"max_queue"`
 }
 
+// Running returns the ids of running sessions (the metrics sampler measures these).
+func (m *Manager) Running() []string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	var out []string
+	for _, s := range m.sessions {
+		if s.State == StateRunning {
+			out = append(out, s.ID)
+		}
+	}
+	return out
+}
+
+// Counts returns the sessions holding a slot and those queued (the metrics sampler).
+func (m *Manager) Counts() (active, queued int) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.inUse, len(m.queue)
+}
+
+// ObserveRSS records a lab's memory reading; the highest is written to sessions.peak_rss_mb
+// with the session's next row update, at the latest when it ends.
+func (m *Manager) ObserveRSS(id string, mb float64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if s := m.sessions[id]; s != nil && mb > s.peakRSSMB {
+		s.peakRSSMB = mb
+	}
+}
+
 // Stats returns the current counters.
 func (m *Manager) Stats() Stats {
 	m.mu.Lock()

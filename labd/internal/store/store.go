@@ -44,6 +44,14 @@ type Event struct {
 	Data          map[string]any
 }
 
+// Sample is one row of the samples table: a gauge or a delta at ts (spec "Sample schema").
+type Sample struct {
+	TS        time.Time
+	SessionID string // "" for host and labd metrics
+	Metric    string
+	Value     float64
+}
+
 // Store is what labd needs from persistence.
 type Store interface {
 	// UpsertSession writes the row, inserting it on first use.
@@ -52,5 +60,7 @@ type Store interface {
 	OpenSessions(ctx context.Context) ([]Session, error)
 	// InsertEvents appends events in one batch.
 	InsertEvents(ctx context.Context, evs ...Event) error
+	// InsertSamples appends samples in one batch (the sampler, every metrics_flush_s).
+	InsertSamples(ctx context.Context, ss ...Sample) error
 	Close()
 }

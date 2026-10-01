@@ -84,11 +84,12 @@ type Session struct {
 	stopReason   string     // a stop requested while the container was being created
 	writeMu      sync.Mutex // serialises row writes so the newest state is written last
 
-	grace    clock.Timer   // armed while no WebSocket is attached (Phase 3)
-	connGen  int           // generation of the current WebSocket; 0 when none ever attached
-	attached bool          // a WebSocket is attached now
-	ended    chan struct{} // closed when the session is ended, failed or abandoned
-	commands int           // command_entered lines seen by the gateway
+	grace     clock.Timer   // armed while no WebSocket is attached (Phase 3)
+	connGen   int           // generation of the current WebSocket; 0 when none ever attached
+	attached  bool          // a WebSocket is attached now
+	ended     chan struct{} // closed when the session is ended, failed or abandoned
+	commands  int           // command_entered lines seen by the gateway
+	peakRSSMB float64       // highest memory reading from the sampler (sessions.peak_rss_mb)
 }
 
 // SessionInfo is a copy of a session's public state.
@@ -134,6 +135,7 @@ func (s *Session) record() store.Session {
 		ID: s.ID, UserID: s.UserID, ChallengeSlug: s.ChallengeSlug, Image: s.Image,
 		State: string(s.State), CreatedAt: s.CreatedAt, StartedAt: s.StartedAt, EndedAt: s.EndedAt,
 		EndReason: s.EndReason, ContainerID: s.ContainerID, Extended: s.Extended, Commands: s.commands,
+		PeakRSSMB: s.peakRSSMB,
 	}
 }
 

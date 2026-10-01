@@ -338,3 +338,32 @@ func TestManager_CloseLeavesLabsAlone(t *testing.T) {
 		t.Fatalf("start after Close: %v", err)
 	}
 }
+
+// The metrics sampler's view (Phase 7): running sessions, the counts, and the peak memory
+// written to the session's row.
+func TestManager_SamplerHooks(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 5)
+	a := h.start(t, 1)
+	q := h.start(t, 2)
+	h.m.Settle()
+	if got := h.m.Running(); len(got) != 1 || got[0] != a.ID {
+		t.Fatalf("running %v, want [%s]", got, a.ID)
+	}
+	if active, queued := h.m.Counts(); active != 1 || queued != 1 {
+		t.Fatalf("counts %d active, %d queued", active, queued)
+	}
+	h.m.ObserveRSS(a.ID, 25)
+	h.m.ObserveRSS(a.ID, 31.5)
+	h.m.ObserveRSS(a.ID, 28) // lower: the peak stays
+	h.m.ObserveRSS("no-such-session", 99)
+	if _, err := h.m.Stop(context.Background(), a.ID, ReasonUserStop); err != nil {
+		t.Fatal(err)
+	}
+	h.m.Settle()
+	row, ok := h.st.Session(a.ID)
+	if !ok || row.PeakRSSMB != 31.5 || row.State != "ended" {
+		t.Fatalf("row %+v", row)
+	}
+	_ = q
+}

@@ -106,6 +106,9 @@ type sessionTerm struct {
 	in    *inputLimiter
 	split Splitter
 	seq   int
+	// Terminal payload bytes since the session's first connection, for the sampler's
+	// ws.bytes_in (keystrokes admitted) and ws.bytes_out (output sent) (Phase 7).
+	bytesIn, bytesOut atomic.Int64
 }
 
 // New returns a gateway.
@@ -223,6 +226,18 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	case <-ctx.Done():
 		return fmt.Errorf("ws: connections still closing: %w", ctx.Err())
 	}
+}
+
+// Bytes returns, per session with a terminal, the payload bytes in (keystrokes) and out
+// (terminal output) since its first connection. The counters survive reconnects.
+func (s *Server) Bytes() map[string][2]int64 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := make(map[string][2]int64, len(s.state))
+	for id, st := range s.state {
+		out[id] = [2]int64{st.bytesIn.Load(), st.bytesOut.Load()}
+	}
+	return out
 }
 
 // termState returns the per-session state, creating it on first use.

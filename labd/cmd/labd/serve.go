@@ -17,6 +17,7 @@ import (
 	"gdblabs/labd/internal/api"
 	"gdblabs/labd/internal/clock"
 	"gdblabs/labd/internal/config"
+	"gdblabs/labd/internal/metrics"
 	"gdblabs/labd/internal/orch"
 	"gdblabs/labd/internal/store"
 	"gdblabs/labd/internal/term"
@@ -85,6 +86,17 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 		Sessions: m, Tokens: tokens, Recorder: rec, Log: log,
 		SiteOrigin: strings.TrimSuffix(cfg.SiteHost, "/"), AllowNoOrigin: cfg.DevAllowNoOrigin,
 	})
+	// Resource samples every metrics_flush_s (Phase 7). Stopped before the store closes.
+	sampler := &metrics.Sampler{
+		Root: "/", CgroupDir: "sys/fs/cgroup" + orch.CgroupParent, DiskPath: containerdRoot,
+		Src: m, WSBytes: gw.Bytes, Sink: db, OnRSS: m.ObserveRSS, Log: log,
+	}
+	sctx, stopSampler := context.WithCancel(ctx)
+	var sampling sync.WaitGroup
+	sampling.Add(1)
+	go func() { defer sampling.Done(); sampler.Run(sctx, cfg.MetricsFlush()) }()
+	defer func() { stopSampler(); sampling.Wait() }()
+
 	wsMux := http.NewServeMux()
 	wsMux.Handle("/ws/", gw.Handler())
 	if cfg.DevTestpage {
@@ -129,6 +141,10 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 		listener{"internal API", lnAPI, srv.Handler()},
 		listener{"terminal gateway", lnWS, wsMux})
 }
+
+// containerdRoot is containerd's default root (provision.sh keeps it): host.disk_used_gb is
+// the filesystem holding images and snapshots.
+const containerdRoot = "/var/lib/containerd"
 
 type listener struct {
 	name string
