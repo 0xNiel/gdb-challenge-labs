@@ -6,16 +6,14 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 Phase 3 human check: 2026-09-30 <OG> OK
 
-**Phase 4 — Perf suite: in progress** on branch `phase-4-perf-suite`. The laptop ran the whole suite (results below). Every scenario ran and every criterion passed except start latency. Its cause was a gateway bug, now fixed. Gate 4 fails only on those start-latency misses. One step remains, the owner's:
-
-**Re-run the start-latency scenarios with the fix, on the laptop** (about 2 h 20 min; leave the laptop idle):
+**Phase 4 — Perf suite: in progress** on branch `phase-4-perf-suite`. With the gateway fix, every start-latency criterion passes on the laptop (P2 p95 1839 ms, P8 1855 ms, P1 1496 ms). Gate 4 failed on one value: `per_lab.disk_mb` was 0. The snapshot store was measured in whole MB, and 100 labs add under 1 MB in total, so it rounded to 0. Now fixed (KiB, sampled at N). One short step remains, the owner's (about 20 minutes):
 ```
 git pull
-LAB_HOST=linux-laptop labd/perf/runall.sh --only P1,P2,P3,P8,kvm,runc,report
-git add docs/metrics && git commit -m "[P4] metrics: laptop start latency with the gateway fix" && git push
+LAB_HOST=linux-laptop labd/perf/runall.sh --only P2,report
+git add docs/metrics && git commit -m "[P4] metrics: laptop P2 with disk in KiB" && git push
 ./run.sh gate --phase 4
 ```
-`--only` reruns P1, P2, P3 and P8, both KVM runs and all three runc runs, so every comparison in `capacity.md` uses runs made with the fix. The report keeps the newest run of each scenario, so P4–P7 and P9 stay as they are. Expected: start p95 about 1.5 s under gVisor; the dev VM fell from 1283 to 546 ms. If a start-latency line still says MISS, send the output; that needs a decision line or a question, not a silent pass.
+Expected: about 0.008 MB per lab (8 KiB: two empty overlay directories, as on the dev VM).
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -59,6 +57,17 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-10-01 — start latency passes after the fix; disk per lab measured in KiB
+- **Laptop rerun with the gateway fix** (P1, P2, P3, P8, the KVM and runc runs; `docs/metrics/run-P*-2026-10-01-linux-laptop*.json`):
+  - start p95: P2 2484 → 1839 ms, P8 2507 → 1855 ms, P1 2133 → 1496 ms, P2 on KVM 1777 ms; all under 2 s;
+  - runc: P2 458 ms, P1 412 ms, so gVisor adds about 1.4 s per start;
+  - nothing else moved: P3 echo p95 2.5 ms, abusers bounded, no OOM, every user completed.
+- **Gate 4** then failed on `per_lab.disk_mb = 0`. Two bugs in `disk.sh`, both fixed:
+  - It measured in whole MB, and 100 labs add under 1 MB. It now uses KiB, sampled before the first session and once all are running.
+  - A `du` racing teardown produced invalid JSON (P2-kvm's "exit status 2").
+  - Dev VM: 8 KiB per lab.
+- **Next:** the owner reruns P2 and the report (steps above), then the gate.
 
 ### 2026-10-01 — Phase 4 on the laptop: everything measured; start latency was a gateway bug
 - **The owner ran the full suite on the laptop** (14 runs, about 6 h; `docs/metrics/run-P*-2026-09-30-linux-laptop*.json`, `perf-report-2026-09-30-linux-laptop.json`). Headline numbers at 100 labs:
