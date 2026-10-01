@@ -18,6 +18,27 @@ Phase 6 human check: 2026-10-01 <OG> OK
 
 First estimate (`docs/metrics/vps-capacity.md`): memory allows about 425 labs in typical use and 166 if every lab filled its memory limit; bandwidth and disk allow thousands. CPU decides, and its two inputs (a real learner's CPU, the share of busy loops) are not measured yet: about 80 to 130 at 75 % CPU with 10 % busy loops. `max_sessions` stays 100 until P10 measures it.
 
+**On the laptop now: the capacity search (task 7.11), about an hour.** The rest of Phase 7 is being built meanwhile and does not touch it.
+
+1. **Update.**
+   ```
+   git fetch && git checkout phase-7-metrics-admin && git pull
+   ./run.sh labs preflight
+   lscpu -e=CPU,CORE,MAXMHZ
+   ```
+   Keep the `lscpu` output for me: it shows which CPUs stay online. The tier-1 images from Phase 5 and the perf image are used; if `.scratch/local-images.json` is gone, rebuild the labs first (`for d in challenges/tier1-c-fundamentals/0*; do bash scripts/challenge-build.sh "$d" || break; done`).
+2. **Close what uses CPU** (browser, IDE indexing). The run shares 8 CPUs with the desktop.
+3. **Run it.**
+   ```
+   LAB_HOST=linux-laptop labd/perf/capacity.sh --cpus 8
+   ```
+   sudo asks once. It takes CPUs 8–15 offline, runs P10 at 60, 90, 120 and 150 labs (8 minutes each; 180 is refused on 15 GB of RAM), stops at the first count that misses a criterion, brings the CPUs back, and writes `docs/metrics/capacity-search-<date>-linux-laptop.md`. If you interrupt it and `nproc` says 8, run `sudo chcpu -e 8-15`.
+4. **Commit and push.**
+   ```
+   git add docs/metrics && git commit -m "[P7] metrics: P10 capacity search on 8 CPUs" && git push
+   ```
+   Then send me the `.md` and the `lscpu` output; I turn them into the estimate (task 7.12).
+
 <details><summary>Phase 6 laptop checklist (done 2026-10-01)</summary>
 
 **On the laptop, in this order** (about 30 minutes):
@@ -157,6 +178,19 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-10-01 — Phase 7 started: Phase 8 optional, the VPS capacity estimate
+- **ADR 0017**: the owner made Phase 8 optional and asked for a measured estimate for the target VPS (8 vCPU, 32 GB, 400 GB NVMe, 32 TB). It moves into Phase 7 as tasks 7.10–7.12, measured on the laptop with 8 CPUs online. The phase board and `IMPLEMENTATION_PLAN.md` mark Phase 8 optional.
+- **First estimate** (`docs/metrics/vps-capacity.md`), from Phase 4's measured costs:
+  - memory: about 425 labs in typical use (50.2 MB each), 166 if every lab filled its 128 MiB limit;
+  - bandwidth: about 0.25 TB a month at 400 labs; disk: under 80 GB;
+  - CPU decides, on two unmeasured inputs, a real learner's CPU and the share of busy loops: about 80 to 130 labs at 75 % CPU with 10 % busy loops.
+  - `max_sessions` stays 100.
+- **Built first** (7.10, 7.11), because it is the priority:
+  - a `learner` profile: the five real tier-1 labs, gdb started and quit again and again, `run`, software watchpoints;
+  - P10 and `labd/perf/capacity.sh`, which step through counts on N CPUs and write `capacity-search-*.md`.
+  - Tested: unit tests, plus 3 and 20 labs in the arm64 VM under runc (not authoritative), with no command errors.
+- **Next**: the owner runs the capacity search on the laptop (steps above). Meanwhile, tasks 7.1–7.9.
 
 ### 2026-10-01 — A correct flag stops the lab (ADR 0016)
 - The owner asked, after the Phase 6 gate passed, that a lab stop once its flag is accepted. **ADR 0016** overrides the spec's "kept open independently of the flag".
