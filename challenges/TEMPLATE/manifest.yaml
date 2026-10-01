@@ -1,5 +1,6 @@
 # TEMPLATE — copied by scripts/challenge-new.sh <tier> <NN-slug>. Every key is required
-# (challenges/schema/manifest.schema.json); challenges/README.md explains each one.
+# (challenges/schema/manifest.schema.json); challenges/README.md ("The manifest, key by key")
+# explains each one.
 slug: tier9-99-template
 title: Template
 tier: 9

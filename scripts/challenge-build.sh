@@ -60,6 +60,9 @@ SLUG="$(jq -r .slug <<<"$M")" ENTRY="$(jq -r .entry <<<"$M")" FLAGS="$(jq -r .fl
 for f in src/main.c build.sh solve.gdb README.md lesson.md solution.md; do
   [[ -f "$DIR/$f" ]] || fail "missing $f"
 done
+if [[ "$(basename "$DIR")" != TEMPLATE ]] && grep -lw -e Template -e TEMPLATE "$DIR/README.md" "$DIR/lesson.md" "$DIR/solution.md" "$DIR/src/main.c" >/dev/null 2>&1; then
+  fail "template text left in: $(grep -lw -e Template -e TEMPLATE "$DIR/README.md" "$DIR/lesson.md" "$DIR/solution.md" "$DIR/src/main.c" | sed "s|$DIR/||" | tr '\n' ' ')"
+fi
 ok "$SLUG (entry $ENTRY, key $KEY)"
 
 step "2 flag"
