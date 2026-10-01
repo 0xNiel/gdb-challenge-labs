@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"strings"
 	"testing"
 	"time"
 
@@ -366,4 +367,62 @@ func TestManager_SamplerHooks(t *testing.T) {
 		t.Fatalf("row %+v", row)
 	}
 	_ = q
+}
+
+// Task 7.2: each lifecycle writes its events with the spec's data keys; a queued session
+// adds lab_queued.
+func TestManager_EventLifecycle(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, 1, 5)
+	a := h.start(t, 1)
+	b := h.start(t, 2) // queued behind a
+	h.m.Settle()
+	h.m.AddCommands(a.ID, 3)
+	h.clk.Advance(90 * time.Second) // under the 2 min queue timeout: b stays queued
+	for _, id := range []string{a.ID, b.ID} {
+		h.m.Settle()
+		if _, err := h.m.Stop(context.Background(), id, ReasonUserStop); err != nil {
+			t.Fatal(err)
+		}
+		h.m.Settle()
+	}
+	byUser := map[int64][]store.Event{}
+	for _, e := range h.st.Events() {
+		byUser[e.UserID] = append(byUser[e.UserID], e)
+	}
+	types := func(evs []store.Event) []string {
+		var out []string
+		for _, e := range evs {
+			out = append(out, e.Type)
+		}
+		return out
+	}
+	if got := strings.Join(types(byUser[1]), ","); got != "lab_requested,lab_started,lab_ended" {
+		t.Fatalf("user 1 events %s", got)
+	}
+	if got := strings.Join(types(byUser[2]), ","); got != "lab_requested,lab_queued,lab_started,lab_ended" {
+		t.Fatalf("user 2 events %s", got)
+	}
+	for _, e := range append(byUser[1], byUser[2]...) {
+		if e.SessionID == "" || e.ChallengeSlug != "perf" {
+			t.Errorf("%s lacks session or challenge: %+v", e.Type, e)
+		}
+		need := map[string][]string{
+			"lab_queued":  {"position"},
+			"lab_started": {"start_latency_ms"},
+			"lab_ended":   {"reason", "duration_s", "commands"},
+		}[e.Type]
+		for _, k := range need {
+			if _, ok := e.Data[k]; !ok {
+				t.Errorf("%s lacks data key %q: %v", e.Type, k, e.Data)
+			}
+		}
+	}
+	end := byUser[1][2].Data
+	if end["reason"] != ReasonUserStop || end["commands"] != 3 || end["duration_s"] != 90 {
+		t.Errorf("user 1 lab_ended data %v", end)
+	}
+	if byUser[2][1].Data["position"] != 1 {
+		t.Errorf("lab_queued data %v", byUser[2][1].Data)
+	}
 }
