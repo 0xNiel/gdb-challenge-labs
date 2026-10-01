@@ -14,3 +14,4 @@ metrics_flush_s: 10
 site_host: http://127.0.0.1:8082   # the dev test page is served by labd itself
 dev_allow_no_origin: true           # Go client and perf scripts send no Origin
 dev_testpage: true                  # /dev/term on listen_ws
+dev_mint_tokens: true               # ws_token in POST /internal/sessions (labd-perf, /dev/term; ADR 0015)

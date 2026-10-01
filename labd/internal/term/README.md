@@ -24,7 +24,9 @@ payload = session_id "|" user_id "|" exp_unix "|" nonce        nonce = base64url
 token   = base64url(payload) "." base64url(HMAC-SHA256(WS_TOKEN_KEY, payload))
 ```
 
-`base64url` is RFC 4648 URL-safe with no padding. `exp_unix` is the mint time plus 60 s. A token verifies once; replays are rejected until it expires. Until Phase 6, `POST /internal/sessions` returns a fresh token on every call. Calling it again for a live session returns the same session with a new token, which is how a client reconnects.
+`base64url` is RFC 4648 URL-safe with no padding. `exp_unix` is the mint time plus 60 s. A token verifies once; replays are rejected until it expires.
+
+web mints the browser's tokens (`GET /lab/<slug>/session/token`, ADR 0015). labd puts one in every `POST /internal/sessions` response only with `dev_mint_tokens: true` (labd.dev.yaml, labd.perf.yaml; never production); calling it again for a live session then returns the same session with a new token, which is how labd-perf reconnects. `challenges/schema/ws_token_vectors.json` holds tokens with fixed nonces that both minters must reproduce.
 
 ## Frames
 

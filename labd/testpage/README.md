@@ -16,7 +16,7 @@ Downloaded from the npm registry on 2026-09-30. No CDN at runtime (CONVENTIONS).
 ## Using it
 
 ```
-LABD_INTERNAL_SECRET=dev WS_TOKEN_KEY=dev ./run.sh labd        # labd.dev.yaml has dev_testpage: true
+LABD_INTERNAL_SECRET=dev WS_TOKEN_KEY=dev ./run.sh labd        # labd.dev.yaml has dev_testpage and dev_mint_tokens on
 curl -s -H 'Authorization: Bearer dev' -d '{"user_id":1,"challenge_slug":"perf"}' \
   http://127.0.0.1:8081/internal/sessions                      # -> session_id, ws_token
 open "http://127.0.0.1:8082/dev/term?session=<session_id>&t=<ws_token>"   # within 60 s

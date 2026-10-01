@@ -75,7 +75,10 @@ func runServe(ctx context.Context, cfgPath string, cfg config.Config, log *slog.
 		return err
 	}
 	tokens := term.NewTokens([]byte(cfg.WSTokenKey))
-	srv.MintToken = func(id string, uid int64) string { return tokens.Mint(id, uid, time.Now()) }
+	if cfg.DevMintTokens {
+		log.Warn("dev_mint_tokens is on: POST /internal/sessions returns a ws_token (never in production, ADR 0015)")
+		srv.MintToken = func(id string, uid int64) string { return tokens.Mint(id, uid, time.Now()) }
+	}
 	rec := term.NewRecorder(db, clock.Real{}, log)
 	defer rec.Close()
 	gw := term.New(term.Options{

@@ -1,7 +1,10 @@
 package term
 
 import (
+	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -88,4 +91,42 @@ func flip(s string) string {
 		b[0] = 'A'
 	}
 	return string(b)
+}
+
+// The shared vectors (ADR 0015): web's Python minter must produce the same tokens.
+func TestToken_SharedVectors(t *testing.T) {
+	raw, err := os.ReadFile("../../../challenges/schema/ws_token_vectors.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc struct {
+		Key     string `json:"key"`
+		Vectors []struct {
+			SessionID string `json:"session_id"`
+			UserID    int64  `json:"user_id"`
+			Exp       int64  `json:"exp"`
+			NonceHex  string `json:"nonce_hex"`
+			Token     string `json:"token"`
+		} `json:"vectors"`
+	}
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		t.Fatal(err)
+	}
+	if len(doc.Vectors) < 5 {
+		t.Fatalf("%d vectors, want at least 5", len(doc.Vectors))
+	}
+	for _, v := range doc.Vectors {
+		nonce, err := hex.DecodeString(v.NonceHex)
+		if err != nil {
+			t.Fatal(err)
+		}
+		exp := time.Unix(v.Exp, 0)
+		if got := mintNonce([]byte(doc.Key), v.SessionID, v.UserID, exp, nonce); got != v.Token {
+			t.Errorf("%s: minted %s, want %s", v.SessionID, got, v.Token)
+		}
+		uid, err := NewTokens([]byte(doc.Key)).Verify(v.Token, v.SessionID, exp.Add(-time.Second))
+		if err != nil || uid != v.UserID {
+			t.Errorf("%s: verify = %d, %v", v.SessionID, uid, err)
+		}
+	}
 }

@@ -59,11 +59,22 @@ func TestParse_ProductionFile(t *testing.T) {
 	if cfg.Runtime != "io.containerd.runsc.v1" {
 		t.Errorf("runtime = %q, want runsc only (S1)", cfg.Runtime)
 	}
-	if cfg.DevAllowNoOrigin || cfg.DevTestpage {
+	if cfg.DevAllowNoOrigin || cfg.DevTestpage || cfg.DevMintTokens {
 		t.Error("a dev switch is on in the production config")
 	}
 	if cfg.MaxSessions != 100 || cfg.MaxQueue != 50 {
 		t.Errorf("max_sessions %d, max_queue %d; ADR 0013 says 100 and 50", cfg.MaxSessions, cfg.MaxQueue)
+	}
+}
+
+// ADR 0015: labd mints WebSocket tokens only when asked to, and never by default.
+func TestParse_DevMintTokens(t *testing.T) {
+	if cfg, _ := Parse(nil); cfg.DevMintTokens {
+		t.Error("dev_mint_tokens is on by default")
+	}
+	cfg, err := Parse([]byte("dev_mint_tokens: true\n"))
+	if err != nil || !cfg.DevMintTokens {
+		t.Errorf("dev_mint_tokens: true parsed as %v, %v", cfg.DevMintTokens, err)
 	}
 }
 

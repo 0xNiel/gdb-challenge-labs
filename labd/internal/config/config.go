@@ -51,6 +51,9 @@ type Config struct {
 	// scripts). DevTestpage serves the xterm.js test page at /dev/term. Both dev only.
 	DevAllowNoOrigin bool `yaml:"dev_allow_no_origin"`
 	DevTestpage      bool `yaml:"dev_testpage"`
+	// DevMintTokens puts a ws_token in POST /internal/sessions responses, for labd-perf, the
+	// replay client and the test page. web mints for browsers (ADR 0015). Dev only.
+	DevMintTokens bool `yaml:"dev_mint_tokens"`
 
 	// InternalSecret is the bearer token web uses on the internal API (S11).
 	// Environment only: LABD_INTERNAL_SECRET. Never read from the file.

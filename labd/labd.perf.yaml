@@ -14,3 +14,4 @@ metrics_flush_s: 10
 site_host: http://127.0.0.1:8082
 dev_allow_no_origin: true           # Go client and perf scripts send no Origin
 dev_testpage: false
+dev_mint_tokens: true               # labd-perf takes ws_token from POST /internal/sessions (ADR 0015)

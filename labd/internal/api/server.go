@@ -44,8 +44,8 @@ type Server struct {
 	log      *slog.Logger
 	// ReadRSS returns a lab's cgroup memory in MiB; replaceable in tests.
 	ReadRSS func(cgroupPath string) float64
-	// MintToken returns a fresh ws_token for a session (term.Tokens.Mint). web mints its own
-	// from Phase 6 on; until then this field fills the spec's ws_token. nil leaves it "".
+	// MintToken returns a fresh ws_token for a session (term.Tokens.Mint). Set only with
+	// dev_mint_tokens; web mints the browser's tokens (ADR 0015). nil leaves it "".
 	MintToken func(sessionID string, userID int64) string
 }
 
