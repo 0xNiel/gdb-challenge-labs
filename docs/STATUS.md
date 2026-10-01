@@ -6,7 +6,45 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 Phase 3 human check: 2026-09-30 <OG> OK
 
-**Phase 4 — Perf suite: done.** Gate passed on the x86-64 laptop on 2026-10-01 and merged into `main`. **Phase 5 (challenge pipeline and tier 1 content)** starts on branch `phase-5-challenge-pipeline`.
+**Phase 5 — Challenge pipeline and tier 1: in progress** on branch `phase-5-challenge-pipeline`. Every task is built:
+- flag derivation and vectors, `flagblob`, the manifest schema and `manifestlint`;
+- the build script with its oracle, the five tier-1 labs, `challenges.json`;
+- `labd pull` and `prune`, the rebuild-changed helper, the authoring guide, the gate.
+
+All five labs pass every build step in the Mac's arm64 VM. Gate 5 needs the x86-64 laptop for two things: the authoritative builds (x86-64, oracle under gVisor) and a human playing each lab.
+
+**On the laptop, in this order** (about an hour, most of it playing):
+
+1. **Update and build.**
+   ```
+   git pull && git checkout phase-5-challenge-pipeline
+   ./run.sh labs preflight
+   for d in challenges/tier1-c-fundamentals/0*; do bash scripts/challenge-build.sh "$d" || break; done
+   LAB_HOST=linux-laptop scripts/challenges-metrics.sh
+   ```
+   Each build ends with `PASSED`. If one fails, send its output. The likeliest suspect is lab 3: its bug depends on stack layout, which this is the first x86-64 check of. If it fails, the plain run printed the flag.
+2. **Play each lab once (tasks 5.6–5.10).** Use two terminals.
+   ```
+   scripts/challenges-json.sh --local > .scratch/challenges.local.json
+   sed "s|^challenges_file:.*|challenges_file: $PWD/.scratch/challenges.local.json|" labd/labd.dev.yaml > .scratch/labd.local.yaml
+   # A:
+   LABD_INTERNAL_SECRET=dev WS_TOKEN_KEY=dev ./run.sh labd --config .scratch/labd.local.yaml
+   # B, for each slug in turn (tier1-01-off-by-one, tier1-02-null-deref, tier1-03-uninitialized, tier1-04-unterminated, tier1-05-stack-overwrite):
+   slug=tier1-01-off-by-one
+   resp=$(curl -s -H 'Authorization: Bearer dev' -d "{\"user_id\":1,\"challenge_slug\":\"$slug\"}" http://127.0.0.1:8081/internal/sessions)
+   sid=$(jq -r .session_id <<<"$resp"); echo "http://127.0.0.1:8082/dev/term?session=$sid&t=$(jq -r .ws_token <<<"$resp")"
+   ```
+   Open the URL within 60 s. In the lab (`/opt/lab`), `cat README.md`, then check three things:
+   - a plain `./<binary>` shows the bug;
+   - the hints in the lab's `manifest.yaml`, read in order, each move you forward (lab 5 has none);
+   - the intended path works without `solution.md`, ending in `report: LAB{...}`.
+
+   Then stop the session before the next slug: `curl -s -X DELETE -H 'Authorization: Bearer dev' http://127.0.0.1:8081/internal/sessions/$sid`. After the last lab, Ctrl-C in A. Then, for each lab, add a line to this file starting at the first column: `Phase 5 human check <slug>: YYYY-MM-DD <initials> OK`. If a lab is confusing or a hint misleads, say so instead; that is a content fix, not an OK.
+3. **Commit and run the gate.**
+   ```
+   git add docs/metrics docs/STATUS.md && git commit -m "[P5] metrics: laptop challenge builds; human checks" && git push
+   ./run.sh gate --phase 5
+   ```
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -29,7 +67,7 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 2 | labd core (sessions, semaphore, reconciler) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 4 | Perf suite and measured capacity | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
-| 5 | Challenge pipeline and tier 1 content | in progress | — | — |
+| 5 | Challenge pipeline and tier 1 content | in progress: built, five labs pass in the arm64 VM; needs laptop builds and human checks | Mac: all but the laptop items | 2026-10-01 |
 | 6 | Django web app | blocked on 3, 5 | — | — |
 | 7 | Metrics, rollups, admin live view | blocked on 6 | — | — |
 | 8 | Production on the VPS, tiers 2–3, beta | blocked on 4, 7 | — | — |
@@ -50,6 +88,22 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-10-01 — Phase 5 built: flag, pipeline, five tier-1 labs
+- **Flag** (5.1, 5.2): `labd/internal/flag` derives the flag; 10 vectors computed with `openssl` and `base32`, one slug non-ASCII. `flagblob` writes `flag_blob.h` from the secret, read from the environment. A test compiles the header with a real C compiler: the right key prints the flag, wrong keys don't, and the binary holds neither `LAB{` nor the flag body. **ADR 0005 amended:** the flag is 29 bytes, not 28; the blob's seed is derived from the secret and slug, because a random seed breaks reproducible builds.
+- **Manifest** (5.3): `manifest.schema.json` adds `key_value` and `boss`. `manifestlint` applies the schema file itself, plus the directory, boss and hint rules; 12 rejection cases are tested.
+- **Build script** (5.4, 5.5): `scripts/challenge-build.sh` runs lint, flag, a double build with identical hashes, the static check, the leak check, the image, the oracle and the address check, then publishes.
+  - The oracle runs `solve.gdb` inside the lab image under the real sandbox, typed in through the terminal, so it never enters an image.
+  - Tested: TEMPLATE passes; a literal flag fails step 4; a wrong `solve.gdb` fails step 5; leftover template text fails step 1.
+- **Five labs** (5.6–5.10): off-by-one (key 400), null deref (347), uninitialized (4999), unterminated (FNV-1a hash), stack overwrite (the boss, no hints). Each has source under 75 lines, a manifest, `solve.gdb`, a lesson (about 10 minutes), a walkthrough and a README. All pass every step in the arm64 VM (oracle under runc). On a plain run, each shows its bug: 437 instead of 400; a crash; `SPRING10` wrongly accepted; `Thompsonadmin`; a dropped packet.
+  - Lab 3's first version read a zero from the stack on arm64, so the bug didn't show; the build's "plain run must not print the flag" check refused it. It now inherits `ok = 1` from a twin function called just before.
+- **challenges.json** (5.11): generated, schema-checked, five entries. All are disabled for now: nothing is pushed until the GHCR namespace is known (QUESTIONS Q2, default unchanged). labd ignores a disabled entry that has no image. `--local` enables this host's dev images.
+- **pull and prune** (5.12): moved behind an image-store interface and unit-tested. `prune` now deletes, but only `lab.keep` images unused for 14 days; the spec's rule alone would also delete labbase.
+- **No CI** (5.13): `scripts/challenges-changed.sh` rebuilds what changed, and all five when labbase or the build tooling changed.
+- **Authoring guide** (5.14): `challenges/README.md` and `scripts/challenge-new.sh`. A fresh agent given only the guide and TEMPLATE wrote a sixth challenge that passed on its first build, then it was deleted. The gaps it reported are fixed.
+- **Gate 5** (5.15) is wired. It also requires an x86-64 build record of all five (`scripts/challenges-metrics.sh`), since challenge content counts only from x86-64 (ADR 0001).
+- **Checks on the Mac:** `check`, `test --all`, `lint`, `test --integration` pass; staticcheck in the VM clean. Gate 5 on the Mac passes everything except the x86-64 build record and the five human checks.
+- **Next:** the owner's laptop steps at the top of this file.
 
 ### 2026-10-01 — Phase 4 gate passed on the x86-64 laptop
 - **Final laptop P2** (disk in KiB): disk per lab 0.0078 MB (8 KiB, two empty overlay directories); start p95 1832 ms; echo p95 6.1 ms; host 9.8 GB peak, 4.8 GB before any lab.
