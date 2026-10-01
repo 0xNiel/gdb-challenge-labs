@@ -18,7 +18,9 @@ Phase 6 human check: 2026-10-01 <OG> OK
 
 First estimate (`docs/metrics/vps-capacity.md`): memory allows about 425 labs in typical use and 166 if every lab filled its memory limit; bandwidth and disk allow thousands. CPU decides, and its two inputs (a real learner's CPU, the share of busy loops) are not measured yet: about 80 to 130 at 75 % CPU with 10 % busy loops. `max_sessions` stays 100 until P10 measures it.
 
-**On the laptop now: the capacity search (task 7.11), about an hour.** The rest of Phase 7 is being built meanwhile and does not touch it.
+Every Phase 7 task is built. On the Mac, gate 7 passes everything except four laptop items: the capacity search on 8 CPUs, the CPU estimate it feeds, the twenty-lab human check, and its screenshot.
+
+**On the laptop, in this order** (about 1 hour 30 minutes, mostly waiting):
 
 1. **Update.**
    ```
@@ -26,18 +28,24 @@ First estimate (`docs/metrics/vps-capacity.md`): memory allows about 425 labs in
    ./run.sh labs preflight
    lscpu -e=CPU,CORE,MAXMHZ
    ```
-   Keep the `lscpu` output for me: it shows which CPUs stay online. The tier-1 images from Phase 5 and the perf image are used; if `.scratch/local-images.json` is gone, rebuild the labs first (`for d in challenges/tier1-c-fundamentals/0*; do bash scripts/challenge-build.sh "$d" || break; done`).
-2. **Close what uses CPU** (browser, IDE indexing). The run shares 8 CPUs with the desktop.
-3. **Run it.**
+   Keep the `lscpu` output for me: it shows which CPUs stay online. The tier-1 images from Phase 5 and the perf image are used. If `.scratch/local-images.json` is gone, rebuild the labs first (`for d in challenges/tier1-c-fundamentals/0*; do bash scripts/challenge-build.sh "$d" || break; done`).
+2. **The capacity search (task 7.11), about an hour.** Close what uses CPU (browser, IDE indexing) first.
    ```
    LAB_HOST=linux-laptop labd/perf/capacity.sh --cpus 8
    ```
-   sudo asks once. It takes CPUs 8–15 offline, runs P10 at 60, 90, 120 and 150 labs (8 minutes each; 180 is refused on 15 GB of RAM), stops at the first count that misses a criterion, brings the CPUs back, and writes `docs/metrics/capacity-search-<date>-linux-laptop.md`. If you interrupt it and `nproc` says 8, run `sudo chcpu -e 8-15`.
-4. **Commit and push.**
+   sudo asks once. It takes CPUs 8–15 offline and runs P10 at 60, 90, 120 and 150 labs (8 minutes each; 180 is refused on 15 GB of RAM). It stops at the first count that misses a criterion, brings the CPUs back, and writes `docs/metrics/capacity-search-<date>-linux-laptop.md`. If you interrupt it and `nproc` says 8, run `sudo chcpu -e 8-15`.
+3. **The twenty-lab live check (task 7.8), about 10 minutes.** Two terminals.
    ```
-   git add docs/metrics && git commit -m "[P7] metrics: P10 capacity search on 8 CPUs" && git push
+   ./run.sh web-stack up
+   LAB_HOST=linux-laptop scripts/live-run.sh
    ```
-   Then send me the `.md` and the `lscpu` output; I turn them into the estimate (task 7.12).
+   live-run prints a staff login for this dev stack. Open http://127.0.0.1:8000/admin/live with it while the run lasts (5 minutes). Watch the gauge fill to 20 and the memory column update. Then kill one lab with its Kill button. Also look at http://127.0.0.1:8000/admin/analytics/capacity.
+
+   live-run takes the screenshot (`docs/metrics/admin-live-<date>-linux-laptop.png`), writes `docs/metrics/data-per-session-<date>-linux-laptop.md`, and ends by saying whether it saw the kill. Then `./run.sh web-stack down`, and add this line at the first column of this file: `Phase 7 human check: YYYY-MM-DD <initials> OK`. If something looked wrong, say so instead.
+4. **Commit and push**, then send me the capacity-search `.md` and the `lscpu` output. I write the estimate from them (task 7.12); after that the gate can pass.
+   ```
+   git add docs/metrics docs/STATUS.md && git commit -m "[P7] metrics: P10 on 8 CPUs; live run; human check" && git push
+   ```
 
 <details><summary>Phase 6 laptop checklist (done 2026-10-01)</summary>
 
@@ -159,7 +167,7 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 4 | Perf suite and measured capacity | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
 | 5 | Challenge pipeline and tier 1 content | done; merged to `main` | passed on the Mac; x86-64 builds and human checks from the laptop | 2026-10-01 |
 | 6 | Django web app | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
-| 7 | Metrics, rollups, admin live view; VPS capacity (ADR 0017) | in progress | — | — |
+| 7 | Metrics, rollups, admin live view; VPS capacity (ADR 0017) | in progress: built; needs the laptop's P10, the live check, and the estimate | Mac: all but the laptop items | 2026-10-01 |
 | 8 | Production on the VPS, tiers 2–3, beta | optional (deferred by the owner, ADR 0017) | — | — |
 
 States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`, `optional`.
@@ -178,6 +186,53 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-10-01 — Phase 7 built: sampler, rollups, dashboards, admin live view
+- **Sampler** (7.1, `labd/internal/metrics`):
+  - every 10 s, host memory, CPU, CPU and memory pressure, disk, and active and queued counts;
+  - per lab, memory, CPU, Sentry RSS, and terminal bytes in and out; one `COPY` per tick;
+  - the peak memory goes to `sessions.peak_rss_mb`.
+  - Integration in the VM: 2 real labs give every metric name.
+- **Events** (7.2, 7.3): labd and web already wrote them all; tests now check each lifecycle and its data keys.
+- **Rollups and retention** (7.4, 7.5):
+  - `manage.py rollup` and `retention` work on hand-computed fixtures, and on the VM's Postgres as role web;
+  - **ADR 0003 amended**: the rollup tables are web's, and web may delete old samples and events (labd migration 0002).
+- **Dashboards** (7.6): Live, Usage, Learning and Capacity at `/admin/analytics/…`, staff only, as inline SVG charts.
+- **Admin live** (7.7): `/admin/live` has kill, drain and resume, challenge toggles, and the pending-pull banner. **ADR 0018**: drain goes through `POST /internal/drain`, not an override file. A browser test kills a real lab and drains and resumes, in the VM.
+- **Live run** (7.8): `scripts/live-run.sh` is ready for the human check. A dry run in the VM (6 labs, one killed) worked. It showed `samples` growing about 5.4 KB per session-minute, against my estimate of 1.5 KB; the laptop's 20-lab run will give the real figure.
+- **Gate 7** (7.9): wired; also runs the browser tests and checks the capacity items from ADR 0017. `./run.sh manage ARGS` runs `manage.py` against the dev Postgres. systemd timers for rollup and retention are in `deploy/systemd/` for Phase 8.
+- **Checks on the Mac:** `check`, `test --all` (136 web tests), `lint`, `test --integration`, `test --e2e` pass; staticcheck in the VM clean; `go test -race -count=5 ./...` passes.
+- **Next:** the laptop steps at the top of this file, then task 7.12 (the estimate) from the P10 record.
+
+Phase 7 gate on the Mac (expected failures: the laptop items):
+```
+==> gate for phase 7 — 2026-10-01T15:23Z — macbook.local
+==> [gate 7] preflight: no labd running, namespace labs empty
+==> preflight ok: no labd running, namespace labs empty
+  PASS  no labd running, namespace labs empty
+==> [gate 7] Go and Django suites
+  PASS  run.sh test --go
+  PASS  ruff check
+  PASS  pytest (unit and view)
+  PASS  makemigrations --check clean
+==> [gate 7] integration: the sampler writes every metric from 2 real labs (task 7.1)
+  PASS  run.sh test --integration
+  PASS  no containers left in namespace labs
+==> [gate 7] end to end: lab 1 solved in the browser; admin kills a lab, drains and resumes (task 7.7)
+  PASS  run.sh test --e2e
+  PASS  no containers left in namespace labs
+==> [gate 7] rollups and retention on the dev Postgres, as role web (tasks 7.4, 7.5)
+  PASS  rollup --minute writes rows from the e2e run's samples and events
+  PASS  rollup --hour writes rows from the minute rows
+  PASS  retention runs as role web
+==> [gate 7] human check (task 7.8): twenty labs watched on /admin/live, one killed
+  FAIL  STATUS.md lacks a line 'Phase 7 human check: YYYY-MM-DD <who> OK'
+  FAIL  screenshot of /admin/live — no file matches ~/labbing-platform/docs/metrics/admin-live-*.png
+==> [gate 7] VPS capacity (ADR 0017, tasks 7.11 and 7.12)
+  FAIL  no P10 record from x86-64 with 8 CPUs under runsc: on the laptop LAB_HOST=linux-laptop labd/perf/capacity.sh --cpus 8, commit docs/metrics
+  FAIL  vps-capacity.md: 3 *est.* left in the CPU section (task 7.12)
+==> GATE 7 FAILED. Fix the FAIL lines above; do not start the next phase.
+```
 
 ### 2026-10-01 — Phase 7 started: Phase 8 optional, the VPS capacity estimate
 - **ADR 0017**: the owner made Phase 8 optional and asked for a measured estimate for the target VPS (8 vCPU, 32 GB, 400 GB NVMe, 32 TB). It moves into Phase 7 as tasks 7.10–7.12, measured on the laptop with 8 CPUs online. The phase board and `IMPLEMENTATION_PLAN.md` mark Phase 8 optional.
