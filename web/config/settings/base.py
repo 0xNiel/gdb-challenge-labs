@@ -44,6 +44,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "allauth",
+    "allauth.account",
+    "accounts",
+    "curriculum",
+    "labs",
+    "progress",
+    "analytics",
+    "adminpanel",
 ]
 
 MIDDLEWARE = [
@@ -54,6 +62,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -88,6 +97,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -97,3 +107,24 @@ LABD_INTERNAL_URL = os.environ.get("LABD_INTERNAL_URL", "http://127.0.0.1:8081")
 LABD_INTERNAL_SECRET = os.environ.get("LABD_INTERNAL_SECRET", "")
 WS_TOKEN_KEY = os.environ.get("WS_TOKEN_KEY", "")
 SITE_HOST = os.environ.get("SITE_HOST", "localhost")
+
+# Where the browser opens the terminal WebSocket: ws(s)://host, without /ws/term. Empty means
+# the page's own host, which is what production has (Caddy routes /ws/term to labd).
+LABD_WS_BASE = os.environ.get("LABD_WS_BASE", "")
+# The repo checkout that challenges.json's lesson_path and solution_path are relative to.
+CHALLENGES_REPO = os.environ.get("CHALLENGES_REPO", str(BASE_DIR.parent))
+
+# Accounts: django-allauth, email only, no social providers (QUESTIONS Q4).
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # prod: mandatory
+ACCOUNT_LOGOUT_ON_GET = False
+LOGIN_URL = "/login"
+LOGIN_REDIRECT_URL = "/learn"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_SIGNUP_REDIRECT_URL = "/learn"

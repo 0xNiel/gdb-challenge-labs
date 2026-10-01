@@ -5,11 +5,15 @@ description = "gdb Challenge Labs web app (Django)"
 requires-python = ">=3.13,<3.14"  # Django 5.2 LTS supports up to 3.13 (ADR 0002)
 dependencies = [
     "django==5.2.*",
+    "django-allauth==65.*",
+    "markdown-it-py>=4.2",
+    "nh3>=0.3.7",
     "psycopg[binary]>=3.3.6",
 ]
 
 [dependency-groups]
 dev = [
+    "playwright>=1.63",
     "pytest>=9.1.1",
     "pytest-django>=4.14.0",
     "ruff>=0.16.9",
