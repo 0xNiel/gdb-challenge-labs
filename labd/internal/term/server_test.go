@@ -758,11 +758,14 @@ func TestWS_ShutdownClosesConnectionsAndKeepsLab(t *testing.T) {
 	}
 }
 
-// The client learns the lab is running within one CreatingPoll of it being up, not at the
-// next once-a-second queue poll (Phase 4: that poll added up to a second to every start).
+// The client learns the lab is running from the creating poll, not the queue poll (Phase 4:
+// the 1 s queue poll added up to a second to every start). With the queue poll set to an
+// hour, the running frame can only come from the 50 ms creating poll. The fake clock is
+// stepped until it arrives, under a real deadline, since the gateway can register its
+// timer after any given step.
 func TestWS_RunningSoonAfterCreate(t *testing.T) {
 	t.Parallel()
-	h := newHarness(t, 2, false, nil)
+	h := newHarness(t, 2, false, func(o *Options) { o.QueuePoll = time.Hour })
 	gate := make(chan struct{})
 	h.rt.mu.Lock()
 	h.rt.gate = gate
@@ -780,17 +783,16 @@ func TestWS_RunningSoonAfterCreate(t *testing.T) {
 	go c.read()
 	close(gate)
 	h.m.Settle()
-	waitFor(t, "the lab running", func() bool { g, _ := h.m.Get(in.ID); return g.State == orch.StateRunning })
-	// Advance at most 200 ms of fake time (four creating polls, far below the 1 s queue poll).
-	for step := 0; step < 4; step++ {
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
 		h.fake.Advance(50 * time.Millisecond)
 		select {
 		case f := <-c.frames:
 			if f.text["type"] == "state" && f.text["state"] == "running" {
 				return
 			}
-		case <-time.After(100 * time.Millisecond):
+		case <-time.After(10 * time.Millisecond):
 		}
 	}
-	t.Fatal("no state: running within 200 ms of fake time after the lab was up")
+	t.Fatal("no state: running from the creating poll within 5 s")
 }
