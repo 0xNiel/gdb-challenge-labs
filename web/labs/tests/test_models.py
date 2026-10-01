@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from labs.models import Event, Session, record_event
+from labs.models import Event, Sample, Session, record_event
 
 MIGRATIONS = Path(__file__).resolve().parents[3] / "labd" / "internal" / "store" / "migrations"
 
@@ -25,7 +25,7 @@ def labd_columns(table: str) -> set[str]:
     return cols
 
 
-@pytest.mark.parametrize("model", [Session, Event])
+@pytest.mark.parametrize("model", [Session, Event, Sample])
 def test_unmanaged_model_matches_labd(model):
     want = labd_columns(model._meta.db_table)
     assert want, f"no CREATE TABLE {model._meta.db_table} in {MIGRATIONS}"

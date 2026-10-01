@@ -18,3 +18,9 @@ The spec gives one writer per table: `web` owns users, curriculum and progress; 
 
 - Clear ownership and no double migration. Schema changes to labd tables require a coordinated change to the unmanaged model, caught by tests in Phase 6 that query each column.
 - Two migration tools to run on deploy, wrapped in `scripts/deploy.sh`.
+
+## Amendment (2026-10-01, Phase 7)
+
+- **`rollups_1m` and `rollups_1h` are web's tables**, created by Django migrations (`web/analytics`), not by labd. web is their only writer (`manage.py rollup`), and the spec's rule is one writer per table. labd never reads or writes them.
+- **web may delete from `samples` and `events`** for raw retention (`manage.py retention`: 7 and 90 days). labd's migration `0002_web_retention.sql` grants `DELETE` on both to `web`. web still never updates them, and never touches `sessions`.
+- `samples` has no primary key. Django's unmanaged `Sample` model names `ts` as its key only because Django needs one. web reads samples in bulk and deletes by time range in SQL.

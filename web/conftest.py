@@ -19,7 +19,13 @@ def django_db_setup(django_db_setup, django_db_blocker):
         existing = set(connection.introspection.table_names())
         with connection.schema_editor() as editor:
             for model in apps.get_models():
-                if not model._meta.managed and model._meta.db_table not in existing:
+                if model._meta.managed or model._meta.db_table in existing:
+                    continue
+                if model._meta.db_table == "samples":
+                    # labd's samples table has no primary key: `ts` is one only to Django.
+                    sql, params = editor.table_sql(model)
+                    editor.execute(sql.replace(" PRIMARY KEY", ""), params)
+                else:
                     editor.create_model(model)
 
 

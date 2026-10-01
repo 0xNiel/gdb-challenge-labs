@@ -1,7 +1,8 @@
 """labd's tables, mapped read-mostly (ADR 0003, ADR 0011).
 
 labd creates and migrates `sessions`, `events` and `samples`; Django never does
-(`managed = False`). web reads `sessions` and appends to `events`. The columns must match
+(`managed = False`). web reads `sessions` and `samples`, appends to `events`, and its
+retention command deletes old `samples` and `events`. The columns must match
 labd/internal/store/migrations/; labs/tests/test_models.py compares them.
 """
 
@@ -60,6 +61,24 @@ class Event(models.Model):
 
     def __str__(self) -> str:
         return f"{self.ts:%Y-%m-%d %H:%M:%S} {self.type}"
+
+
+class Sample(models.Model):
+    """A resource sample (labd's sampler, Phase 7). The table has no primary key; `ts` stands
+    in for one because Django needs one. Read it in bulk (values_list) and delete by time
+    range; never fetch one row by "id"."""
+
+    ts = models.DateTimeField(primary_key=True)
+    session_id = models.UUIDField(null=True)
+    metric = models.TextField()
+    value = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "samples"
+
+    def __str__(self) -> str:
+        return f"{self.ts:%Y-%m-%d %H:%M:%S} {self.metric} {self.value}"
 
 
 def record_event(type_: str, *, user_id=None, session_id=None, challenge_slug=None, **data):
