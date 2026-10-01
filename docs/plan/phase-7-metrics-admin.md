@@ -11,6 +11,23 @@
 
 `labd` writes resource samples and all its events; `web` writes its events; a rollup command summarises them every minute and hour; Django renders the four dashboards; the admin live page shows sessions with kill buttons and a capacity gauge, and the kill switch (`max_sessions: 0` drain) is one click. Raw retention is enforced.
 
+## As built (2026-10-01) — read this before the design below
+
+- **Order**: 7.10 and 7.11 (the capacity search, ADR 0017) were built first, because the owner needs the VPS estimate most and P10 needs nothing else from this phase. Then 7.1–7.8; the gate last.
+- **Sampler** (`labd/internal/metrics`): the spec's metrics plus `session.sentry_rss_mb`, `host.cpu_pressure` and `host.mem_pressure`. One `COPY` per tick. The `/proc` and cgroup readers moved here from labd-perf's collector, which now calls them. The gateway counts terminal bytes per session (`term.Server.Bytes`). The peak memory goes to `sessions.peak_rss_mb`.
+- **Events**: labd and web already wrote every event (Phases 2 and 6). 7.2 and 7.3 added the tests. Emission stays where the transitions are (`manager.go`); there is no separate `events.go`.
+- **Rollups** are web's own tables (Django migrations). ADR 0003 is amended to say so, and labd's migration `0002` grants web `DELETE` on `samples` and `events` for retention.
+  - Percentiles are computed in Python with `percentile_cont`'s interpolation, so the tests run on SQLite.
+  - Hour rows: exact count, sum, min and max; p50 count-weighted; p95 the largest minute p95, which errs high.
+  - Each run re-rolls the last 10 minutes and 3 hours, partial buckets included.
+- **Dashboards** are at `/admin/analytics/{live,usage,learning,capacity}` and refresh with a meta refresh: no HTMX is vendored.
+  - Usage and Learning read raw `events` and `sessions` (exact within 90 days); charts over time read the rollups.
+  - Charts are inline SVG (`analytics/svg.py`).
+- **Drain** goes through `POST /internal/drain` (ADR 0018), not an override file. Stats add `draining`, `configured_max_sessions` and `pending_pull`.
+- **Admin live** is at `/admin/live`: it refreshes every 10 s and has kill, drain and resume, and challenge toggles. An e2e test (`web/tests/e2e/test_admin.py`) kills a real lab and drains and resumes, in the real stack.
+- **7.8** is `scripts/live-run.sh`, with the stack up. It writes the screenshot and `docs/metrics/data-per-session-*.{json,md}` (events and samples bytes per session-minute) and reports the kill.
+- **Helpers**: `./run.sh manage ARGS` runs `manage.py` on the lab host against the dev Postgres; `deploy/systemd/{rollup,retention}.{service,timer}` are for Phase 8.
+
 ## Design fixed by this document
 
 - **`labd` sampler** `internal/metrics`: every `metrics_flush_s` (10 s) read host `/proc/meminfo`, `/proc/stat` (CPU % since last), `/proc/pressure/memory`, disk used of containerd root; per session `memory.current` and `cpu.stat usage_usec` delta from `/sys/fs/cgroup/labs/<id>/`; WS bytes in/out from the bridge counters. One batched `INSERT` into `samples`. Metric names exactly as the spec lists. `session.rss_mb` is `memory.current`; add `session.sentry_rss_mb` from the `runsc-sandbox` process RSS (found via the shim's pid file) because Phase 4 showed it matters. `sessions.peak_rss_mb` updated on end.
@@ -89,10 +106,11 @@ Go unit: sampler parsing, event emission. Go integration: samples written. Djang
 ```
 ./run.sh gate --phase 7
 ```
-1. Go and Django test suites green.
-2. Integration: after a 60 s run with 2 sessions, `SELECT count(DISTINCT metric) FROM samples` ≥ 10.
-3. `manage.py rollup --minute` on that data produces rows; `--hour` produces rows.
-4. STATUS.md has `Phase 7 human check: <date> <who> OK` and the screenshot exists.
+1. Go and Django test suites green; `makemigrations --check` clean.
+2. Integration (`./run.sh test --integration`): with 2 labs running, `samples` holds every metric name and at least 10 distinct (`TestMetrics_SamplesFromTwoLabs`).
+3. `./run.sh test --e2e`: lab 1 in the browser; a staff user kills a lab, drains and resumes. No container left afterwards.
+4. `manage.py rollup --minute` and `--hour` on the dev Postgres (the e2e run's data) write rows; `retention` runs as role web.
+4a. STATUS.md has `Phase 7 human check: <date> <who> OK` and `docs/metrics/admin-live-*.png` exists.
 5. A P10 capacity-search record from x86-64 with 8 CPUs online and labs under runsc (`docs/metrics/capacity-search-*.json`, task 7.11).
 6. `docs/metrics/vps-capacity.md` has no *est.* left in its CPU section (task 7.12).
 

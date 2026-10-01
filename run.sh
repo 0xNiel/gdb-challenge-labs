@@ -51,6 +51,7 @@ gdb Challenge Labs — ./run.sh <command> [flags]
                                preflight fails if a labd runs or any lab is left (gate 3, perf)
   web [--port 8000]            run the Django dev server on the host
   web-stack up|down|e2e|status labd + Django together on the lab host, for the lab page (Phase 6)
+  manage ARGS...               manage.py on the lab host against the dev Postgres (role web)
   dev                          labd in the VM (background) + Django on the host
   db up|down|shell|migrate|reset
                                Postgres in the VM; `migrate` runs labd migrate then Django migrate
@@ -575,6 +576,7 @@ main() {
     labs)    cmd_labs "$@" ;;
     web)     cmd_web "$@" ;;
     web-stack) run_linux bash "$ROOT/scripts/web-stack.sh" "$@" ;;
+    manage)  run_linux bash "$ROOT/scripts/web-manage.sh" "$@" ;;
     dev)     cmd_dev "$@" ;;
     db)      cmd_db "$@" ;;
     images)  cmd_images "$@" ;;

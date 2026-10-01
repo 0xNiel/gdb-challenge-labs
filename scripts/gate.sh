@@ -260,7 +260,38 @@ phase_6() {
   say "human check (task 6.7: lab 1 solved through the Django lab page)"
   check_status_line "Phase 6 human check"
 }
-phase_7() { not_wired; }   # Phase 7, task 7.9
+phase_7() {
+  preflight
+  local web="$ROOT/web"
+  say "Go and Django suites"
+  check "run.sh test --go" "$RUN" test --go
+  check "ruff check" bash -c "cd '$web' && uv run ruff check ."
+  check "pytest (unit and view)" bash -c "cd '$web' && uv run pytest -q -p no:cacheprovider"
+  check "makemigrations --check clean" bash -c "cd '$web' && uv run python manage.py makemigrations --check --dry-run"
+  say "integration: the sampler writes every metric from 2 real labs (task 7.1)"
+  check "run.sh test --integration" "$RUN" test --integration
+  check_no_containers
+  say "end to end: lab 1 solved in the browser; admin kills a lab, drains and resumes (task 7.7)"
+  check "run.sh test --e2e" "$RUN" test --e2e
+  check_no_containers
+  say "rollups and retention on the dev Postgres, as role web (tasks 7.4, 7.5)"
+  check "rollup --minute writes rows from the e2e run's samples and events" \
+    bash -c "'$RUN' manage rollup --minute | grep -Eq 'rollups_1m: [1-9]'"
+  check "rollup --hour writes rows from the minute rows" bash -c "'$RUN' manage rollup --hour | grep -Eq 'rollups_1h: [1-9]'"
+  check "retention runs as role web" "$RUN" manage retention
+  say "human check (task 7.8): twenty labs watched on /admin/live, one killed"
+  check_status_line "Phase 7 human check"
+  check_file "screenshot of /admin/live" "$ROOT/docs/metrics/admin-live-*.png"
+  say "VPS capacity (ADR 0017, tasks 7.11 and 7.12)"
+  local cs
+  cs="$(newest_json capacity-search '.arch == "x86_64" and .cpus == 8 and (.runtime | test("runsc")) and (.steps | length) > 0')"
+  if [[ -n "$cs" ]]; then pass "P10 on x86-64 with 8 CPUs under runsc ($(basename "$cs")): largest passing $(jq .max_passing "$cs")"
+  else fail "no P10 record from x86-64 with 8 CPUs under runsc: on the laptop LAB_HOST=linux-laptop labd/perf/capacity.sh --cpus 8, commit docs/metrics"; fi
+  local est
+  est="$(awk '/^## CPU/{on=1; next} /^## /{on=0} on' "$ROOT/docs/metrics/vps-capacity.md" | grep -c '\*est\.\*' || true)"
+  if [[ "$est" == 0 ]]; then pass "vps-capacity.md: no estimate left in the CPU section"
+  else fail "vps-capacity.md: $est *est.* left in the CPU section (task 7.12)"; fi
+}
 phase_8() { not_wired; }   # Phase 8, task 8.12
 
 # ---------------------------------------------------------------- main

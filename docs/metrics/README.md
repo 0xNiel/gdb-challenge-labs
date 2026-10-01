@@ -33,3 +33,22 @@ Every measured number in the project lands here. Files carry the date and the ho
 - Percentiles are `p50`, `p95`, `p99`, `max` unless the spec's schema says otherwise.
 - Memory in MB (10^6 bytes) unless the field name says `mib`. Latency in ms. Bandwidth in bytes per second.
 - Every Markdown table has a "Source" column or a line under it naming the JSON file and the command that produced it.
+
+
+## What the dashboards show and where the numbers come from
+
+Phase 7. Staff only, at `/admin/analytics/…` and `/admin/live`.
+
+| Page | Shows | Source |
+| --- | --- | --- |
+| Live | slots in use against `max_sessions`, queued, host memory; active and queued over 2 hours | `GET /internal/stats` now; `rollups_1m` (`labd.active`, `labd.queued`, max per minute) |
+| Usage | per day for 30 days: labs started, unique users, median session length, start latency p50/p95 | `events` (`lab_started` and its `start_latency_ms`, from request to running), `sessions` (ended − started) |
+| Learning | funnel per tier; per challenge: started, solved, median time to solve, hints per learner; commands in the last 5 minutes of labs ended without a solve | `events` (`lab_started`, `challenge_solved.time_to_solve_s`, `lab_ended`, `command_entered`), `progress` |
+| Capacity | memory per lab (24 h by minute, 30 days by hour), peak concurrent labs per day, host memory and CPU | `rollups_1m`, `rollups_1h` of `session.rss_mb`, `labd.active`, `host.mem_used_mb`, `host.cpu_pct` |
+| `/admin/live` | each live lab (user, challenge, state, age, memory, commands), kill, drain/resume, pending pulls, challenge toggles | `GET /internal/sessions`, `GET /internal/stats`, `POST /internal/drain` |
+
+Where the raw numbers come from:
+- labd's sampler writes `samples` every `metrics_flush_s` (10 s). Host: memory used, CPU %, CPU and memory pressure, containerd's disk, active and queued. Per lab: cgroup memory, CPU ms since the last tick, Sentry RSS, terminal bytes in and out.
+- `manage.py rollup` (every minute) builds `rollups_1m` from samples and events, and `rollups_1h` from those.
+- `manage.py retention` (daily) keeps samples 7 days, and events and `rollups_1m` 90 days. `rollups_1h` are kept forever.
+- Percentiles over many labs are p50 and p95 of every lab's readings in the bucket. Hour p95 is the largest minute p95, so it errs high.
