@@ -49,3 +49,4 @@ What becomes easier, what becomes harder, what to revisit and when.
 | [0015](0015-ws-token-minting-in-web.md) | web mints WebSocket tokens; labd mints only with `dev_mint_tokens` | accepted | Phase 6 |
 | [0016](0016-stop-lab-on-correct-flag.md) | A correct flag stops the lab (reason `solved`) | accepted | owner, 2026-10-01 |
 | [0017](0017-phase-8-optional-vps-capacity-on-laptop.md) | Phase 8 optional; the VPS's capacity is measured on the laptop with 8 CPUs online (Phase 7) | accepted | owner, 2026-10-01 |
+| [0018](0018-drain-via-internal-api.md) | Drain and resume through `POST /internal/drain`, not an override file | accepted | Phase 7 |
