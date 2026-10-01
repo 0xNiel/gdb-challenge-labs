@@ -19,8 +19,13 @@ func main() {
 	key := flag.String("key", "", "the correct runtime key (manifest key_value), decimal or 0x hex, 32 bits")
 	out := flag.String("out", "flag_blob.h", "header to write")
 	env := flag.String("secret-env", "DEPLOY_SECRET", "environment variable holding the deploy secret")
+	printFlag := flag.Bool("print-flag", false, "print the flag for --slug instead (the build's oracle needs it)")
 	flag.Parse()
 	secret := os.Getenv(*env)
+	if *printFlag && *slug != "" && secret != "" {
+		fmt.Println(lab.Derive(secret, *slug))
+		return
+	}
 	if *slug == "" || *key == "" || secret == "" {
 		fmt.Fprintf(os.Stderr, "flagblob: --slug, --key and $%s are required\n", *env)
 		os.Exit(2)

@@ -1,0 +1,21 @@
+# TEMPLATE — copied by scripts/challenge-new.sh <tier> <NN-slug>. Every key is required
+# (challenges/schema/manifest.schema.json); challenges/README.md explains each one.
+slug: tier9-99-template
+title: Template
+tier: 9
+order: 99
+difficulty: 1
+estimated_minutes: 5
+flag_format: "LAB{...}"
+image: ""                 # written by scripts/challenge-build.sh --push (GHCR digest)
+limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60, idle_minutes: 15, extend_minutes: 15}
+hints:
+  - {cost: 0, text: "Stop in report() with `break report`, then `run`."}
+  - {cost: 1, text: "Look at the argument: `info args`."}
+  - {cost: 2, text: "`set var key = 42`, then `continue`."}
+tags: [template]
+key_expr: "the argument of report(): answer, which must be 42"
+key_value: 42
+build:
+  flags: "-O0 -g -fno-stack-protector"
+  entry: template
