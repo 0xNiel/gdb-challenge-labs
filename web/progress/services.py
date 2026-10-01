@@ -103,4 +103,96 @@ def lab_panel(user, challenge: Challenge) -> dict:
         "hints_total": len(hints),
         "attempts": FlagAttempt.objects.filter(user=user, challenge=challenge).order_by("-ts")[:10],
         "attempts_left": max(ATTEMPT_LIMIT - attempts_in_window(user, challenge), 0),
+        "next_challenge": next_after(challenge) if p and p.state == SOLVED else None,
     }
+
+
+class RateLimited(Exception):
+    pass
+
+
+class HintOrder(Exception):
+    pass
+
+
+@dataclass
+class Submission:
+    correct: bool
+    already_solved: bool = False
+    next_challenge: Challenge | None = None
+
+
+def submit_flag(user, challenge: Challenge, submitted: str, secret: str) -> Submission:
+    """Check a flag, record the attempt, and on success solve and unlock the next challenge.
+
+    Raises RateLimited after ATTEMPT_LIMIT attempts in ATTEMPT_WINDOW (spec).
+    """
+    from django.db import transaction
+
+    from labs.models import Event, Session, record_event
+
+    from . import flag
+
+    p, _ = Progress.objects.get_or_create(user=user, challenge=challenge)
+    if p.state == SOLVED:
+        return Submission(
+            correct=flag.check(secret, challenge.slug, submitted), already_solved=True
+        )
+    if attempts_in_window(user, challenge) >= ATTEMPT_LIMIT:
+        raise RateLimited
+    correct = flag.check(secret, challenge.slug, submitted)
+    with transaction.atomic():
+        FlagAttempt.objects.create(user=user, challenge=challenge, correct=correct)
+        p.attempts += 1
+        fields = ["attempts"]
+        if correct:
+            p.state, p.solved_at = SOLVED, timezone.now()
+            fields += ["state", "solved_at"]
+        p.save(update_fields=fields)
+        record_event(
+            "flag_submitted",
+            user_id=user.id,
+            challenge_slug=challenge.slug,
+            correct=correct,
+            attempt_no=p.attempts,
+        )
+        if not correct:
+            return Submission(correct=False)
+        first = (
+            Event.objects.filter(type="lab_started", user_id=user.id, challenge_slug=challenge.slug)
+            .order_by("ts")
+            .first()
+        )
+        record_event(
+            "challenge_solved",
+            user_id=user.id,
+            challenge_slug=challenge.slug,
+            time_to_solve_s=int((p.solved_at - first.ts).total_seconds()) if first else None,
+            hints_used=p.hints_used,
+            sessions_used=Session.objects.filter(
+                user_id=user.id, challenge_slug=challenge.slug
+            ).count(),
+        )
+        nxt = next_after(challenge)
+        if nxt is not None:
+            Progress.objects.get_or_create(user=user, challenge=nxt)
+    return Submission(correct=True, next_challenge=nxt)
+
+
+def reveal_hint(user, challenge: Challenge, n: int) -> dict:
+    """Reveal hint n (1-based). Only the next one may be revealed (plan 6.9)."""
+    from labs.models import record_event
+
+    hints = challenge.hints or []
+    p, _ = Progress.objects.get_or_create(user=user, challenge=challenge)
+    if n == p.hints_used and n >= 1:
+        return hints[n - 1]  # already shown: idempotent (a double click)
+    if n != p.hints_used + 1 or n > len(hints):
+        raise HintOrder
+    p.hints_used = n
+    p.save(update_fields=["hints_used"])
+    hint = hints[n - 1]
+    record_event(
+        "hint_viewed", user_id=user.id, challenge_slug=challenge.slug, index=n, cost=hint["cost"]
+    )
+    return hint

@@ -48,3 +48,13 @@ li.rung.locked { opacity: .6; }
 .rung-actions { display: flex; gap: 1rem; align-items: center; white-space: nowrap; }
 article.prose { max-width: 46rem; }
 article.prose h2 { margin-top: 2rem; }
+.columns { display: grid; grid-template-columns: minmax(0, 3fr) minmax(16rem, 2fr); gap: 1.25rem; align-items: start; }
+@media (max-width: 800px) { .columns { grid-template-columns: 1fr; } }
+.columns > article.card, .columns aside .card { margin-top: 0; }
+.columns aside h2 { font-size: 1.05rem; margin: 0 0 .5rem; }
+.panel .row { display: flex; gap: .5rem; }
+.flag-form label { font-weight: 600; display: block; margin-bottom: .25rem; }
+.ok { color: var(--ok); } .bad { color: var(--bad); }
+ol.hints { padding-left: 1.2rem; } ol.hints li { margin-bottom: .6rem; }
+.hint-text p { margin: .1rem 0; }
+ul.attempts { padding-left: 1rem; margin: .25rem 0; }

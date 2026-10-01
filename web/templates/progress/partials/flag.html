@@ -1,0 +1,18 @@
+<div id="flag-panel" class="panel">
+  {% if solved %}
+    <p class="ok"><strong>Solved.</strong>{% if next_challenge %} <a href="{% url 'challenge' next_challenge.slug %}">Next: {{ next_challenge.title }}</a>{% endif %}</p>
+  {% else %}
+    <form method="post" action="{% url 'flag_submit' challenge.slug %}" data-partial="#flag-panel" class="flag-form">
+      {% csrf_token %}
+      <label for="flag-input">Flag</label>
+      <div class="row"><input id="flag-input" name="flag" type="text" placeholder="LAB{...}" autocomplete="off" spellcheck="false" required>
+      <button class="primary">Submit</button></div>
+      <p class="muted small">{{ attempts_left }} attempt{{ attempts_left|pluralize }} left in this 10-minute window.</p>
+    </form>
+  {% endif %}
+  {% if error %}<p class="bad" role="alert">{{ error }}</p>{% elif message %}<p class="{% if result.correct %}ok{% else %}bad{% endif %}" role="status">{{ message }}</p>{% endif %}
+  {% if attempts %}
+  <h3 class="small">Past attempts</h3>
+  <ul class="attempts small">{% for a in attempts %}<li>{{ a.ts|date:"M j, H:i" }} · {% if a.correct %}<span class="ok">correct</span>{% else %}wrong{% endif %}</li>{% endfor %}</ul>
+  {% endif %}
+</div>

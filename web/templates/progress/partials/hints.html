@@ -1,0 +1,13 @@
+{% load md %}<div id="hints-panel" class="panel">
+  {% if challenge.boss or not hints_total %}
+    <p class="muted">This is the tier's boss: it has no hints.</p>
+  {% else %}
+    <ol class="hints">{% for h in hints_shown %}<li><span class="muted small">Hint {{ h.n }}{% if h.cost %} (cost {{ h.cost }}){% endif %}</span><div class="hint-text">{{ h.text|md }}</div></li>{% endfor %}</ol>
+    {% if next_hint %}
+      <form method="post" action="{% url 'hint_reveal' challenge.slug %}" data-partial="#hints-panel">
+        {% csrf_token %}<input type="hidden" name="n" value="{{ next_hint.n }}">
+        <button class="secondary">Show hint {{ next_hint.n }} of {{ hints_total }}{% if next_hint.cost %} (cost {{ next_hint.cost }}){% endif %}</button>
+      </form>
+    {% else %}<p class="muted small">No more hints.</p>{% endif %}
+  {% endif %}
+</div>

@@ -21,5 +21,11 @@
   {% if challenge.lesson %}<p class="small"><a href="{% url 'lesson' challenge.tier.slug challenge.lesson.slug %}">Read the lesson first: {{ challenge.lesson.title }}</a></p>{% endif %}
 </div>
 
-<article class="prose card">{{ readme }}</article>
+<div class="columns">
+  <article class="prose card">{{ readme }}</article>
+  <aside>
+    <section class="card"><h2>Hints</h2>{% include "progress/partials/hints.html" %}</section>
+    <section class="card"><h2>Submit the flag</h2>{% include "progress/partials/flag.html" %}</section>
+  </aside>
+</div>
 {% endblock %}
