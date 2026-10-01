@@ -32,3 +32,30 @@ func TestPull_PresentIsNoOpAndBogusFails(t *testing.T) {
 	}
 	t.Logf("bogus digest error: %s", res[1].Err)
 }
+
+// Prune against real containerd, as a dry run 30 days ahead: the referenced image is never
+// a candidate, nothing is removed, and images without lab.keep are not even listed.
+func TestPrune_DryRunRemovesNothing(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	rt := newRuntime(t)
+	before, err := rt.Prune(ctx, nil, time.Now().Add(30*24*time.Hour), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := rt.Prune(ctx, []string{image}, time.Now().Add(30*24*time.Hour), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range res {
+		if r.Image == image || r.Action != "would remove" {
+			t.Errorf("dry run result %+v", r)
+		}
+	}
+	if len(res) != len(before)-1 && len(res) != len(before) {
+		t.Errorf("referencing %s changed the candidates from %d to %d", image, len(before), len(res))
+	}
+	if pr, err := rt.Pull(ctx, []string{image}); err != nil || !pr[0].Present {
+		t.Fatalf("the image is gone after a dry run: %+v, %v", pr, err)
+	}
+}

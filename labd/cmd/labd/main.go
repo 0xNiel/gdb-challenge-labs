@@ -39,8 +39,9 @@ func run(args []string, stdout *os.File) error {
 	fs := flag.NewFlagSet("labd", flag.ContinueOnError)
 	cfgPath := fs.String("config", "labd.yaml", "path to labd.yaml")
 	showVersion := fs.Bool("version", false, "print version and exit")
+	dryRun := fs.Bool("dry-run", false, "prune: list what would be removed, remove nothing")
 	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), "usage: labd [-config labd.yaml] [serve|migrate|pull|prune]")
+		fmt.Fprintln(fs.Output(), "usage: labd [-config labd.yaml] [-dry-run] [serve|migrate|pull|prune]")
 		fs.PrintDefaults()
 	}
 	if err := fs.Parse(args); err != nil {
@@ -74,7 +75,7 @@ func run(args []string, stdout *os.File) error {
 	case "pull":
 		return pull(ctx, cfg, stdout)
 	case "prune":
-		return prune(ctx, cfg, stdout)
+		return prune(ctx, cfg, stdout, *dryRun)
 	default:
 		fs.Usage()
 		return fmt.Errorf("unknown command %q", cmd)
@@ -119,8 +120,9 @@ func countFailed(rs []orch.PullResult) int {
 	return n
 }
 
-// prune lists images no enabled challenge uses. Deletion and the 14-day rule are Phase 5.
-func prune(ctx context.Context, cfg config.Config, stdout *os.File) error {
+// prune removes images labd manages (lab.keep) that no enabled challenge uses and that are
+// older than 14 days (spec "Registry"). --dry-run reports without removing.
+func prune(ctx context.Context, cfg config.Config, stdout *os.File, dryRun bool) error {
 	cs, err := orch.LoadChallenges(cfg.ChallengesFile)
 	if err != nil {
 		return err
@@ -130,15 +132,16 @@ func prune(ctx context.Context, cfg config.Config, stdout *os.File) error {
 		return err
 	}
 	defer rt.Close()
-	names, err := rt.Unreferenced(ctx, orch.ChallengeImages(cs))
-	if err != nil {
-		return err
+	res, err := rt.Prune(ctx, orch.ChallengeImages(cs), time.Now(), dryRun)
+	removed := 0
+	for _, r := range res {
+		if r.Action == "removed" {
+			removed++
+		}
+		fmt.Fprintf(stdout, "prune: %-28s %s (imported %s)\n", r.Action, r.Image, r.Created.UTC().Format("2006-01-02"))
 	}
-	fmt.Fprintf(stdout, "prune: %d images not used by an enabled challenge (listing only; deletion comes in Phase 5)\n", len(names))
-	for _, n := range names {
-		fmt.Fprintln(stdout, "  ", n)
-	}
-	return nil
+	fmt.Fprintf(stdout, "prune: %d unused images, %d removed\n", len(res), removed)
+	return err
 }
 
 // migrate applies labd's embedded SQL migrations (ADR 0003, ADR 0011).
