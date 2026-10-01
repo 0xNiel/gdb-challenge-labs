@@ -47,3 +47,4 @@ What becomes easier, what becomes harder, what to revisit and when.
 | [0013](0013-max-sessions.md) | Production `max_sessions` is 100: CPU under abuse is the limit, not memory (derived 394) | accepted | Phase 4 |
 | [0014](0014-lab-cwd-from-image.md) | The lab's starting directory is the image's `WORKDIR`, else `/home/lab` | accepted | Phase 5, owner's laptop check |
 | [0015](0015-ws-token-minting-in-web.md) | web mints WebSocket tokens; labd mints only with `dev_mint_tokens` | accepted | Phase 6 |
+| [0016](0016-stop-lab-on-correct-flag.md) | A correct flag stops the lab (reason `solved`) | accepted | owner, 2026-10-01 |
