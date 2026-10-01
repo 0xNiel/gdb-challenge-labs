@@ -5,6 +5,9 @@ are created here from the unmanaged models, which labs/tests/test_models.py keep
 labd's migration.
 """
 
+import json
+from pathlib import Path
+
 import pytest
 from django.apps import apps
 from django.db import connection
@@ -18,3 +21,38 @@ def django_db_setup(django_db_setup, django_db_blocker):
             for model in apps.get_models():
                 if not model._meta.managed and model._meta.db_table not in existing:
                     editor.create_model(model)
+
+
+REPO = Path(__file__).resolve().parent.parent
+
+
+@pytest.fixture
+def challenges_doc():
+    """A copy of the repo's challenges.json with every challenge enabled and a fake digest
+    (the committed file lists them disabled until images are pushed, QUESTIONS Q2)."""
+    doc = json.loads((REPO / "challenges.json").read_text())
+    for c in doc["challenges"]:
+        c["enabled"] = True
+        c["image"] = f"ghcr.io/test/lab-{c['slug']}@sha256:" + "0" * 64
+    return doc
+
+
+@pytest.fixture
+def write_doc(tmp_path):
+    def write(doc) -> Path:
+        p = tmp_path / "challenges.json"
+        p.write_text(json.dumps(doc))
+        return p
+
+    return write
+
+
+@pytest.fixture
+def imported(db, challenges_doc, write_doc):
+    """The five tier-1 challenges, enabled, as import_challenges leaves them."""
+    from curriculum.importer import import_challenges
+
+    import_challenges(write_doc(challenges_doc), REPO)
+    from curriculum.models import Challenge
+
+    return list(Challenge.objects.order_by("tier__order", "order"))
