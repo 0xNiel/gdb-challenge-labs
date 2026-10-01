@@ -11,18 +11,16 @@ Phase 3 human check: 2026-09-30 <OG> OK
 - the build script with its oracle, the five tier-1 labs, `challenges.json`;
 - `labd pull` and `prune`, the rebuild-changed helper, the authoring guide, the gate.
 
-All five labs pass every build step in the Mac's arm64 VM. Gate 5 needs the x86-64 laptop for two things: the authoritative builds (x86-64, oracle under gVisor) and a human playing each lab.
+All five labs pass every build step in the Mac's arm64 VM. The x86-64 builds passed on the laptop with the oracle under gVisor (`docs/metrics/challenges-2026-10-01-linux-laptop.md`). Gate 5 still needs a human to play each lab.
 
 **On the laptop, in this order** (about an hour, most of it playing):
 
-1. **Update and build.**
+1. **Update.**
    ```
-   git pull && git checkout phase-5-challenge-pipeline
+   git checkout phase-5-challenge-pipeline && git pull
    ./run.sh labs preflight
-   for d in challenges/tier1-c-fundamentals/0*; do bash scripts/challenge-build.sh "$d" || break; done
-   LAB_HOST=linux-laptop scripts/challenges-metrics.sh
    ```
-   Each build ends with `PASSED`. If one fails, send its output. The likeliest suspect is lab 3: its bug depends on stack layout, which this is the first x86-64 check of. If it fails, the plain run printed the flag.
+   No rebuild is needed: the starting-directory fix (ADR 0014) is in labd, which `./run.sh labd` rebuilds, and the lab images already in containerd are unchanged. If `.scratch/local-images.json` is gone, rebuild with `for d in challenges/tier1-c-fundamentals/0*; do bash scripts/challenge-build.sh "$d" || break; done`.
 2. **Play each lab once (tasks 5.6–5.10).** Use two terminals.
    ```
    scripts/challenges-json.sh --local > .scratch/challenges.local.json
@@ -54,9 +52,10 @@ All five labs pass every build step in the Mac's arm64 VM. Gate 5 needs the x86-
    Then stop the session before the next slug: `curl -s -X DELETE -H 'Authorization: Bearer dev' http://127.0.0.1:8081/internal/sessions/$sid`. After the last lab, Ctrl-C in A. Then, for each lab, add a line to this file starting at the first column: `Phase 5 human check <slug>: YYYY-MM-DD <initials> OK`. If a lab is confusing or a hint misleads, say so instead; that is a content fix, not an OK.
 3. **Commit and run the gate.**
    ```
-   git add docs/metrics docs/STATUS.md && git commit -m "[P5] metrics: laptop challenge builds; human checks" && git push
+   git add docs/STATUS.md && git commit -m "[P5] docs: human checks of the five tier-1 labs" && git push
    ./run.sh gate --phase 5
    ```
+   Send the gate's output. If you rebuilt any lab, also run `LAB_HOST=linux-laptop scripts/challenges-metrics.sh` and add `docs/metrics` to the commit.
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -79,7 +78,7 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 2 | labd core (sessions, semaphore, reconciler) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 4 | Perf suite and measured capacity | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
-| 5 | Challenge pipeline and tier 1 content | in progress: built, five labs pass in the arm64 VM; needs laptop builds and human checks | Mac: all but the laptop items | 2026-10-01 |
+| 5 | Challenge pipeline and tier 1 content | in progress: built; five labs pass on arm64 and x86-64; needs the five human checks | Mac: all but the human checks (expected) | 2026-10-01 |
 | 6 | Django web app | blocked on 3, 5 | — | — |
 | 7 | Metrics, rollups, admin live view | blocked on 6 | — | — |
 | 8 | Production on the VPS, tiers 2–3, beta | blocked on 4, 7 | — | — |
@@ -100,6 +99,16 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-10-01 — Lab shell starts in /opt/lab; hints and solution are repo files
+The owner built all five labs on the laptop and played lab 1: the bug showed as designed (437, a garbage report line). Two problems, both fixed:
+- **The shell started in `/home/lab`, not `/opt/lab`.** The base spec's `process.cwd` overrode the image's `WORKDIR`. **ADR 0014:** the lab starts in the image's `WORKDIR`, else `/home/lab`; `HOME` stays `/home/lab`, and cwd is not a security setting. labd's session manager (`Runtime.ImageWorkingDir`) and `RunOnce` (specrun, the build's oracle) read it with the same helper. The golden spec's only change is `process.cwd`.
+  - Tests: `BuildSpec` cwd table and bad-cwd rejections; the manager passes the image's `WORKDIR` to `Create`; integration `TestCwd_FromImageWorkdir` types `pwd` under runsc: perf gives `/home/lab`, lab 1 gives `/opt/lab`, `HOME` is `/home/lab` in both.
+  - By hand with specrun (runsc, arm64): lab 1 starts in `/opt/lab`, and `./scores` prints `total of 5 scores: 437` with no `cd`. Perf starts in `/home/lab`.
+  - **No image rebuilt.** Lab images already carry `WORKDIR /opt/lab`. Rebuilding all five in the arm64 VM passed every step and gave the same digests as before.
+- **`manifest.yaml` and `solution.md` are not in the lab, by design.** The laptop steps above now say they are repo files, list each lab's directory and binary, and give a command to reveal one hint at a time. `challenges/README.md`'s dev-page section says the same. Hints appear in the web page from Phase 6.
+- **Checks on the Mac:** `check`, `test --all`, `lint` pass; `test --integration` passes; staticcheck in the VM clean (also with `-tags integration`); `go test -race -count=5 ./...` in labd passes. Gate 5: see below.
+- **Next:** the laptop steps at the top of this file. Lab 1 must be played again: it now starts in `/opt/lab`.
 
 ### 2026-10-01 — Phase 5 built: flag, pipeline, five tier-1 labs
 - **Flag** (5.1, 5.2): `labd/internal/flag` derives the flag; 10 vectors computed with `openssl` and `base32`, one slug non-ASCII. `flagblob` writes `flag_blob.h` from the secret, read from the environment. A test compiles the header with a real C compiler: the right key prints the flag, wrong keys don't, and the binary holds neither `LAB{` nor the flag body. **ADR 0005 amended:** the flag is 29 bytes, not 28; the blob's seed is derived from the secret and slug, because a random seed breaks reproducible builds.
