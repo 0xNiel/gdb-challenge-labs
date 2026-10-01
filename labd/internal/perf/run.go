@@ -197,6 +197,9 @@ func Run(ctx context.Context, cfg RunConfig) (string, RunFile, error) {
 	r.idle = r.baseline(ctx)
 	r.mark("baseline taken")
 
+	if cfg.DiskCmd != "" {
+		r.disk(ctx, "start") // before the first session, so growth is measured from nothing
+	}
 	sctx, stopSampling := context.WithCancel(ctx)
 	var sampling sync.WaitGroup
 	sampling.Add(1)
@@ -307,7 +310,6 @@ func (r *runner) sampleLoop(ctx context.Context) {
 
 // diskLoop runs DiskCmd every DiskEvery (P9: snapshot, journal and table growth).
 func (r *runner) diskLoop(ctx context.Context) {
-	r.disk(ctx, "start")
 	tick := time.NewTicker(r.cfg.DiskEvery)
 	defer tick.Stop()
 	for {
@@ -317,6 +319,14 @@ func (r *runner) diskLoop(ctx context.Context) {
 		case <-tick.C:
 			r.disk(ctx, "")
 		}
+	}
+}
+
+// diskAtN samples disk once every session runs, so per-lab growth is measured even when the
+// hold is shorter than DiskEvery.
+func (r *runner) diskAtN(ctx context.Context) {
+	if r.cfg.DiskCmd != "" {
+		r.disk(ctx, "at_n")
 	}
 }
 
@@ -437,6 +447,7 @@ func (r *runner) steady(ctx context.Context) error {
 	_ = sleepCtx(ctx, r.cfg.Settle) // gdb started and setup sent everywhere
 	r.hold[0] = r.now()
 	r.mark("hold start: all sessions running")
+	r.diskAtN(ctx)
 	// The first user to finish ends the window.
 	for r.finished() == 0 && sleepCtx(ctx, time.Second) == nil {
 	}
@@ -465,6 +476,7 @@ func (r *runner) churn(ctx context.Context) error {
 	}
 	r.waitPrompts(ctx, r.cfg.N, 5*time.Minute)
 	r.hold[0] = r.now()
+	r.diskAtN(ctx)
 	r.mark(fmt.Sprintf("churn start: one session out and one in every %s for %s", r.cfg.Churn, r.cfg.Hold))
 	end := time.Now().Add(r.cfg.Hold)
 	rng := rand.New(rand.NewPCG(1, 2))

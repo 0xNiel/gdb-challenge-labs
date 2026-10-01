@@ -89,3 +89,16 @@ func TestReport_FromRuns(t *testing.T) {
 		t.Error("ReplaceBlock accepted a file without markers")
 	}
 }
+
+func TestDiskPerLab_UsesKiBWhenPresent(t *testing.T) {
+	t.Parallel()
+	rf := RunFile{Extra: map[string]any{"disk": []any{
+		map[string]any{"t": 0.0, "active": 0.0, "snapshots_kb": 1000.0, "snapshots_mb": 1.0},
+		map[string]any{"t": 300.0, "active": 100.0, "snapshots_kb": 1800.0, "snapshots_mb": 1.0},
+	}}}
+	got, ok := diskPerLab(rf)
+	// 800 KiB over 100 labs = 8 KiB = 0.0078 MB; the MB fields alone would say 0.
+	if !ok || got != 0.0078 {
+		t.Fatalf("diskPerLab = %v, %v; want 0.0078", got, ok)
+	}
+}

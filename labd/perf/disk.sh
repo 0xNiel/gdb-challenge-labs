@@ -6,9 +6,12 @@
 set -euo pipefail
 cfg="${1:?usage: disk.sh LABD_CFG}"
 dsn="$(sed -n 's/^postgres_dsn: *//p' "$cfg" | awk '{print $1}')"
-mb() { sudo -n du -sm "$1" 2>/dev/null | awk '{print $1}' || echo null; }
-snap="$(mb /var/lib/containerd/io.containerd.snapshotter.v1.overlayfs)"
-root="$(mb /var/lib/containerd)"
+# du in KiB. Files can vanish under du while labs are torn down: du then exits non-zero but
+# still prints a total, which is kept (with pipefail, `|| echo null` used to add a second
+# line and break the JSON).
+kib() { local v; v="$({ sudo -n du -sk "$1" 2>/dev/null || true; } | awk 'NR==1{print $1}')"; echo "${v:-null}"; }
+snap_kb="$(kib /var/lib/containerd/io.containerd.snapshotter.v1.overlayfs)"
+root_kb="$(kib /var/lib/containerd)"
 journal="$(journalctl --disk-usage 2>/dev/null | grep -oE '[0-9.]+[KMGT]' | head -n1 | awk '
   /K$/{printf "%.1f", $0/1024; next} /M$/{printf "%.1f", $0+0; next} /G$/{printf "%.1f", $0*1024; next} {print "null"}')"
 # Image content as containerd stores it (MiB): labbase is shared, perf = labbase + one program
@@ -18,7 +21,8 @@ img() { sudo -n ctr -n labs images ls "name==$1" 2>/dev/null | awk 'NR==2{for(i=
 base_img="$(img docker.io/gdblabs/labbase:dev)" perf_img="$(img docker.io/gdblabs/perf:dev)"
 q() { psql "$dsn" -XAtq -c "$1" 2>/dev/null || echo null; }
 tables="$(q "select json_object_agg(t, json_build_object('mb', round(pg_total_relation_size(t::regclass)/1048576.0, 2), 'rows', (xpath('/row/c/text()', query_to_xml('select count(*) as c from '||t, false, true, '')))[1]::text::bigint)) from unnest(array['sessions','events','samples']) t")"
-jq -cn --argjson snap "${snap:-null}" --argjson root "${root:-null}" --argjson journal "${journal:-null}" \
+jq -cn --argjson snap "$snap_kb" --argjson root "$root_kb" --argjson journal "${journal:-null}" \
   --argjson tables "${tables:-null}" --argjson base "${base_img:-null}" --argjson perf "${perf_img:-null}" \
-  '{snapshots_mb:$snap, containerd_root_mb:$root, journal_mb:$journal, tables:$tables,
+  '{snapshots_kb:$snap, snapshots_mb:(if $snap then ($snap/1024*100|round/100) else null end),
+    containerd_root_mb:(if $root then ($root/1024*10|round/10) else null end), journal_mb:$journal, tables:$tables,
     images_mib:{labbase:$base, perf:$perf}}'

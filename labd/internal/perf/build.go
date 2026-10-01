@@ -227,21 +227,26 @@ func num(m map[string]any, keys ...string) (float64, bool) {
 	return f, ok
 }
 
-// diskPerLab is the snapshot growth per running lab: the sample with the most labs against
-// the first one (before any lab).
+// diskPerLab is the snapshot growth per running lab, in MB: the sample with the most labs
+// against the first one (before any lab). It uses snapshots_kb when the run has it; runs
+// before 2026-10-01 have whole MB only, which rounds a few KB per lab to nothing.
 func diskPerLab(rf RunFile) (float64, bool) {
 	ds := diskSamples(rf)
 	if len(ds) < 2 {
 		return 0, false
 	}
-	base, ok := num(ds[0], "snapshots_mb")
+	key, scale := "snapshots_kb", 1.0/1024
+	if _, ok := num(ds[0], key); !ok {
+		key, scale = "snapshots_mb", 1
+	}
+	base, ok := num(ds[0], key)
 	if !ok {
 		return 0, false
 	}
 	best, bestN := 0.0, 0.0
 	for _, d := range ds[1:] {
 		n, _ := num(d, "active")
-		v, ok := num(d, "snapshots_mb")
+		v, ok := num(d, key)
 		if ok && n > bestN {
 			best, bestN = v, n
 		}
@@ -249,7 +254,7 @@ func diskPerLab(rf RunFile) (float64, bool) {
 	if bestN == 0 {
 		return 0, false
 	}
-	return round(math.Max(best-base, 0)/bestN, 2), true
+	return round(math.Max(best-base, 0)*scale/bestN, 4), true
 }
 
 // diskGrowth is P9's growth per hour of snapshots, journal and labd's tables, and table
