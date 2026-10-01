@@ -50,6 +50,7 @@ gdb Challenge Labs — ./run.sh <command> [flags]
                                remove them after one confirmation (refused while a labd runs);
                                preflight fails if a labd runs or any lab is left (gate 3, perf)
   web [--port 8000]            run the Django dev server on the host
+  web-stack up|down|e2e|status labd + Django together on the lab host, for the lab page (Phase 6)
   dev                          labd in the VM (background) + Django on the host
   db up|down|shell|migrate|reset
                                Postgres in the VM; `migrate` runs labd migrate then Django migrate
@@ -398,7 +399,7 @@ cmd_test() {
   fi
   if [[ $e2e -eq 1 ]]; then
     say "end-to-end tests (Linux)"
-    run_linux bash -c "cd '$WEB_DIR' && uv run pytest -q ${verbose:+-v} tests/e2e" || rc=1
+    run_linux bash "$ROOT/scripts/web-stack.sh" e2e || rc=1
   fi
   return $rc
 }
@@ -573,6 +574,7 @@ main() {
     labd)    cmd_labd "$@" ;;
     labs)    cmd_labs "$@" ;;
     web)     cmd_web "$@" ;;
+    web-stack) run_linux bash "$ROOT/scripts/web-stack.sh" "$@" ;;
     dev)     cmd_dev "$@" ;;
     db)      cmd_db "$@" ;;
     images)  cmd_images "$@" ;;

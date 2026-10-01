@@ -1,7 +1,49 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}{{ challenge.title }} (lab) · gdb Challenge Labs{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'vendor/xterm-5.5.0/xterm-5.5.0.css' %}">{% endblock %}
+{% block body_class %}lab{% endblock %}
+{% block main_class %}lab{% endblock %}
 {% block main %}
-<h1>{{ challenge.title }}</h1>
-<p class="notice" id="capture-notice">Commands are recorded to improve hints.</p>
-<div id="term" data-session="{{ session.id }}"></div>
+<div id="lab"
+     data-session="{{ session.id }}"
+     data-token-url="{% url 'lab_token' challenge.slug %}"
+     data-ws-base="{{ ws_base }}"
+     data-challenge-url="{% url 'challenge' challenge.slug %}">
+  <section class="term-side">
+    <div class="lab-bar">
+      <strong>{{ challenge.title }}</strong>
+      <span id="lab-state" class="muted">connecting…</span>
+      <span id="lab-ttl" class="muted"></span>
+      <button id="lab-extend" class="secondary" hidden>Extend 15 min</button>
+      <span id="lab-msg" class="warn"></span>
+      <form method="post" action="{% url 'lab_stop' challenge.slug %}" class="inline push-right">{% csrf_token %}<button class="secondary">Stop lab</button></form>
+    </div>
+    <p id="capture-notice" class="notice">Commands are recorded to improve hints. <button id="capture-ok" class="link">OK</button></p>
+    <div id="lab-banner" class="banner" hidden></div>
+    <div id="term"></div>
+  </section>
+  <aside class="tabs-side">
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="lesson" aria-selected="true">Lesson</button>
+      <button role="tab" data-tab="source">Source</button>
+      <button role="tab" data-tab="hints">Hints</button>
+      <button role="tab" data-tab="flag">Flag</button>
+    </nav>
+    <div class="tab-body" data-pane="lesson">
+      <article class="prose">{% if challenge.lesson %}<h2>{{ challenge.lesson.title }}</h2>{{ lesson }}{% else %}<p class="muted">No lesson.</p>{% endif %}</article>
+    </div>
+    <div class="tab-body" data-pane="source" hidden>
+      <p class="muted small">/opt/lab/src/main.c (read-only)</p>
+      <table class="source"><tbody>{% for line in source_lines %}<tr><td class="ln">{{ forloop.counter }}</td><td><code>{{ line }}</code></td></tr>{% endfor %}</tbody></table>
+    </div>
+    <div class="tab-body" data-pane="hints" hidden>{% include "progress/partials/hints.html" %}</div>
+    <div class="tab-body" data-pane="flag" hidden>{% include "progress/partials/flag.html" %}</div>
+  </aside>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'vendor/xterm-5.5.0/xterm-5.5.0.js' %}"></script>
+<script src="{% static 'vendor/xterm-5.5.0/addon-fit-0.10.0.js' %}"></script>
+<script src="{% static 'js/lab.js' %}"></script>
 {% endblock %}

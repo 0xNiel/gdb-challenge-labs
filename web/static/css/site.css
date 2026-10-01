@@ -58,3 +58,30 @@ article.prose h2 { margin-top: 2rem; }
 ol.hints { padding-left: 1.2rem; } ol.hints li { margin-bottom: .6rem; }
 .hint-text p { margin: .1rem 0; }
 ul.attempts { padding-left: 1rem; margin: .25rem 0; }
+
+/* ---- the lab page: terminal left, tabs right, full height under the header */
+body.lab { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+body.lab ul.messages { display: none; }
+main.lab { flex: 1; min-height: 0; margin: 0; padding: 0; max-width: none; }
+#lab { display: grid; grid-template-columns: minmax(0, 3fr) minmax(20rem, 2fr); height: 100%; }
+.term-side { display: flex; flex-direction: column; min-width: 0; background: #111; color: #ddd; }
+.lab-bar { display: flex; align-items: center; gap: .9rem; padding: .4rem .8rem; background: #1d1f21; font-size: .9rem; }
+.lab-bar .muted { color: #9aa0a6; }
+.lab-bar .warn { color: #f5a623; }
+.lab-bar .push-right { margin-left: auto; }
+.lab-bar button.secondary { background: #2a2d31; color: #ddd; border-color: #3a3d42; padding: .2rem .7rem; }
+.term-side p.notice { margin: 0; padding: .35rem .8rem; background: #2b2a1d; color: #e8d9a0; font-size: .85rem; }
+.term-side p.notice button.link { color: #e8d9a0; }
+.term-side .banner { padding: .6rem .8rem; background: #1f2a3d; color: #cfe0ff; font-size: .9rem; }
+.term-side .banner a { color: #9cc2ff; }
+#term { flex: 1; min-height: 0; padding: 4px; }
+.tabs-side { display: flex; flex-direction: column; min-width: 0; border-left: 1px solid var(--line); background: var(--card); }
+nav.tabs { display: flex; border-bottom: 1px solid var(--line); }
+nav.tabs button { flex: 1; background: none; border: 0; border-bottom: 2px solid transparent; padding: .55rem; font: inherit; cursor: pointer; color: var(--muted); }
+nav.tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
+.tab-body { flex: 1; overflow: auto; padding: .8rem 1rem; }
+table.source { border-collapse: collapse; font-size: .82rem; width: 100%; }
+table.source td { border: 0; padding: 0 .5rem; vertical-align: top; white-space: pre; }
+table.source td.ln { color: var(--muted); text-align: right; user-select: none; width: 1%; }
+table.source code { background: none; padding: 0; }
+@media (max-width: 900px) { #lab { grid-template-columns: 1fr; grid-template-rows: 60vh auto; } body.lab { overflow: auto; height: auto; } }
