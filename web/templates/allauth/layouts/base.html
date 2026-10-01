@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{# allauth's pages (login, signup, password reset, ...) inside the site layout. #}
+{% block title %}{% block head_title %}{% endblock head_title %} · gdb Challenge Labs{% endblock title %}
+{% block head %}{% block extra_head %}{% endblock extra_head %}{% endblock head %}
+{% block main_class %}page narrow auth{% endblock %}
+{% block main %}{% block body %}{% block content %}{% endblock content %}{% endblock body %}{% endblock main %}

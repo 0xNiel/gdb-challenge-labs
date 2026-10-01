@@ -1,0 +1,41 @@
+/* One stylesheet for the whole site. No framework, no CDN (CONVENTIONS). */
+:root {
+  --bg: #fafaf8; --fg: #1d1f21; --muted: #6b6f76; --line: #e2e2dd; --card: #fff;
+  --accent: #2459c4; --ok: #1f7a3a; --warn: #9a5b00; --bad: #b3261e; --code: #f1f1ec;
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); }
+a { color: var(--accent); }
+header.site { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .6rem 1.25rem; border-bottom: 1px solid var(--line); background: var(--card); }
+header.site .brand { font-weight: 700; color: var(--fg); text-decoration: none; }
+header.site nav { display: flex; gap: 1rem; align-items: center; }
+form.inline { display: inline; margin: 0; }
+button.link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; }
+main.page { max-width: 60rem; margin: 2rem auto; padding: 0 1.25rem; }
+main.narrow { max-width: 30rem; }
+.lead { font-size: 1.15rem; color: var(--muted); }
+.button, button.primary { display: inline-block; background: var(--accent); color: #fff; border: 0; border-radius: 6px;
+  padding: .5rem 1rem; font: inherit; text-decoration: none; cursor: pointer; }
+button.secondary { background: var(--card); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: .4rem .8rem; font: inherit; cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+input[type=email], input[type=password], input[type=text] { width: 100%; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+main.auth form p, main.auth form > div { margin: .8rem 0; }
+main.auth label { display: block; font-weight: 600; margin-bottom: .2rem; }
+main.auth button[type=submit] { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: .5rem 1rem; font: inherit; cursor: pointer; }
+ul.messages { list-style: none; max-width: 60rem; margin: 1rem auto 0; padding: 0 1.25rem; }
+ul.messages li { padding: .5rem .8rem; border-radius: 6px; background: #eef3fc; margin-bottom: .4rem; }
+ul.messages li.error { background: #fbeceb; color: var(--bad); }
+ul.messages li.success { background: #eaf5ee; color: var(--ok); }
+.muted { color: var(--muted); }
+.badge { display: inline-block; font-size: .75rem; padding: .05rem .45rem; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.badge.solved { border-color: var(--ok); color: var(--ok); }
+.badge.unlocked { border-color: var(--accent); color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9em; }
+code { background: var(--code); padding: .05rem .3rem; border-radius: 4px; }
+pre { background: var(--code); padding: .8rem 1rem; border-radius: 6px; overflow-x: auto; line-height: 1.4; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; }
+th, td { text-align: left; padding: .35rem .7rem; border-bottom: 1px solid var(--line); }

@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block main %}<h1>Learn</h1>{% for it in items %}<p>{{ it.challenge.title }} <span class="badge {{ it.state }}">{{ it.state }}</span></p>{% endfor %}{% endblock %}

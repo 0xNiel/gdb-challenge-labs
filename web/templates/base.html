@@ -1,0 +1,29 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}gdb Challenge Labs{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
+{% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<header class="site">
+  <a class="brand" href="/">gdb Challenge Labs</a>
+  <nav>
+    {% if user.is_authenticated %}
+      <a href="{% url 'learn' %}">Learn</a>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      {% if user.is_staff %}<a href="{% url 'admin:index' %}">Admin</a>{% endif %}
+      <form method="post" action="{% url 'account_logout' %}" class="inline">{% csrf_token %}<button class="link">Log out</button></form>
+    {% else %}
+      <a href="{% url 'account_login' %}">Log in</a>
+      <a href="{% url 'account_signup' %}">Sign up</a>
+    {% endif %}
+  </nav>
+</header>
+{% if messages %}<ul class="messages">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+<main class="{% block main_class %}page{% endblock %}">{% block main %}{% endblock %}</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>

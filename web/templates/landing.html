@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>Learn gdb by fixing real bugs</h1>
+<p class="lead">Each challenge is a small C program with one bug, running in a sandbox in your browser.
+Read a short lesson, start the lab, find the bug with gdb, and repair the running program to reveal the flag.</p>
+{% if user.is_authenticated %}
+  <p><a class="button" href="{% url 'learn' %}">Continue learning</a></p>
+{% else %}
+  <p><a class="button" href="{% url 'account_signup' %}">Sign up</a> or <a href="{% url 'account_login' %}">log in</a></p>
+{% endif %}
+{% endblock %}
