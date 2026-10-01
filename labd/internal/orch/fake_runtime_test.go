@@ -7,6 +7,8 @@ import (
 	"io"
 	"slices"
 	"sync"
+
+	specs "github.com/opencontainers/runtime-spec/specs-go"
 )
 
 // fakeRuntime is an in-memory Runtime. Containers are created stopped, Start makes them
@@ -17,10 +19,13 @@ type fakeRuntime struct {
 	failCreate map[string]error // by challenge slug (label lab.challenge)
 	gate       chan struct{}    // if set, Create blocks until it is closed or receives
 	creates    int
+	workdirs   map[string]string      // image → WORKDIR; absent means none
+	specs      map[string]*specs.Spec // container id → the spec Create was given
 }
 
 func newFakeRuntime() *fakeRuntime {
-	return &fakeRuntime{ctrs: map[string]*fakeContainer{}, failCreate: map[string]error{}}
+	return &fakeRuntime{ctrs: map[string]*fakeContainer{}, failCreate: map[string]error{},
+		workdirs: map[string]string{}, specs: map[string]*specs.Spec{}}
 }
 
 // FailCreateFor makes every Create for slug fail.
@@ -52,7 +57,21 @@ func (f *fakeRuntime) Create(ctx context.Context, o CreateOpts) (Container, erro
 	}
 	c := newFakeContainer(f, o.ID, o.Labels)
 	f.ctrs[o.ID] = c
+	f.specs[o.ID] = o.Spec
 	return c, nil
+}
+
+func (f *fakeRuntime) ImageWorkingDir(_ context.Context, image string) (string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.workdirs[image], nil
+}
+
+// spec is the spec container id was created with.
+func (f *fakeRuntime) spec(id string) *specs.Spec {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.specs[id]
 }
 
 func (f *fakeRuntime) List(context.Context) ([]ContainerInfo, error) {

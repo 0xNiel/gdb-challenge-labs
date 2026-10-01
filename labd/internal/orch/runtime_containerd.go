@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"sync"
 	"syscall"
 	"time"
@@ -105,6 +106,29 @@ func (r *ContainerdRuntime) Create(ctx context.Context, o CreateOpts) (_ Contain
 		return nil, err
 	}
 	return c, nil
+}
+
+func (r *ContainerdRuntime) ImageWorkingDir(ctx context.Context, image string) (string, error) {
+	ctx = r.nsctx(ctx)
+	img, err := r.client.GetImage(ctx, image)
+	if err != nil {
+		return "", fmt.Errorf("image %s: %w", image, err)
+	}
+	return imageWorkingDir(ctx, img)
+}
+
+// imageWorkingDir reads WORKDIR from the image's config; "" if it sets none (ADR 0014).
+// labd's sessions and RunOnce (specrun, the challenge oracle) both use it, so a lab starts in
+// the same directory either way.
+func imageWorkingDir(ctx context.Context, img containerd.Image) (string, error) {
+	cfg, err := img.Spec(ctx)
+	if err != nil {
+		return "", fmt.Errorf("config of %s: %w", img.Name(), err)
+	}
+	if cfg.Config.WorkingDir == "" {
+		return "", nil
+	}
+	return path.Clean(cfg.Config.WorkingDir), nil
 }
 
 func (r *ContainerdRuntime) List(ctx context.Context) ([]ContainerInfo, error) {

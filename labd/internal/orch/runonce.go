@@ -70,10 +70,6 @@ func RunOnce(ctx context.Context, o RunOnceOpts) (RunResult, error) {
 		o.Cols, o.Rows = 200, 50
 	}
 	o.Params.Runtime = o.Runtime
-	spec, err := BuildSpec(o.BaseSpec, o.Params)
-	if err != nil {
-		return res, err
-	}
 
 	client, err := containerd.New(o.Socket)
 	if err != nil {
@@ -90,6 +86,15 @@ func RunOnce(ctx context.Context, o RunOnceOpts) (RunResult, error) {
 		if err := img.Unpack(ctx, snapshotter); err != nil {
 			return res, fmt.Errorf("unpack %s: %w", o.Image, err)
 		}
+	}
+	if o.Params.Cwd == "" {
+		if o.Params.Cwd, err = imageWorkingDir(ctx, img); err != nil {
+			return res, err
+		}
+	}
+	spec, err := BuildSpec(o.BaseSpec, o.Params)
+	if err != nil {
+		return res, err
 	}
 
 	id := o.Params.ID

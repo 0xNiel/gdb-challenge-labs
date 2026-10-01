@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
 	"regexp"
 	"slices"
 	"strings"
@@ -26,6 +27,7 @@ const cpuPeriodUS = 100000
 type SpecParams struct {
 	ID          string            // container id; also the cgroup leaf name
 	Args        []string          // process args; nil keeps the base spec's (/bin/sh)
+	Cwd         string            // the image's WorkingDir (ADR 0014); "" keeps the base's /home/lab
 	Limits      config.Limits     // manifest limits; zero fields must be filled by the caller
 	Annotations map[string]string // lab.session_id, lab.user_id, ... (spec: container labels)
 	// Runtime decides how the lab's process limit is enforced (ADR 0009). Empty means runsc.
@@ -65,6 +67,12 @@ func BuildSpec(base []byte, p SpecParams) (*specs.Spec, error) {
 
 	if p.Args != nil {
 		s.Process.Args = slices.Clone(p.Args)
+	}
+	if p.Cwd != "" {
+		if !path.IsAbs(p.Cwd) || path.Clean(p.Cwd) != p.Cwd {
+			return nil, fmt.Errorf("cwd %q must be an absolute, clean path", p.Cwd)
+		}
+		s.Process.Cwd = p.Cwd
 	}
 
 	mem := int64(l.MemoryMB) * 1024 * 1024

@@ -82,6 +82,32 @@ func TestManager_CapAdmitsTwoQueuesThird(t *testing.T) {
 	}
 }
 
+// The session manager starts the lab in its image's WORKDIR (ADR 0014).
+func TestManager_CwdFromImage(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct{ workdir, want string }{
+		{"/opt/lab", "/opt/lab"},
+		{"", "/home/lab"},
+	} {
+		h := newHarness(t, 1, 1)
+		if tc.workdir != "" {
+			h.rt.workdirs["docker.io/gdblabs/perf:dev"] = tc.workdir
+		}
+		in := h.start(t, 1)
+		h.m.Settle()
+		if got := h.state(t, in.ID); got != StateRunning {
+			t.Fatalf("WORKDIR %q: session %s", tc.workdir, got)
+		}
+		ids := h.rt.ids()
+		if len(ids) != 1 {
+			t.Fatalf("%d containers", len(ids))
+		}
+		if got := h.rt.spec(ids[0]).Process.Cwd; got != tc.want {
+			t.Errorf("WORKDIR %q: cwd %q, want %q", tc.workdir, got, tc.want)
+		}
+	}
+}
+
 func TestManager_SameUserGetsSameSession(t *testing.T) {
 	t.Parallel()
 	h := newHarness(t, 2, 10)

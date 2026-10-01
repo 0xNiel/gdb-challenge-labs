@@ -71,7 +71,8 @@ func (r *ptyRuntime) List(context.Context) ([]orch.ContainerInfo, error) { retur
 func (r *ptyRuntime) Attach(context.Context, string) (orch.Container, error) {
 	return nil, errors.New("not supported")
 }
-func (r *ptyRuntime) Remove(context.Context, string) error { return nil }
+func (r *ptyRuntime) Remove(context.Context, string) error                    { return nil }
+func (r *ptyRuntime) ImageWorkingDir(context.Context, string) (string, error) { return "", nil }
 func (r *ptyRuntime) get(sessionID string) *ptyCtr {
 	r.mu.Lock()
 	defer r.mu.Unlock()

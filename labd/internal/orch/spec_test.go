@@ -6,6 +6,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -30,6 +31,7 @@ func loadBase(t *testing.T) []byte {
 func defaultParams() SpecParams {
 	return SpecParams{
 		ID:     "golden-1",
+		Cwd:    "/opt/lab", // a lab image's WORKDIR (ADR 0014)
 		Limits: config.Default().DefaultLimits,
 		Annotations: map[string]string{
 			"lab.session_id": "00000000-0000-0000-0000-000000000001",
@@ -142,13 +144,39 @@ func TestBuildSpec_AppliesLimits(t *testing.T) {
 	}
 }
 
+// The lab starts in the image's WORKDIR, else the base spec's /home/lab (ADR 0014). HOME and
+// everything else stay as they are.
+func TestBuildSpec_Cwd(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct{ cwd, want string }{
+		{"", "/home/lab"},          // an image with no WORKDIR
+		{"/opt/lab", "/opt/lab"},   // a lab image
+		{"/home/lab", "/home/lab"}, // labbase and perf
+	} {
+		p := defaultParams()
+		p.Cwd = tc.cwd
+		s, err := BuildSpec(loadBase(t), p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if s.Process.Cwd != tc.want {
+			t.Errorf("Cwd %q: spec cwd %q, want %q", tc.cwd, s.Process.Cwd, tc.want)
+		}
+		if !slices.Contains(s.Process.Env, "HOME=/home/lab") {
+			t.Errorf("Cwd %q: HOME changed: %v", tc.cwd, s.Process.Env)
+		}
+	}
+}
+
 func TestBuildSpec_RejectsBadInput(t *testing.T) {
 	base := loadBase(t)
 	for name, p := range map[string]SpecParams{
-		"empty id":    {ID: "", Limits: config.Default().DefaultLimits},
-		"slash in id": {ID: "../x", Limits: config.Default().DefaultLimits},
-		"zero memory": {ID: "a", Limits: config.Limits{CPUMillicores: 1, Pids: 1}},
-		"zero pids":   {ID: "a", Limits: config.Limits{MemoryMB: 1, CPUMillicores: 1}},
+		"empty id":     {ID: "", Limits: config.Default().DefaultLimits},
+		"slash in id":  {ID: "../x", Limits: config.Default().DefaultLimits},
+		"zero memory":  {ID: "a", Limits: config.Limits{CPUMillicores: 1, Pids: 1}},
+		"zero pids":    {ID: "a", Limits: config.Limits{MemoryMB: 1, CPUMillicores: 1}},
+		"relative cwd": {ID: "a", Cwd: "opt/lab", Limits: config.Default().DefaultLimits},
+		"unclean cwd":  {ID: "a", Cwd: "/opt/../etc", Limits: config.Default().DefaultLimits},
 	} {
 		t.Run(name, func(t *testing.T) {
 			if _, err := BuildSpec(base, p); err == nil {

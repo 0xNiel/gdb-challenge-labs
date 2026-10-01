@@ -601,6 +601,12 @@ func (m *Manager) create(s *Session) {
 	image := s.Image
 	m.mu.Unlock()
 
+	cwd, err := m.rt.ImageWorkingDir(ctx, image)
+	if err != nil {
+		m.fail(s, nil, err)
+		return
+	}
+	params.Cwd = cwd
 	spec, err := BuildSpec(m.base, params)
 	if err != nil {
 		m.fail(s, nil, err)

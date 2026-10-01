@@ -24,6 +24,9 @@ type Runtime interface {
 	// Remove kills and deletes a container by id, whatever state it is in. Used by the
 	// reconciler for containers it will not adopt.
 	Remove(ctx context.Context, id string) error
+	// ImageWorkingDir is the image's WORKDIR, or "" if it sets none. The lab starts there
+	// (ADR 0014).
+	ImageWorkingDir(ctx context.Context, image string) (string, error)
 }
 
 // CreateOpts describes one lab container.
