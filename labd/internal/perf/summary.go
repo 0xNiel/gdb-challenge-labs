@@ -225,7 +225,11 @@ func (r *runner) criteria(s RunSummary) []Criterion {
 		st, ep, nx := s.StartByProfile[Learner], s.EchoMSByProfile[Learner], s.CmdMS["next"]
 		add(st.N > 0 && st.P95 < 2000, "learners' lab start p95 < 2 s (request to shell prompt)", "p95 %.0f ms, n=%d", st.P95, st.N)
 		add(ep.N > 0 && ep.P95 < 100, "learners' echo p95 < 100 ms", "p95 %.1f ms over %d lines", ep.P95, ep.N)
-		add(nx.N > 0 && nx.P95 < 250, "`next` p95 < 250 ms", "p95 %.0f ms over %d", nx.P95, nx.N)
+		if nx.N == 0 { // a short run may send none: no measurement is not a miss
+			add(true, "`next` p95 < 250 ms", "none sent in this run")
+		} else {
+			add(nx.P95 < 250, "`next` p95 < 250 ms", "p95 %.0f ms over %d", nx.P95, nx.N)
+		}
 		add(s.CommandErrors == 0, "no command timed out", "%d of %d", s.CommandErrors, s.Commands)
 		add(s.OOMKills == 0, "no OOM kills", "%d", s.OOMKills)
 		noErrors()

@@ -82,7 +82,7 @@ A `learner` profile in labd-perf that works the five real tier-1 labs, not the p
 **Done when:** unit tests parse the script and drive a fake terminal through one episode; a 3-learner P10 run at a single count in the VM finishes with no command errors.
 
 ### 7.11 P10: capacity search on an 8-CPU host
-`labd/perf/capacity.sh --steps "60 90 120 150 180" --hold 8m` runs P10 at each count: 90 % learners, 10 % abusers (perf image), labs under runsc. It stops early once a count fails a criterion. On the laptop, CPUs 8–15 are offline for the whole run (`sudo chcpu -d 8-15`; `chcpu -e 8-15` after), so the host has 8, like the VPS. `labd-perf capacity` reads the run files and writes `docs/metrics/capacity-search-<date>-<host>.{json,md}`: one row per count, and the largest count that passes. Criteria per count:
+`labd/perf/capacity.sh --steps "60 90 120 150 180" --hold 8m` runs P10 at each count: 90 % learners, 10 % abusers (perf image), labs under runsc. It stops early once a count fails a criterion. On the laptop, CPUs 8–15 are offline for the whole run (`--cpus 8`, through `/sys/devices/system/cpu/cpuN/online`; `--restore-cpus` after an interrupted run), so the host has 8, like the VPS. `labd-perf capacity` reads the run files and writes `docs/metrics/capacity-search-<date>-<host>.{json,md}`: one row per count, and the largest count that passes. Criteria per count:
 - lab start p95 < 2 s;
 - echo p95 < 100 ms;
 - `next` p95 < 250 ms;

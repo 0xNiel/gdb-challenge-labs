@@ -7,10 +7,11 @@
 #   labd/perf/capacity.sh [--cpus 8] [--steps "60 90 120 150 180"] [--hold 8m] [--ramp 2]
 #       [--mix learner=90,abuser=10] [--runtime runsc|runc] [--keep-going] [--out DIR]
 #
-# --cpus N takes every CPU from N up offline for the run (chcpu, needs sudo) so the host has N,
+# --cpus N takes every CPU from N up offline for the run (sysfs, needs sudo) so the host has N,
 # like the 8-vCPU VPS, and brings them back on exit, whatever happens. On the i5-13450HX laptop
 # CPUs 0-7 are four performance cores with their hyperthreads. Without --cpus the host's own
-# CPUs are used, and the record says how many.
+# CPUs are used, and the record says how many. --restore-cpus brings every CPU back online
+# (after an interrupted run) and exits.
 #
 # Needs the tier-1 dev images on this host (scripts/challenge-build.sh; .scratch/local-images.json)
 # and the perf image (./run.sh images perf). Each count needs about 55 MB of RAM per lab; a
@@ -19,7 +20,7 @@ set -euo pipefail
 # shellcheck source=lib.sh disable=SC1091
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-CPUS="" STEPS="60 90 120 150 180" HOLD=8m RAMP=2 MIX="learner=90,abuser=10" RUNTIME=runsc KEEP_GOING=0
+CPUS="" STEPS="60 90 120 150 180" HOLD=8m RAMP=2 MIX="learner=90,abuser=10" RUNTIME=runsc KEEP_GOING=0 RESTORE=0
 OUT="$PERF_ROOT/docs/metrics"
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -30,6 +31,7 @@ while [[ $# -gt 0 ]]; do
     --mix) MIX="$2"; shift 2 ;;
     --runtime) RUNTIME="$2"; shift 2 ;;
     --keep-going) KEEP_GOING=1; shift ;;
+    --restore-cpus) RESTORE=1; shift ;;
     --out) OUT="$2"; shift 2 ;;
     *) echo "usage: capacity.sh [--cpus N] [--steps \"60 90 ...\"] [--hold 8m] [--ramp 2] [--mix learner=90,abuser=10] [--runtime runsc|runc] [--keep-going] [--out DIR]" >&2; exit 2 ;;
   esac
@@ -44,26 +46,40 @@ LOCAL="$PERF_ROOT/.scratch/local-images.json"
 MAXN=0
 for n in $STEPS; do [[ "$n" =~ ^[0-9]+$ ]] || die "--steps: $n is not a count"; ((n > MAXN)) && MAXN=$n; done
 
-# ---- CPUs: offline everything from --cpus up, restore on exit
+# ---- CPUs: offline everything from --cpus up, restore on exit. Through sysfs, not chcpu:
+# chcpu lives in /usr/sbin, often not on a user's PATH (found on the laptop).
+CPUDIR=/sys/devices/system/cpu
 OFFLINED=""
+set_cpus() { # 0|1 FIRST LAST
+  local n
+  for ((n = $2; n <= $3; n++)); do
+    [[ -e "$CPUDIR/cpu$n/online" ]] || die "CPU $n cannot be taken offline (no $CPUDIR/cpu$n/online)"
+    echo "$1" | sudo tee "$CPUDIR/cpu$n/online" >/dev/null
+  done
+}
 restore_cpus() {
   if [[ -n "$OFFLINED" ]]; then
-    sudo chcpu -e "$OFFLINED" >/dev/null && say "CPUs $OFFLINED back online ($(nproc) online)"
+    set_cpus 1 "${OFFLINED%-*}" "${OFFLINED#*-}" && say "CPUs $OFFLINED back online ($(nproc) online)"
     OFFLINED=""
   fi
 }
+if [[ "$RESTORE" == 1 ]]; then # after an interrupted run
+  total="$(nproc --all)"
+  set_cpus 1 1 $((total - 1))
+  say "$(nproc) of $total CPUs online"
+  exit 0
+fi
 if [[ -n "$CPUS" ]]; then
-  command -v chcpu >/dev/null || die "--cpus needs chcpu (util-linux)"
   total="$(nproc --all)"
   ((CPUS >= 1 && CPUS < total)) || die "--cpus must be between 1 and $((total - 1)) (this host has $total)"
-  [[ "$(nproc)" == "$total" ]] || die "some CPUs are already offline ($(nproc) of $total): sudo chcpu -e 0-$((total - 1)) first"
+  [[ "$(nproc)" == "$total" ]] || die "some CPUs are already offline ($(nproc) of $total): labd/perf/capacity.sh --restore-cpus first"
 fi
 
 PERF_BASE_CFG="$PERF_ROOT/labd/labd.perf.yaml" perf_init "$MAXN" 10
 trap 'restore_cpus; perf_cleanup' EXIT
 if [[ -n "$CPUS" ]]; then
   OFFLINED="$CPUS-$(( $(nproc --all) - 1 ))"
-  sudo chcpu -d "$OFFLINED" >/dev/null
+  set_cpus 0 "${OFFLINED%-*}" "${OFFLINED#*-}"
   say "CPUs $OFFLINED offline: $(nproc) online for the run"
 fi
 

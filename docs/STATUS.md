@@ -33,7 +33,7 @@ Every Phase 7 task is built. On the Mac, gate 7 passes everything except four la
    ```
    LAB_HOST=linux-laptop labd/perf/capacity.sh --cpus 8
    ```
-   sudo asks once. It takes CPUs 8–15 offline and runs P10 at 60, 90, 120 and 150 labs (8 minutes each; 180 is refused on 15 GB of RAM). It stops at the first count that misses a criterion, brings the CPUs back, and writes `docs/metrics/capacity-search-<date>-linux-laptop.md`. If you interrupt it and `nproc` says 8, run `sudo chcpu -e 8-15`.
+   sudo asks once. It takes CPUs 8–15 offline (through `/sys/devices/system/cpu`; `chcpu` is not on your PATH) and runs P10 at 60, 90, 120 and 150 labs (8 minutes each; 180 is refused on 15 GB of RAM). It stops at the first count that misses a criterion, brings the CPUs back, and writes `docs/metrics/capacity-search-<date>-linux-laptop.md`. If you interrupt it and `nproc` says 8, run `labd/perf/capacity.sh --restore-cpus`. Your `lscpu` shows CPUs 0–7 are four performance cores with their hyperthreads (4.6 GHz); 8–11 are the other two P-cores, 12–15 the efficiency cores.
 3. **The twenty-lab live check (task 7.8), about 10 minutes.** Two terminals.
    ```
    ./run.sh web-stack up
