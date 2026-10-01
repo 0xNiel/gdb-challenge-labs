@@ -6,24 +6,16 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 Phase 3 human check: 2026-09-30 <OG> OK
 
-**Phase 4 — Perf suite: in progress** on branch `phase-4-perf-suite`. The driver, the report and the gate are built (tasks 4.1–4.6 and the code for 4.8–4.10 and 4.13), and the smoke runs pass on the dev VM. The numbers must come from the x86-64 laptop, and that needs the owner:
+**Phase 4 — Perf suite: in progress** on branch `phase-4-perf-suite`. The laptop ran the whole suite (results below). Every scenario ran and every criterion passed except start latency. Its cause was a gateway bug, now fixed. Gate 4 fails only on those start-latency misses. One step remains, the owner's:
 
-1. **Prepare (task 4.7), on the laptop:**
-   ```
-   git pull && git checkout phase-4-perf-suite
-   ./run.sh vm verify                       # must print runsc ok
-   ./run.sh labs preflight                  # must say preflight ok; also warns about orphaned sandboxes
-   ls images/out/gdblabs_perf_dev_amd64.tar images/out/gdblabs_labbase_dev_amd64.tar   # P7 needs both; else ./run.sh images perf
-   lscpu | grep 'Model name'                # add it to docs/metrics/environment-linux-laptop.md (still missing)
-   ```
-2. **Run the suite (tasks 4.8–4.10), about 5 hours.** Leave the laptop otherwise idle: other work there changes the host memory and CPU numbers. sudo asks once at the start.
-   ```
-   LAB_HOST=linux-laptop ./run.sh perf --scenario all
-   ```
-   It runs P1 P2 P3 P6 P4 P5 P7 P8 P9 (P9 alone is 2 hours), then P1 and P2 on the KVM platform, then the runc reference P1–P3, then `labd-perf report`. That writes `docs/metrics/perf-report-<date>-linux-laptop.json` and fills the generated block of `capacity.md`. At about 40 MB per lab, 100 labs fit the laptop's 15 GB with 25 % headroom, so nothing should be partial. If a scenario fails, the rest still run and the end lists it; rerun it with `--only`, for example `labd/perf/runall.sh --only P5,report` (with `LAB_HOST=linux-laptop`).
-3. **Commit and push:** `git add docs/metrics && git commit -m "[P4] metrics: laptop P1-P9" && git push`. Send the last lines of the output (the PASS/MISS lines of each scenario).
-
-Then the agent does 4.10–4.12: removes the "Still estimated" rows the report replaced, writes the `max_sessions` ADR, updates `deploy/labd.prod.yaml`, and writes a decision line for every missed criterion. Then the gate: `./run.sh gate --phase 4`.
+**Re-run the start-latency scenarios with the fix, on the laptop** (about 2 h 20 min; leave the laptop idle):
+```
+git pull
+LAB_HOST=linux-laptop labd/perf/runall.sh --only P1,P2,P3,P8,kvm,runc,report
+git add docs/metrics && git commit -m "[P4] metrics: laptop start latency with the gateway fix" && git push
+./run.sh gate --phase 4
+```
+`--only` reruns P1, P2, P3 and P8, both KVM runs and all three runc runs, so every comparison in `capacity.md` uses runs made with the fix. The report keeps the newest run of each scenario, so P4–P7 and P9 stay as they are. Expected: start p95 about 1.5 s under gVisor; the dev VM fell from 1283 to 546 ms. If a start-latency line still says MISS, send the output; that needs a decision line or a question, not a silent pass.
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -45,7 +37,7 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-29 |
 | 2 | labd core (sessions, semaphore, reconciler) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
-| 4 | Perf suite and measured capacity | in progress: driver built, dev-VM smoke passes; needs the laptop suite | Mac: fails only on the laptop results | 2026-09-30 |
+| 4 | Perf suite and measured capacity | in progress: laptop suite done; start latency re-measured after a gateway fix | Mac: fails only on the pre-fix start-latency misses | 2026-10-01 |
 | 5 | Challenge pipeline and tier 1 content | not started (owner review of Phase 1 first) | — | — |
 | 6 | Django web app | blocked on 3, 5 | — | — |
 | 7 | Metrics, rollups, admin live view | blocked on 6 | — | — |
@@ -67,6 +59,21 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-10-01 — Phase 4 on the laptop: everything measured; start latency was a gateway bug
+- **The owner ran the full suite on the laptop** (14 runs, about 6 h; `docs/metrics/run-P*-2026-09-30-linux-laptop*.json`, `perf-report-2026-09-30-linux-laptop.json`). Headline numbers at 100 labs:
+  - **Memory:** lab cgroup p95 25.5 MiB; whole host cost 43.8 MB per lab, including the shim; host 8.5 GB peak with 5.0 GB before any lab; no OOM kill.
+  - **Echo:** p95 1.6 ms at 100 mixed labs, 6.2 ms at 100 readers. Abusers did not move it.
+  - **CPU:** readers 0.03 % and steppers 0.39 % of a core per lab; each abuser held to its 0.5-core quota (51 %); 100 mixed labs use 32 % of 16 vCPUs, nearly all of it the 10 abusers.
+  - **Churn and recovery:** P4 (30 min) and P9 (2 h, 1540 sessions) had no leak, containers equal to active, and stable starts. P5 had all 100 labs running again 3.6 s after SIGKILL, with 100 of 100 users back on their own lab. P6 queued 50 in order and drained them FIFO. P7: a start without the image fails, so pre-pull is required; the image comes back in 1.3 s.
+  - **Disk and bandwidth:** 0.01 MB of snapshot per lab; 1.0 KB of `events` per session-minute; 61 B/s out per stepper, 0.05 Mbps for 100.
+  - **gVisor against runc:** +14 MiB per lab (cgroup); `step` 9.05 ms against 3.09 ms, 2.9× but 6 ms absolute, accepted. The KVM platform made no difference against systrap.
+- **Start latency missed** (p95 2.4–2.5 s at N, 2.1 s for one lab; target < 2 s). The runs showed why: request-to-running was 1006–1008 ms for every session under both runtimes, though a lab is created in about 250 ms. The gateway polled a session being created at the 1 s queue interval. **Fixed** (`11fb540`): it now checks every 50 ms while creating. On the dev VM, request to running fell from 1006 to 104 ms and start p95 from 1283 to 546 ms. The laptop re-measures (steps above). No decision line is written for the old misses, so the gate enforces the rerun.
+- **`max_sessions` (ADR 0013):** 100 in production, `max_queue` 50, in the new `deploy/labd.prod.yaml`; a config test pins runsc only, no dev switches, and 100/50. Memory alone would allow 446, but under abuse each lab burns half a core. At the spec's 10 % abuser mix, 200 labs would need about 10 cores on the 8-vCPU VPS.
+- **capacity.md:** no estimates left. Every spec row is measured in the generated block, with decision lines for the step overhead and the start-latency root cause. The runc memory row now compares cgroups: host per-lab memory on a desktop moves by ±15 MB between runs, too much to subtract one run from another.
+- **QUESTIONS Q10** resolved: the laptop runs the 100-lab scenarios.
+- **Test hygiene:** one combined `-race -count=5` run failed once in `internal/term` and did not reproduce in 65 more. The likely cause, the new running-frame test racing the fake clock, now steps the clock under a real deadline. Two more `-race -count=5` rounds over the whole module pass.
+- **Checks on the Mac:** `check`, `test --all`, `lint` pass; staticcheck in the VM clean. `./run.sh gate --phase 4`: every check passes except the decision lines for the five pre-fix start-latency misses (P1, P1-kvm, P2, P2-kvm, P8).
 
 ### 2026-09-30 — Phase 4 driver built; dev VM smoke passes
 - **Built:** `labd-perf run|report|profiles` and `internal/perf` (percentiles, the spec-schema report, profiles from `session.gdb` with a jittered pacer, virtual users over the real API and WebSocket, the host collector, the scenario runner, criteria, the report builder). Also `labd/perf/scenario.sh` (private labd from `labd.perf.yaml`; P5 kill, P7 image flush, disk sampling, runc and KVM switches), `disk.sh`, and `runall.sh`, reached as `./run.sh perf --scenario all`. Gate 4 is wired. What differs from the plan is in the phase document's "As built" section.
