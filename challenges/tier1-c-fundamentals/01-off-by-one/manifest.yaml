@@ -1,0 +1,19 @@
+slug: tier1-01-off-by-one
+title: Off by one
+tier: 1
+order: 1
+difficulty: 1
+estimated_minutes: 15
+flag_format: "LAB{...}"
+image: ""
+limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60, idle_minutes: 15, extend_minutes: 15}
+hints:
+  - {cost: 0, text: "Stop inside the loop with `break sum_scores`, `run`, then step with `next` and watch the counter with `display i`."}
+  - {cost: 1, text: "Look at how far `i` goes, and compare `total` with the sum of `print scores[0]@5`."}
+  - {cost: 2, text: "Let `sum_scores` return (`finish`, then `next`), `set var total = <the true sum>`, then `continue`."}
+tags: [c, loops, arrays]
+key_expr: "total in main: the true sum of the five scores"
+key_value: 400
+build:
+  flags: "-O0 -g -fno-stack-protector"
+  entry: scores
