@@ -46,6 +46,10 @@ up() {
 
   say "challenges: this host's dev images (.scratch/web-stack/challenges.json)"
   "$ROOT/scripts/challenges-json.sh" --local > "$W/challenges.json"
+  # labd also serves the perf image's challenge, so labd-perf can drive this stack
+  # (scripts/live-run.sh, Phase 7); Django imports the tier-1 labs only.
+  jq -s '{version: 1, challenges: (.[0].challenges + .[1].challenges)}' \
+    "$W/challenges.json" "$ROOT/labd/challenges.dev.json" > "$W/labd-challenges.json"
   say "building labd"
   (cd "$ROOT/labd" && go build -o bin/labd ./cmd/labd)
   # gdb under gVisor on arm64 cannot resume from a breakpoint (QUESTIONS Q13): the Mac's VM
@@ -55,7 +59,7 @@ up() {
     case "$(uname -m)" in x86_64) runtime=io.containerd.runsc.v1 ;; *) runtime=io.containerd.runc.v2 ;; esac
   fi
   say "lab runtime: $runtime"
-  sed -e "s|^challenges_file:.*|challenges_file: $W/challenges.json|" \
+  sed -e "s|^challenges_file:.*|challenges_file: $W/labd-challenges.json|" \
       -e "s|^runtime:.*|runtime: $runtime|" \
       -e "s|^site_host:.*|site_host: $ORIGIN   # Django's origin: the lab page opens the WebSocket|" \
       "$ROOT/labd/labd.dev.yaml" > "$W/labd.yaml"
