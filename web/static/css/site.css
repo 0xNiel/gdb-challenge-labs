@@ -39,3 +39,12 @@ pre { background: var(--code); padding: .8rem 1rem; border-radius: 6px; overflow
 pre code { background: none; padding: 0; }
 table { border-collapse: collapse; }
 th, td { text-align: left; padding: .35rem .7rem; border-bottom: 1px solid var(--line); }
+.small { font-size: .85rem; }
+section.tier h2 { margin-top: 2rem; }
+ol.ladder { list-style: none; padding: 0; margin: 0; }
+li.rung { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; margin: .5rem 0; }
+li.rung.locked { opacity: .6; }
+.rung-actions { display: flex; gap: 1rem; align-items: center; white-space: nowrap; }
+article.prose { max-width: 46rem; }
+article.prose h2 { margin-top: 2rem; }

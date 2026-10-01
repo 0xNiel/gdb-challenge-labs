@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }} · gdb Challenge Labs{% endblock %}
+{% block main %}
+<p class="muted small"><a href="{% url 'learn' %}">Learn</a> › Tier {{ lesson.tier.number }}: {{ lesson.tier.title }}</p>
+<article class="prose">
+  <h1>{{ lesson.title }}</h1>
+  {{ body }}
+</article>
+<p><a class="button" href="{% url 'challenge' challenge.slug %}">Open the lab: {{ challenge.title }}</a></p>
+{% endblock %}

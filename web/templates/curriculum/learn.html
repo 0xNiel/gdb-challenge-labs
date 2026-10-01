@@ -1,2 +1,33 @@
 {% extends "base.html" %}
-{% block main %}<h1>Learn</h1>{% for it in items %}<p>{{ it.challenge.title }} <span class="badge {{ it.state }}">{{ it.state }}</span></p>{% endfor %}{% endblock %}
+{% block title %}Learn · gdb Challenge Labs{% endblock %}
+{% block main %}
+<h1>Learn</h1>
+{% for t in tiers %}
+<section class="tier">
+  <h2>Tier {{ t.tier.number }}: {{ t.tier.title }} <span class="muted small">{{ t.solved }} of {{ t.items|length }} solved</span></h2>
+  <ol class="ladder">
+  {% for it in t.items %}
+    <li class="rung {{ it.state }}">
+      <div class="rung-main">
+        <span class="badge {{ it.state }}">{{ it.state }}</span>
+        <strong>{{ it.challenge.title }}</strong>{% if it.challenge.boss %} <span class="badge">boss</span>{% endif %}
+        <div class="muted small">
+          {% if it.challenge.lesson %}Lesson: {{ it.challenge.lesson.title }} · {% endif %}difficulty {{ it.challenge.difficulty }} · about {{ it.challenge.estimated_minutes }} min
+        </div>
+      </div>
+      <div class="rung-actions">
+        {% if it.state == "locked" %}
+          <span class="muted small">Solve the previous challenge to unlock</span>
+        {% else %}
+          {% if it.challenge.lesson %}<a href="{% url 'lesson' t.tier.slug it.challenge.lesson.slug %}">Read the lesson</a>{% endif %}
+          <a class="button" href="{% url 'challenge' it.challenge.slug %}">{% if it.state == "solved" %}Review{% else %}Open the lab{% endif %}</a>
+        {% endif %}
+      </div>
+    </li>
+  {% endfor %}
+  </ol>
+</section>
+{% empty %}
+<p class="muted">No challenges are available yet.</p>
+{% endfor %}
+{% endblock %}

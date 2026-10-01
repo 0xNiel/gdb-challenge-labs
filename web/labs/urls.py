@@ -1,1 +1,7 @@
-urlpatterns: list = []  # task 6.6
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path("<slug:slug>", views.challenge, name="challenge"),
+]
