@@ -5,7 +5,11 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 ## Human Checks
 
 Phase 3 human check: 2026-09-30 <OG> OK
-Phase 5 human check ALL-Labs: 2026-10-01 <OG> OK
+Phase 5 human check tier1-01-off-by-one: 2026-10-01 <OG> OK
+Phase 5 human check tier1-02-null-deref: 2026-10-01 <OG> OK
+Phase 5 human check tier1-03-uninitialized: 2026-10-01 <OG> OK
+Phase 5 human check tier1-04-unterminated: 2026-10-01 <OG> OK
+Phase 5 human check tier1-05-stack-overwrite: 2026-10-01 <OG> OK
 
 ## Current phase
 
