@@ -2,9 +2,14 @@
 
 Update this file at the end of every working session. Keep it factual. Newest log entry at the top.
 
-## Current phase
+## Human Checks
 
 Phase 3 human check: 2026-09-30 <OG> OK
+Phase 5 human check ALL-Labs: 2026-10-01 <OG> OK
+
+## Current phase
+
+
 
 **Phase 5 — Challenge pipeline and tier 1: in progress** on branch `phase-5-challenge-pipeline`. Every task is built:
 - flag derivation and vectors, `flagblob`, the manifest schema and `manifestlint`;
