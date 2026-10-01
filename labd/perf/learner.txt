@@ -1,0 +1,113 @@
+# Learner episodes for labd-perf's `learner` profile (Phase 7, task 7.10; ADR 0017).
+#
+# One episode per tier-1 lab: what a learner does, in the order a lesson suggests. A plain run;
+# gdb; a look around; the lab's own path to the fix (its solve.gdb); a watchpoint where the
+# lesson teaches one; quit. The profile repeats its lab's episode until the hold ends. The
+# commands need not solve the lab: the point is their cost, so a command that fails (no
+# process, a scope that ended) is fine as long as a prompt comes back.
+#
+# "== <slug> <entry>" starts a lab. "$ <cmd>" is typed at the shell. Any other line is typed
+# at gdb. After "$ gdb ..." the next prompt is gdb's; after "quit" or another "$ " line, the
+# shell's. Comments and blank lines are skipped. Typed through the terminal like the build's
+# oracle, so this file is never in an image.
+
+== tier1-01-off-by-one scores
+$ ./scores
+$ gdb -q ./scores
+list sum_scores
+break sum_scores
+run
+display i
+next
+next
+next
+info locals
+bt
+finish
+next
+print total
+print scores[0]@5
+set var total = 72 + 85 + 91 + 64 + 88
+continue
+run
+continue
+quit
+
+== tier1-02-null-deref greeter
+$ ./greeter
+$ gdb -q ./greeter
+run
+bt
+frame 1
+info locals
+info args
+break greet
+run
+print u
+up
+info locals
+break find_user
+run
+finish
+print users[2]
+set var u = &users[2]
+continue
+quit
+
+== tier1-03-uninitialized checkout
+$ ./checkout
+$ gdb -q ./checkout
+break lookup
+run
+info locals
+watch found
+continue
+continue
+info watchpoints
+delete
+run
+next
+next
+print found
+x/dw &found
+set var found = 0
+continue
+quit
+
+== tier1-04-unterminated badge
+$ ./badge
+$ gdb -q ./badge
+break badge_key
+run
+print *b
+ptype card
+x/16xb &card
+x/s card.name
+print sizeof(card)
+bt
+up
+info locals
+set var card.role[0] = 0
+continue
+quit
+
+== tier1-05-stack-overwrite packet
+$ ./packet
+$ gdb -q ./packet
+break receive
+run
+info locals
+ptype f
+print f.checksum
+watch f.checksum
+continue
+bt
+delete
+run
+next
+set $saved = f.checksum
+next
+print f.checksum
+set var f.checksum = $saved
+continue
+quit

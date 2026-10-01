@@ -21,7 +21,7 @@ import (
 
 // RunConfig is one labd-perf run.
 type RunConfig struct {
-	Scenario string        // P1..P9
+	Scenario string        // P1..P10
 	N        int           // sessions (P6: requests)
 	Ramp     float64       // sessions started per second
 	Hold     time.Duration // P1-P3, P8: per user once gdb is up; P4, P9: churn time; P5: after recovery
@@ -98,11 +98,13 @@ type Criterion struct {
 
 // RunSummary holds the numbers the report and capacity.md use.
 type RunSummary struct {
-	Sessions        int             `json:"sessions"`
-	VUserErrors     int             `json:"vuser_errors"`
-	Commands        int             `json:"commands"`
-	CommandErrors   int             `json:"command_errors"`
-	StartToPromptMS Pctl            `json:"start_to_prompt_ms"`
+	Sessions        int  `json:"sessions"`
+	VUserErrors     int  `json:"vuser_errors"`
+	Commands        int  `json:"commands"`
+	CommandErrors   int  `json:"command_errors"`
+	StartToPromptMS Pctl `json:"start_to_prompt_ms"`
+	// StartByProfile: learners reach the shell's prompt, the others gdb's (P10 needs them apart).
+	StartByProfile  map[string]Pctl `json:"start_to_prompt_ms_by_profile,omitempty"`
 	CreateHTTPMS    Pctl            `json:"create_http_ms"`
 	QueueWaitMS     Pctl            `json:"queue_wait_ms"`
 	EchoMS          Pctl            `json:"echo_ms"`
@@ -142,18 +144,19 @@ type Triple struct {
 }
 
 type runner struct {
-	cfg     RunConfig
-	t0      time.Time
-	col     *Collector
-	mu      sync.Mutex
-	samples []Sample
-	marks   []Mark
-	users   []VUserResult
-	extra   map[string]any
-	hold    [2]float64 // hold window, seconds since t0
-	nextUID atomic.Int64
-	http    *http.Client
-	idle    Sample
+	cfg      RunConfig
+	t0       time.Time
+	col      *Collector
+	mu       sync.Mutex
+	samples  []Sample
+	marks    []Mark
+	users    []VUserResult
+	extra    map[string]any
+	hold     [2]float64 // hold window, seconds since t0
+	nextUID  atomic.Int64
+	learners atomic.Int64 // learners started, for round-robin over the labs
+	http     *http.Client
+	idle     Sample
 }
 
 func (r *runner) logf(format string, a ...any) {
@@ -211,7 +214,7 @@ func Run(ctx context.Context, cfg RunConfig) (string, RunFile, error) {
 
 	var body error
 	switch cfg.Scenario {
-	case "P1", "P2", "P3", "P8":
+	case "P1", "P2", "P3", "P8", "P10":
 		body = r.steady(ctx)
 	case "P4", "P9":
 		body = r.churn(ctx)
@@ -356,7 +359,7 @@ func (r *runner) disk(ctx context.Context, tag string) {
 // assignProfiles spreads Mix over n users, interleaved so that every prefix keeps the
 // ratio (P3: 60/30/10 means reader, reader, stepper, reader, ... with an abuser every 10th).
 func assignProfiles(mix map[string]int, n int) []string {
-	names := []string{Reader, Stepper, Abuser}
+	names := []string{Reader, Stepper, Abuser, Learner}
 	total := 0
 	for _, name := range names {
 		total += mix[name]
@@ -388,9 +391,16 @@ func assignProfiles(mix map[string]int, n int) []string {
 
 func (r *runner) vcfg(profile string, hold time.Duration) VUserConfig {
 	uid := r.nextUID.Add(1)
+	p := r.cfg.Profiles[profile]
+	challenge := r.cfg.Challenge
+	if p.Learner {
+		// Learners work the real labs, round-robin; everyone else uses the perf image.
+		slugs := LearnerSlugs(p.Episodes)
+		challenge = slugs[int(r.learners.Add(1)-1)%len(slugs)]
+	}
 	return VUserConfig{
-		API: r.cfg.API, WS: r.cfg.WS, Secret: r.cfg.Secret, UserID: uid, Challenge: r.cfg.Challenge,
-		Profile: r.cfg.Profiles[profile], Hold: hold, Seed: uint64(uid), HTTP: r.http,
+		API: r.cfg.API, WS: r.cfg.WS, Secret: r.cfg.Secret, UserID: uid, Challenge: challenge,
+		Profile: p, Hold: hold, Seed: uint64(uid), HTTP: r.http,
 		QueueWait: 5 * time.Minute,
 	}
 }

@@ -3,6 +3,7 @@
 //
 //	labd-perf run --scenario P2 --n 100 --ramp 5 --hold 20m --out docs/metrics
 //	labd-perf report --in docs/metrics --host linux-laptop
+//	labd-perf capacity --in docs/metrics --host linux-laptop   (P10 runs, ADR 0017)
 //	labd-perf profiles
 //
 // labd/perf/scenario.sh starts a private labd, runs this, and does the host actions some
@@ -39,6 +40,8 @@ func main() {
 		err = run(os.Args[2:])
 	case "report":
 		err = report(os.Args[2:])
+	case "capacity":
+		err = capacity(os.Args[2:])
 	case "profiles":
 		err = profiles(os.Args[2:])
 	case "--version", "-version", "version":
@@ -54,7 +57,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: labd-perf run|report|profiles [flags] (labd-perf <cmd> -h for flags)")
+	fmt.Fprintln(os.Stderr, "usage: labd-perf run|report|capacity|profiles [flags] (labd-perf <cmd> -h for flags)")
 }
 
 // defaults per scenario (spec table): N, profile mix, hold.
@@ -72,18 +75,22 @@ var scenarioDefaults = map[string]struct {
 	"P7": {10, 0, map[string]int{perf.Reader: 1}},
 	"P8": {100, 10 * time.Minute, map[string]int{perf.Stepper: 1}},
 	"P9": {100, 2 * time.Hour, map[string]int{perf.Reader: 1}},
+	// P10: capacity search, one count per run (labd/perf/capacity.sh steps through them).
+	"P10": {60, 8 * time.Minute, map[string]int{perf.Learner: 90, perf.Abuser: 10}},
 }
 
 func run(args []string) error {
 	fs := flag.NewFlagSet("run", flag.ExitOnError)
-	scenario := fs.String("scenario", "", "P1..P9")
+	scenario := fs.String("scenario", "", "P1..P10")
 	n := fs.Int("n", 0, "sessions (P6: requests); default from the spec table")
 	ramp := fs.Float64("ramp", 5, "sessions started per second")
 	hold := fs.Duration("hold", 0, "hold (P4/P9: churn time); default from the spec table")
 	api := fs.String("api", "http://127.0.0.1:18081", "labd internal API")
 	ws := fs.String("ws", "ws://127.0.0.1:18082", "labd WebSocket gateway")
 	script := fs.String("script", "images/perf/session.gdb", "session.gdb")
-	challenge := fs.String("challenge", "perf", "challenge slug")
+	challenge := fs.String("challenge", "perf", "challenge slug (learners use the labs in --learner)")
+	learner := fs.String("learner", "labd/perf/learner.txt", "learner episodes (P10)")
+	mixFlag := fs.String("mix", "", "profile mix, e.g. learner=90,abuser=10; default from the scenario")
 	out := fs.String("out", "docs/metrics", "directory for run-*.json")
 	host := fs.String("host", "", "host label for the file name (e.g. linux-laptop)")
 	rt := fs.String("runtime", "io.containerd.runsc.v1", "the runtime labd was started with (meta only)")
@@ -101,7 +108,7 @@ func run(args []string) error {
 
 	d, ok := scenarioDefaults[*scenario]
 	if !ok {
-		return fmt.Errorf("--scenario must be P1..P9, got %q", *scenario)
+		return fmt.Errorf("--scenario must be P1..P10, got %q", *scenario)
 	}
 	if *n == 0 {
 		*n = d.n
@@ -124,8 +131,21 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
+	mix := d.mix
+	if *mixFlag != "" {
+		if mix, err = parseMix(*mixFlag); err != nil {
+			return err
+		}
+	}
+	if mix[perf.Learner] > 0 {
+		eps, err := perf.LoadLearner(*learner)
+		if err != nil {
+			return err
+		}
+		ps[perf.Learner] = perf.LearnerProfile(eps)
+	}
 	cfg := perf.RunConfig{
-		Scenario: *scenario, N: *n, Ramp: *ramp, Hold: *hold, Mix: d.mix,
+		Scenario: *scenario, N: *n, Ramp: *ramp, Hold: *hold, Mix: mix,
 		API: *api, WS: *ws, Secret: secret, Challenge: *challenge, Profiles: ps,
 		Host: *host, Runtime: *rt, Platform: *platform, Label: *label, Partial: *partial, Out: *out,
 		Command: "labd-perf run " + strings.Join(args, " "),
@@ -163,6 +183,54 @@ func run(args []string) error {
 		// has it, and capacity.md needs a decision line.
 		fmt.Fprintf(os.Stderr, "labd-perf: %d criteria missed; record a decision in docs/metrics/capacity.md\n", failed)
 	}
+	return nil
+}
+
+// parseMix reads "learner=90,abuser=10".
+func parseMix(s string) (map[string]int, error) {
+	mix := map[string]int{}
+	for _, part := range strings.Split(s, ",") {
+		name, val, ok := strings.Cut(strings.TrimSpace(part), "=")
+		var n int
+		if _, err := fmt.Sscanf(val, "%d", &n); !ok || err != nil || n < 0 {
+			return nil, fmt.Errorf("--mix: want name=count[,name=count], got %q", part)
+		}
+		switch name {
+		case perf.Reader, perf.Stepper, perf.Abuser, perf.Learner:
+			mix[name] = n
+		default:
+			return nil, fmt.Errorf("--mix: unknown profile %q", name)
+		}
+	}
+	return mix, nil
+}
+
+// capacity summarises a capacity search: the newest P10 run at each count for --host, as
+// docs/metrics/capacity-search-<date>-<host>.{json,md} (Phase 7, task 7.11).
+func capacity(args []string) error {
+	fs := flag.NewFlagSet("capacity", flag.ExitOnError)
+	in := fs.String("in", "docs/metrics", "directory with run-P10-*.json")
+	host := fs.String("host", "", "host label of the runs (e.g. linux-laptop)")
+	_ = fs.Parse(args)
+	if *host == "" {
+		return fmt.Errorf("--host is required")
+	}
+	cs, err := perf.LoadCapacitySearch(*in, *host)
+	if err != nil {
+		return err
+	}
+	base := filepath.Join(*in, fmt.Sprintf("capacity-search-%s-%s", cs.Date, *host))
+	b, err := json.MarshalIndent(cs, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(base+".json", append(b, '\n'), 0o644); err != nil {
+		return err
+	}
+	if err := os.WriteFile(base+".md", []byte(perf.RenderCapacitySearch(cs)), 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintf(os.Stderr, "labd-perf: wrote %s.{json,md}: %d counts, largest passing %d\n", base, len(cs.Steps), cs.MaxPassing)
 	return nil
 }
 

@@ -55,6 +55,7 @@ func (r *runner) summary() RunSummary {
 	profileOf := map[string]string{}
 	var start, create, queue, echo, step []float64
 	byProfile := map[string][]float64{}
+	startBy := map[string][]float64{}
 	byVerb := map[string][]float64{}
 	var bpsIn, bpsOut []float64
 	for _, u := range r.users {
@@ -66,6 +67,7 @@ func (r *runner) summary() RunSummary {
 		s.CommandErrors += u.Errors
 		if u.StartToPromptMS > 0 {
 			start = append(start, u.StartToPromptMS)
+			startBy[u.Profile] = append(startBy[u.Profile], u.StartToPromptMS)
 		}
 		if u.CreateHTTPMS > 0 {
 			create = append(create, u.CreateHTTPMS)
@@ -87,6 +89,10 @@ func (r *runner) summary() RunSummary {
 	}
 	s.StartToPromptMS, s.CreateHTTPMS, s.QueueWaitMS = Percentiles(start), Percentiles(create), Percentiles(queue)
 	s.EchoMS, s.StepCmdMS = Percentiles(echo), Percentiles(step)
+	s.StartByProfile = map[string]Pctl{}
+	for p, xs := range startBy {
+		s.StartByProfile[p] = Percentiles(xs)
+	}
 	s.EchoMSByProfile = map[string]Pctl{}
 	for p, xs := range byProfile {
 		s.EchoMSByProfile[p] = Percentiles(xs)
@@ -213,6 +219,15 @@ func (r *runner) criteria(s RunSummary) []Criterion {
 		add(op.P95 < 100, "others' echo p95 < 100 ms beside the abusers", "p95 %.1f ms (compare P2 in the report)", op.P95)
 		bounded, detail := r.abusersBounded()
 		add(bounded, "abusers capped by the sandbox and gateway limits", "%s", detail)
+		noErrors()
+	case "P10":
+		// Capacity search (ADR 0017): judged on the learners; abusers only load the host.
+		st, ep, nx := s.StartByProfile[Learner], s.EchoMSByProfile[Learner], s.CmdMS["next"]
+		add(st.N > 0 && st.P95 < 2000, "learners' lab start p95 < 2 s (request to shell prompt)", "p95 %.0f ms, n=%d", st.P95, st.N)
+		add(ep.N > 0 && ep.P95 < 100, "learners' echo p95 < 100 ms", "p95 %.1f ms over %d lines", ep.P95, ep.N)
+		add(nx.N > 0 && nx.P95 < 250, "`next` p95 < 250 ms", "p95 %.0f ms over %d", nx.P95, nx.N)
+		add(s.CommandErrors == 0, "no command timed out", "%d of %d", s.CommandErrors, s.Commands)
+		add(s.OOMKills == 0, "no OOM kills", "%d", s.OOMKills)
 		noErrors()
 	case "P4", "P9":
 		over, _ := r.extra["over_cap"].([]string)

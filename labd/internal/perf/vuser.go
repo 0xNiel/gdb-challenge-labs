@@ -210,6 +210,9 @@ func (v *vuser) run(hold context.Context) error {
 		return err
 	}
 	v.res.QueueWaitMS = ms(time.Since(v.t0))
+	if v.cfg.Profile.Learner {
+		return v.learn(ctx, hold)
+	}
 	if err := v.c.Send("gdb -q /opt/perf/perf"); err != nil {
 		return err
 	}
@@ -284,15 +287,60 @@ func (v *vuser) quit() error {
 	return nil
 }
 
-// cmd sends one gdb command and waits for the prompt. A socket that drops is reattached
-// when Reconnect allows it, and the command is not retried.
+// learn is the learner profile (Phase 7, task 7.10): from the lab's shell, repeat the
+// episode for its challenge (run the program, start gdb, work, quit) at the profile's pace.
+func (v *vuser) learn(ctx, hold context.Context) error {
+	ep, ok := v.cfg.Profile.Episodes[v.cfg.Challenge]
+	if !ok {
+		return fmt.Errorf("no learner episode for challenge %q", v.cfg.Challenge)
+	}
+	// The shell's prompt is in the scrollback replayed on attach, or arrives just after.
+	if _, err := v.c.Expect(shellPrompt, cmdTimeout); err != nil {
+		return fmt.Errorf("shell prompt: %w", err)
+	}
+	v.res.StartToPromptMS = ms(time.Since(v.t0))
+	began := v.cfg.Now()
+	end := began.Add(v.cfg.Hold)
+	defer func() { v.res.HoldS = round(v.cfg.Now().Sub(began).Seconds(), 1) }()
+	pc := NewPacer(v.cfg.Profile, began, v.cfg.Seed)
+	inGDB := false
+	for i := 0; ; i++ {
+		due := pc.Next()
+		if !due.Before(end) || !v.wait(ctx, hold, due) {
+			break
+		}
+		st := ep.Steps[i%len(ep.Steps)]
+		prompt := shellPrompt
+		if st.GDB {
+			prompt = gdbPrompt
+		}
+		if err := v.send(ctx, st.Cmd, prompt, st.Verb()); err != nil {
+			return err
+		}
+		inGDB = st.GDB
+	}
+	if inGDB && !v.cfg.Keep {
+		if err := v.c.Send("quit"); err == nil {
+			_, _ = v.c.Expect(shellPrompt, 10*time.Second)
+		}
+	}
+	return nil
+}
+
+// cmd sends one gdb command and waits for gdb's prompt.
 func (v *vuser) cmd(ctx context.Context, cmd string) error {
+	verb, _, _ := strings.Cut(cmd, " ")
+	return v.send(ctx, cmd, gdbPrompt, verb)
+}
+
+// send types one line and waits for prompt, timing it under verb. A socket that drops is
+// reattached when Reconnect allows it, and the line is not retried.
+func (v *vuser) send(ctx context.Context, cmd string, prompt *regexp.Regexp, verb string) error {
 	t := time.Now()
 	if err := v.c.Send(cmd); err == nil {
-		_, err = v.c.Expect(gdbPrompt, cmdTimeout)
+		_, err = v.c.Expect(prompt, cmdTimeout)
 		if err == nil {
 			v.res.Commands++
-			verb, _, _ := strings.Cut(cmd, " ")
 			v.res.CmdMS[verb] = append(v.res.CmdMS[verb], ms(time.Since(t)))
 			return nil
 		}

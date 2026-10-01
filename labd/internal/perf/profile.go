@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand/v2"
 	"os"
+	"slices"
 	"strings"
 	"time"
 )
@@ -66,6 +67,136 @@ type Profile struct {
 	PerMin   float64  // commands per minute, averaged over wall time
 	IdleFrac float64  // share of wall time with no commands at all
 	Abuse    bool     // runs the abuse actions instead of Loop, then idles
+	// Learner works a real lab: its user's challenge picks an episode, which it repeats from a
+	// shell, starting and quitting gdb (Phase 7, task 7.10). Setup and Loop are unused.
+	Learner  bool
+	Episodes map[string]Episode // by challenge slug
+}
+
+// Episode is what a learner does in one lab (labd/perf/learner.txt).
+type Episode struct {
+	Slug, Entry string
+	Steps       []Step
+}
+
+// Step is one line typed. AtShell: typed at the shell prompt. GDB: gdb's prompt comes back
+// afterwards (otherwise the shell's).
+type Step struct {
+	Cmd     string
+	AtShell bool
+	GDB     bool
+}
+
+// Verb names a step in the command timings: shell_run, gdb_start, gdb_quit, or gdb's own
+// command word (run, next, watch, continue, ...).
+func (st Step) Verb() string {
+	switch {
+	case st.AtShell && st.GDB:
+		return "gdb_start"
+	case st.AtShell:
+		return "shell_run"
+	case !st.GDB:
+		return "gdb_quit"
+	}
+	verb, _, _ := strings.Cut(st.Cmd, " ")
+	return verb
+}
+
+// ParseLearner reads learner.txt: "== <slug> <entry>" starts a lab, "$ cmd" is a shell line,
+// anything else a gdb line. After "$ gdb ..." gdb prompts; after "quit" or another shell line,
+// the shell does. Every episode must start and end at the shell.
+func ParseLearner(r io.Reader) (map[string]Episode, error) {
+	eps := map[string]Episode{}
+	var cur *Episode
+	inGDB := false
+	finish := func() error {
+		if cur == nil {
+			return nil
+		}
+		if len(cur.Steps) == 0 || inGDB {
+			return fmt.Errorf("episode %s must have steps and end at the shell (quit gdb)", cur.Slug)
+		}
+		eps[cur.Slug] = *cur
+		return nil
+	}
+	sc := bufio.NewScanner(r)
+	for sc.Scan() {
+		l := strings.TrimSpace(sc.Text())
+		if l == "" || strings.HasPrefix(l, "#") {
+			continue
+		}
+		if rest, ok := strings.CutPrefix(l, "=="); ok {
+			if err := finish(); err != nil {
+				return nil, err
+			}
+			f := strings.Fields(rest)
+			if len(f) != 2 {
+				return nil, fmt.Errorf("want \"== <slug> <entry>\", got %q", l)
+			}
+			if _, dup := eps[f[0]]; dup {
+				return nil, fmt.Errorf("lab %s appears twice", f[0])
+			}
+			cur, inGDB = &Episode{Slug: f[0], Entry: f[1]}, false
+			continue
+		}
+		if cur == nil {
+			return nil, fmt.Errorf("line %q before the first \"== <slug> <entry>\"", l)
+		}
+		var st Step
+		if cmd, ok := strings.CutPrefix(l, "$ "); ok {
+			if inGDB {
+				return nil, fmt.Errorf("%s: shell line %q while gdb is running (quit first)", cur.Slug, cmd)
+			}
+			st = Step{Cmd: cmd, AtShell: true, GDB: strings.HasPrefix(cmd, "gdb ")}
+		} else {
+			if !inGDB {
+				return nil, fmt.Errorf("%s: gdb line %q at the shell (start gdb first)", cur.Slug, l)
+			}
+			st = Step{Cmd: l, GDB: l != "quit"}
+		}
+		inGDB = st.GDB
+		cur.Steps = append(cur.Steps, st)
+	}
+	if err := sc.Err(); err != nil {
+		return nil, err
+	}
+	if err := finish(); err != nil {
+		return nil, err
+	}
+	if len(eps) == 0 {
+		return nil, fmt.Errorf("no episodes")
+	}
+	return eps, nil
+}
+
+// LoadLearner parses the file at path.
+func LoadLearner(path string) (map[string]Episode, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	eps, err := ParseLearner(f)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
+	return eps, nil
+}
+
+// LearnerProfile: a person working through a lab, about 6 commands a minute with 20 % idle
+// (thinking, reading the lesson). ADR 0017.
+func LearnerProfile(eps map[string]Episode) Profile {
+	return Profile{Name: Learner, PerMin: 6, IdleFrac: 0.2, Learner: true, Episodes: eps}
+}
+
+// LearnerSlugs are the labs learners work, sorted, for round-robin assignment.
+func LearnerSlugs(eps map[string]Episode) []string {
+	out := make([]string, 0, len(eps))
+	for s := range eps {
+		out = append(out, s)
+	}
+	slices.Sort(out)
+	return out
 }
 
 // Profile names.
@@ -73,6 +204,7 @@ const (
 	Reader  = "reader"
 	Stepper = "stepper"
 	Abuser  = "abuser"
+	Learner = "learner" // Phase 7, task 7.10
 )
 
 // preamble keeps an interactive gdb from ever waiting on a question: a second `run`, a
