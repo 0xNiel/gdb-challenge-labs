@@ -49,6 +49,24 @@ func TestParse_SpecExampleFileLoads(t *testing.T) {
 	}
 }
 
+// deploy/labd.prod.yaml is what the VPS runs: gVisor only (S1), no dev switches, and the
+// capacity ADR 0013 chose.
+func TestParse_ProductionFile(t *testing.T) {
+	cfg, err := Load(filepath.Join("..", "..", "..", "deploy", "labd.prod.yaml"))
+	if err != nil {
+		t.Fatalf("deploy/labd.prod.yaml must load: %v", err)
+	}
+	if cfg.Runtime != "io.containerd.runsc.v1" {
+		t.Errorf("runtime = %q, want runsc only (S1)", cfg.Runtime)
+	}
+	if cfg.DevAllowNoOrigin || cfg.DevTestpage {
+		t.Error("a dev switch is on in the production config")
+	}
+	if cfg.MaxSessions != 100 || cfg.MaxQueue != 50 {
+		t.Errorf("max_sessions %d, max_queue %d; ADR 0013 says 100 and 50", cfg.MaxSessions, cfg.MaxQueue)
+	}
+}
+
 func TestParse_DrainModeAccepted(t *testing.T) {
 	cfg, err := Parse([]byte("max_sessions: 0\n"))
 	if err != nil {

@@ -1,6 +1,6 @@
 # Environment: linux-laptop
 
-The owner's Linux x86-64 laptop, the reference development host (ADR 0001). Authoritative for P0 and per-lab numbers; too little RAM for the 100-lab run (QUESTIONS Q10).
+The owner's Linux x86-64 laptop, the reference development host (ADR 0001). Authoritative for P0, per-lab numbers and the Phase 4 suite: it ran every 100-lab scenario (8.5 GB peak, 2026-09-30; QUESTIONS Q10, resolved).
 Recorded 2026-09-28, Phase 0, task 0.8. Source: `./run.sh doctor`, `provision.sh --role dev` version summary, `./run.sh vm verify`, run by the owner.
 
 | Item | Value |
