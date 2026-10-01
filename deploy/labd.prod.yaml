@@ -6,7 +6,7 @@ listen_internal: 127.0.0.1:8081
 listen_ws: 127.0.0.1:8082
 containerd_socket: /run/containerd/containerd.sock
 runtime: io.containerd.runsc.v1
-max_sessions: 100   # ADR 0013: CPU under abuse is the limit, not memory (derived 446)
+max_sessions: 100   # ADR 0013: CPU under abuse is the limit, not memory (derived 394)
 max_queue: 50       # ADR 0013
 ws_reconnect_grace_s: 60
 default_limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60, idle_minutes: 15, extend_minutes: 15}

@@ -6,14 +6,7 @@ Update this file at the end of every working session. Keep it factual. Newest lo
 
 Phase 3 human check: 2026-09-30 <OG> OK
 
-**Phase 4 — Perf suite: in progress** on branch `phase-4-perf-suite`. With the gateway fix, every start-latency criterion passes on the laptop (P2 p95 1839 ms, P8 1855 ms, P1 1496 ms). Gate 4 failed on one value: `per_lab.disk_mb` was 0. The snapshot store was measured in whole MB, and 100 labs add under 1 MB in total, so it rounded to 0. Now fixed (KiB, sampled at N). One short step remains, the owner's (about 20 minutes):
-```
-git pull
-LAB_HOST=linux-laptop labd/perf/runall.sh --only P2,report
-git add docs/metrics && git commit -m "[P4] metrics: laptop P2 with disk in KiB" && git push
-./run.sh gate --phase 4
-```
-Expected: about 0.008 MB per lab (8 KiB: two empty overlay directories, as on the dev VM).
+**Phase 4 — Perf suite: done.** Gate passed on the x86-64 laptop on 2026-10-01 and merged into `main`. **Phase 5 (challenge pipeline and tier 1 content)** starts on branch `phase-5-challenge-pipeline`.
 
 Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
@@ -35,8 +28,8 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 1 | gVisor + gdb spike (labbase, sandbox spec, P0) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-29 |
 | 2 | labd core (sessions, semaphore, reconciler) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 3 | Terminal gateway (WebSocket ↔ PTY) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
-| 4 | Perf suite and measured capacity | in progress: laptop suite done; start latency re-measured after a gateway fix | Mac: fails only on the pre-fix start-latency misses | 2026-10-01 |
-| 5 | Challenge pipeline and tier 1 content | not started (owner review of Phase 1 first) | — | — |
+| 4 | Perf suite and measured capacity | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
+| 5 | Challenge pipeline and tier 1 content | in progress | — | — |
 | 6 | Django web app | blocked on 3, 5 | — | — |
 | 7 | Metrics, rollups, admin live view | blocked on 6 | — | — |
 | 8 | Production on the VPS, tiers 2–3, beta | blocked on 4, 7 | — | — |
@@ -57,6 +50,32 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-10-01 — Phase 4 gate passed on the x86-64 laptop
+- **Final laptop P2** (disk in KiB): disk per lab 0.0078 MB (8 KiB, two empty overlay directories); start p95 1832 ms; echo p95 6.1 ms; host 9.8 GB peak, 4.8 GB before any lab.
+- **Headline numbers** (`docs/metrics/perf-report-2026-10-01-linux-laptop.json`, `capacity.md`):
+  - per-lab memory: 25.5 MiB cgroup p95, 50.2 MB whole host cost;
+  - host at 100: 9.8 GB used (desktop included); CPU 33 % of 16 vCPUs with 10 abusers;
+  - start p95 1832 ms; echo p95 2.5 ms at 100 mixed;
+  - gVisor: +14 MiB per lab, `step` 3.4× (7 ms; accepted), about +1.4 s per start;
+  - derived `max_sessions` 394; production 100 (ADR 0013, updated to the final numbers).
+- Phase 4 merged into `main` (fast-forward) and pushed.
+
+Phase 4 gate on the Linux laptop:
+```
+==> gate for phase 4 — 2026-10-01T04:27Z — linux-laptop
+==> [gate 4] unit tests (includes internal/perf)
+  PASS  run.sh test --go
+==> [gate 4] perf report from an x86-64 host (ADR 0001)
+  PASS  perf report perf-report-2026-10-01-linux-laptop.json (host linux-laptop)
+  PASS  every spec value measured
+  PASS  run-P1..P9 recorded for linux-laptop
+  PASS  every missed criterion has a decision line
+==> [gate 4] capacity table and max_sessions
+  PASS  capacity.md has no est. value
+  PASS  max_sessions ADR (0013-max-sessions.md)
+==> GATE 4 PASSED. Paste this output into docs/STATUS.md.
+```
 
 ### 2026-10-01 — start latency passes after the fix; disk per lab measured in KiB
 - **Laptop rerun with the gateway fix** (P1, P2, P3, P8, the KVM and runc runs; `docs/metrics/run-P*-2026-10-01-linux-laptop*.json`):

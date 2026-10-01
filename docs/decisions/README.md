@@ -44,4 +44,4 @@ What becomes easier, what becomes harder, what to revisit and when.
 | [0010](0010-aslr-under-gvisor-static-linking.md) | gVisor cannot turn off ASLR; every lab binary is `-static -no-pie -fno-pie` | accepted | owner, 2026-09-29 |
 | [0011](0011-sessions-table-columns.md) | `sessions` stores `challenge_slug`, not web's `challenge_id`; adds `image`, `extended` | accepted | Phase 2 |
 | [0012](0012-ws-token-nonce.md) | WebSocket tokens carry a random nonce, so two per second are distinct | accepted | Phase 3 |
-| [0013](0013-max-sessions.md) | Production `max_sessions` is 100: CPU under abuse is the limit, not memory (derived 446) | accepted | Phase 4 |
+| [0013](0013-max-sessions.md) | Production `max_sessions` is 100: CPU under abuse is the limit, not memory (derived 394) | accepted | Phase 4 |
