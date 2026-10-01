@@ -13,7 +13,45 @@ Phase 5 human check tier1-05-stack-overwrite: 2026-10-01 <OG> OK
 
 ## Current phase
 
-**Phase 5 — Challenge pipeline and tier 1: done** (gate passed 2026-10-01; merged into `main`). **Phase 6 (Django web app) is next and not started:** it starts only when the owner says to continue.
+**Phase 6 — Django web app: in progress** on branch `phase-6-web-app`. Every task (6.1–6.13) is built and committed. On the Mac, gate 6 passes everything except the two laptop items: an end-to-end record from x86-64 with labs under gVisor, and the human check.
+
+**On the laptop, in this order** (about 30 minutes):
+
+1. **Update.**
+   ```
+   git fetch && git checkout phase-6-web-app && git pull
+   ./run.sh labs preflight
+   ```
+   The tier-1 lab images you built for Phase 5 are still used. If `.scratch/local-images.json` is gone, rebuild them: `for d in challenges/tier1-c-fundamentals/0*; do bash scripts/challenge-build.sh "$d" || break; done`.
+2. **Once per host: a browser for the end-to-end test** (it uses apt, so sudo asks once).
+   ```
+   (cd web && uv run playwright install --with-deps chromium)
+   ```
+3. **End-to-end run under gVisor, and its record.**
+   ```
+   ./run.sh test --e2e
+   LAB_HOST=linux-laptop scripts/web-metrics.sh
+   ```
+   It brings labd and Django up, signs up in a headless browser, solves lab 1 in the page's terminal, submits the flag, checks lab 2 unlocked, stops the lab, times nine more starts, and takes everything down. Send the output if it fails.
+4. **Human check (task 6.7): play lab 1 through the Django page.**
+   ```
+   ./run.sh web-stack up
+   ```
+   Open http://127.0.0.1:8000, sign up with any email (verification is optional in dev; mail goes to `.scratch/web-stack/web.log`), then:
+   - `/learn` shows tier 1 with lab 1 unlocked and the rest locked; read lesson 1;
+   - on the challenge page, Start the lab: the terminal opens in `/opt/lab` and `./scores` prints 437;
+   - reveal a hint (they come one at a time), solve it with gdb, and submit the flag in the Flag tab: the page says Correct and the terminal stays connected;
+   - `/learn` shows lab 2 unlocked; `/dashboard` shows 1 solved and your hints;
+   - Stop lab, then `./run.sh web-stack down`.
+
+   Then add this line to this file at the first column: `Phase 6 human check: YYYY-MM-DD <initials> OK`. If something is wrong or confusing, say so instead.
+5. **Commit, push, gate.**
+   ```
+   git add docs/metrics docs/STATUS.md && git commit -m "[P6] metrics: laptop e2e; human check" && git push
+   ./run.sh gate --phase 6
+   ```
+
+Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 
 <details><summary>Phase 5 laptop checklist (done 2026-10-01)</summary>
 
@@ -92,7 +130,7 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 3 | Terminal gateway (WebSocket ↔ PTY) | done; merged to `main` | passed on the laptop (x86-64) | 2026-09-30 |
 | 4 | Perf suite and measured capacity | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
 | 5 | Challenge pipeline and tier 1 content | done; merged to `main` | passed on the Mac; x86-64 builds and human checks from the laptop | 2026-10-01 |
-| 6 | Django web app | not started (waiting for the owner) | — | — |
+| 6 | Django web app | in progress: built; e2e passes in the arm64 VM; needs the laptop e2e record and the human check | Mac: all but the laptop items | 2026-10-01 |
 | 7 | Metrics, rollups, admin live view | blocked on 6 | — | — |
 | 8 | Production on the VPS, tiers 2–3, beta | blocked on 4, 7 | — | — |
 
@@ -112,6 +150,42 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
 ## Log
+
+### 2026-10-01 — Phase 6 built: the Django web app
+- **Models and import** (6.1, 6.3): six apps; `tiers`, `lessons`, `challenges`, `progress`, `flag_attempts`; labd's `sessions` and `events` as unmanaged models, with a test that compares their columns to labd's SQL. `migrate` as role web on the VM's Postgres works, and the models read labd's rows. `import_challenges` upserts, disables absent ones, never deletes.
+- **Flags and tokens** (6.2, 6.6): Python passes the 10 flag vectors. **ADR 0015:** web mints the browser's WebSocket tokens; labd mints only with `dev_mint_tokens` (dev and perf configs, never production), because labd-perf, replay and `/dev/term` use it. New `challenges/schema/ws_token_vectors.json`, computed with openssl, passes in Go and Python.
+- **Accounts and pages** (6.4, 6.5, 6.10, 6.11): allauth, email only (Q4 default, now implemented); signup unlocks lab 1. `/learn`, lessons with sanitised markdown, `/dashboard` (solved, minutes, hints, streak), Django admin with an enable toggle; Progress and labd's rows read-only.
+- **Labs** (6.6–6.9): challenge page, start (unlocked, one active session per user), stop, the terminal page (`static/js/lab.js`: token, frames, TTL, Extend, reconnect, recording notice), flags (10 per 10 minutes, then 429) and hints (in order). Hint and flag forms swap partials, so the terminal never reloads.
+- **End to end** (6.12): `./run.sh test --e2e` (`scripts/web-stack.sh e2e`) solves lab 1 in headless Chromium against real labd and Postgres. In the arm64 VM, labs run under runc (Q13): click to prompt p95 346 ms over 3 runs (not an x86-64 number; the laptop run is the one that counts).
+- **Gate 6** (6.13) is wired. It also needs an x86-64 e2e record under runsc (`scripts/web-metrics.sh`), as gate 5 needed the x86-64 builds.
+- **Checks on the Mac:** `check`, `test --all` (102 web tests), `lint`, `test --integration` pass; staticcheck in the VM clean; `go test -race -count=5 ./...` passes.
+- **Next:** the laptop steps at the top of this file.
+
+Phase 6 gate on the Mac (expected failures: the laptop items):
+```
+==> gate for phase 6 — 2026-10-01T14:08Z — macbook.local
+==> [gate 6] preflight: no labd running, namespace labs empty
+==> preflight ok: no labd running, namespace labs empty
+  PASS  no labd running, namespace labs empty
+==> [gate 6] web: lint, unit and view tests, migrations
+  PASS  ruff check
+  PASS  pytest (unit and view, fake labd)
+  PASS  makemigrations --check clean
+==> [gate 6] shared vectors (S12, S15)
+  PASS  flag vectors in Python
+  PASS  WebSocket token vectors in Python
+  PASS  WebSocket token vectors in Go
+==> [gate 6] command-recording notice on the lab page (S19)
+  PASS  template test
+==> [gate 6] end to end on this host (sign up, solve lab 1 in the browser, unlock lab 2, stop)
+  PASS  run.sh test --e2e
+  PASS  no containers left in namespace labs
+==> [gate 6] authoritative end-to-end run (x86-64, labs under runsc; ADR 0001)
+  FAIL  no x86-64 e2e record: on the laptop run the gate, then LAB_HOST=linux-laptop scripts/web-metrics.sh, commit docs/metrics
+==> [gate 6] human check (task 6.7: lab 1 solved through the Django lab page)
+  FAIL  STATUS.md lacks a line 'Phase 6 human check: YYYY-MM-DD <who> OK'
+==> GATE 6 FAILED. Fix the FAIL lines above; do not start the next phase.
+```
 
 ### 2026-10-01 — Phase 5 gate passed
 - The owner played all five tier-1 labs on the laptop on 2026-10-01 and recorded one "ALL-Labs" stamp. At the owner's request it was expanded into the five per-lab lines gate 5 checks, same date and initials.
