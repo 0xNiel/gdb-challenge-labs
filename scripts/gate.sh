@@ -236,7 +236,30 @@ phase_5() {
   local s
   for s in "${slugs[@]}"; do check_status_line "Phase 5 human check $s"; done
 }
-phase_6() { not_wired; }   # Phase 6, task 6.13
+phase_6() {
+  preflight
+  local web="$ROOT/web"
+  say "web: lint, unit and view tests, migrations"
+  check "ruff check" bash -c "cd '$web' && uv run ruff check ."
+  check "pytest (unit and view, fake labd)" bash -c "cd '$web' && uv run pytest -q -p no:cacheprovider"
+  check "makemigrations --check clean" bash -c "cd '$web' && uv run python manage.py makemigrations --check --dry-run"
+  say "shared vectors (S12, S15)"
+  check "flag vectors in Python" bash -c "cd '$web' && uv run pytest -q -p no:cacheprovider progress/tests/test_flag.py"
+  check "WebSocket token vectors in Python" bash -c "cd '$web' && uv run pytest -q -p no:cacheprovider labs/tests/test_tokens.py"
+  check "WebSocket token vectors in Go" bash -c "cd '$ROOT/labd' && go test -count=1 -run SharedVectors ./internal/term"
+  say "command-recording notice on the lab page (S19)"
+  check "template test" bash -c "cd '$web' && uv run pytest -q -p no:cacheprovider labs/tests/test_session_page.py::test_command_recording_notice_present"
+  say "end to end on this host (sign up, solve lab 1 in the browser, unlock lab 2, stop)"
+  check "run.sh test --e2e" "$RUN" test --e2e
+  check_no_containers
+  say "authoritative end-to-end run (x86-64, labs under runsc; ADR 0001)"
+  local wm
+  wm="$(newest_json web '.arch == "x86_64" and .runtime == "runsc"')"
+  if [[ -n "$wm" ]]; then pass "x86-64 e2e record ($(basename "$wm")): click-to-prompt p95 $(jq .click_to_prompt_ms.p95 "$wm") ms"
+  else fail "no x86-64 e2e record: on the laptop run the gate, then LAB_HOST=linux-laptop scripts/web-metrics.sh, commit docs/metrics"; fi
+  say "human check (task 6.7: lab 1 solved through the Django lab page)"
+  check_status_line "Phase 6 human check"
+}
 phase_7() { not_wired; }   # Phase 7, task 7.9
 phase_8() { not_wired; }   # Phase 8, task 8.12
 

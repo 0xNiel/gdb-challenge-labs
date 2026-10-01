@@ -63,6 +63,8 @@ Spec allows `django-allauth` or built-in auth. allauth gives email verification 
 
 **Default in force:** `django-allauth`, email-only (no social providers), console email backend in dev. Email provider itself deferred to Phase 8 as the spec says.
 
+**Implemented in Phase 6** under this default (`web/accounts/`, `config/settings/base.py`): email verification optional in dev, mandatory in prod. Still open only if you want social logins or built-in auth instead.
+
 ### Q5. Domain name and TLS host
 
 Needed for the Caddyfile, the WebSocket Origin check, and allauth's site settings.

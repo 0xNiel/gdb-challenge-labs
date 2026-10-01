@@ -5,6 +5,7 @@ unlock, stop the lab. Then time start and click-to-prompt over a few more runs (
 
 import json
 import os
+import platform
 import re
 import statistics
 import time
@@ -153,6 +154,15 @@ def p95(xs):
     return xs[min(len(xs) - 1, round(0.95 * (len(xs) - 1)))]
 
 
+def lab_runtime() -> str:
+    """runsc or runc, from the config scripts/web-stack.sh gave labd."""
+    cfg = REPO / ".scratch" / "web-stack" / "labd.yaml"
+    for line in cfg.read_text().splitlines() if cfg.exists() else []:
+        if line.startswith("runtime:"):
+            return "runsc" if "runsc" in line else "runc"
+    return "unknown"
+
+
 def write_metrics(runs):
     out = REPO / ".scratch" / "e2e" / "web-metrics.json"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -162,6 +172,8 @@ def write_metrics(runs):
         json.dumps(
             {
                 "base_url": BASE_URL,
+                "arch": platform.machine(),
+                "runtime": lab_runtime(),
                 "challenge": SLUG,
                 "runs": len(runs),
                 "start_to_terminal_page_ms": {

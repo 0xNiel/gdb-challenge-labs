@@ -11,6 +11,19 @@
 
 A user signs up, sees the tier 1 curriculum, reads a lesson, starts a lab, debugs in xterm.js in the browser, submits the flag, and sees the next challenge unlock. Admin uses Django admin for challenges and users. Analytics and the live admin view come in Phase 7.
 
+## As built (2026-10-01) — read this before the design below
+
+- **Token minting** (ADR 0015): web mints every browser token at `GET /lab/<slug>/session/token?session=<id>` (the spec's `/labs/{session}/token`, under the challenge's URL). labd still mints in `POST /internal/sessions`, but only with `dev_mint_tokens: true` (labd.dev.yaml, labd.perf.yaml), because labd-perf, `replay` and `/dev/term` rely on it; production leaves it off. `challenges/schema/ws_token_vectors.json` (computed with openssl) is checked in Go and Python.
+- **Import**: `challenges.json` has no tier name, so the tier's slug is the lesson's directory (`tier1-c-fundamentals`) and its title comes from the spec's curriculum ladder (`curriculum/importer.py`, `TIER_TITLES`). A lesson's `# heading` becomes its title. `Challenge` also stores `boss`, `source` (`src/main.c`, for the source tab) and `readme_md` (`README.md`, the challenge page's description); both files are in the image anyway.
+- **Unlocks** are computed, not stored per row: enabled challenges in one sequence, the first unlocked, each solve unlocking the next; an existing `unlocked` row (signup) also counts. This covers "last in tier unlocks next tier" and challenges imported later.
+- **Lessons** can be read once their challenge is unlocked.
+- **No HTMX.** The lab page must not reload (it would drop the terminal), so its hint and flag forms submit with `fetch` and swap a server-rendered partial (`templates/progress/partials/`, requested with `X-Partial: 1`). Elsewhere, forms post and redirect.
+- **One active session per user**: web refuses to start a second challenge while one is active and says which, because labd returns the existing session whatever the slug.
+- **Order**: 6.8 and 6.9 (the server side of flags and hints) were built before 6.7, whose page posts to them.
+- **The stack for the lab page and e2e**: `scripts/web-stack.sh` (`./run.sh web-stack up|down|e2e|status`) runs labd and Django against the dev Postgres, with labd's `site_host` set to Django's origin. Labs run under runsc on x86-64 and runc on arm64, where gdb under gVisor cannot resume (Q13), as the challenge build does. `./run.sh test --e2e` is `web-stack.sh e2e`.
+- **e2e** also times nine more start-to-prompt runs; `scripts/web-metrics.sh` writes `docs/metrics/web-<date>-<host>.{json,md}`. The gate requires such a record from x86-64 under runsc (ADR 0001).
+- **Dashboard streak**: consecutive days with a solve, ending today, or yesterday before today's first solve.
+
 ## Design fixed by this document
 
 - Django 5.2 LTS, Python 3.13, `uv` (ADR 0002). Apps exactly as the spec table. Settings split `base/dev/test/prod`.
@@ -95,10 +108,11 @@ Unit: flag, unlock service, rate limit, import, markdown sanitiser, token mintin
 ```
 1. `uv run ruff check . && uv run pytest -q` green.
 2. `manage.py makemigrations --check` clean.
-3. Python flag vectors and WS token vectors pass.
-4. `./run.sh test --e2e` green in the VM.
-5. STATUS.md has `Phase 6 human check: <date> <who> OK`.
-6. Template test asserts the command-recording notice is present on the lab page (S19).
+3. Python flag vectors and WS token vectors pass; Go passes the WS token vectors too.
+4. Template test asserts the command-recording notice is present on the lab page (S19).
+5. `./run.sh test --e2e` green on this host, and no lab left in namespace `labs`.
+6. An e2e record from x86-64 with labs under runsc exists in `docs/metrics/web-*.json` (`scripts/web-metrics.sh`; ADR 0001).
+7. STATUS.md has `Phase 6 human check: <date> <who> OK`.
 
 ## Metrics to record
 
