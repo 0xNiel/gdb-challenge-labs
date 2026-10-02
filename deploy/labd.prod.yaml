@@ -1,13 +1,13 @@
 # labd configuration for production (the VPS). Phase 8 installs it as /etc/labd/labd.yaml.
-# max_sessions and max_queue come from ADR 0013 (Phase 4 measurements); change them there first.
+# max_sessions and max_queue come from ADR 0019 (P10 on 8 CPUs, Phase 7); change them there first.
 # Secrets are never in this file: LABD_INTERNAL_SECRET comes from the environment,
 # and LABD_POSTGRES_DSN may override postgres_dsn. See deploy/env.example.
 listen_internal: 127.0.0.1:8081
 listen_ws: 127.0.0.1:8082
 containerd_socket: /run/containerd/containerd.sock
 runtime: io.containerd.runsc.v1
-max_sessions: 100   # ADR 0013: CPU under abuse is the limit, not memory (derived 394)
-max_queue: 50       # ADR 0013
+max_sessions: 120   # ADR 0019: P10 held 150 on 8 CPUs; less 20 % for a VPS vCPU
+max_queue: 50       # ADR 0013, kept by ADR 0019
 ws_reconnect_grace_s: 60
 default_limits: {memory_mb: 128, cpu_millicores: 500, pids: 32, ttl_minutes: 60, idle_minutes: 15, extend_minutes: 15}
 challenges_file: /etc/labd/challenges.json

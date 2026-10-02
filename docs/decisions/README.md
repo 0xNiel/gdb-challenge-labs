@@ -44,9 +44,10 @@ What becomes easier, what becomes harder, what to revisit and when.
 | [0010](0010-aslr-under-gvisor-static-linking.md) | gVisor cannot turn off ASLR; every lab binary is `-static -no-pie -fno-pie` | accepted | owner, 2026-09-29 |
 | [0011](0011-sessions-table-columns.md) | `sessions` stores `challenge_slug`, not web's `challenge_id`; adds `image`, `extended` | accepted | Phase 2 |
 | [0012](0012-ws-token-nonce.md) | WebSocket tokens carry a random nonce, so two per second are distinct | accepted | Phase 3 |
-| [0013](0013-max-sessions.md) | Production `max_sessions` is 100: CPU under abuse is the limit, not memory (derived 394) | accepted | Phase 4 |
+| [0013](0013-max-sessions.md) | Production `max_sessions` is 100: CPU under abuse is the limit, not memory (derived 394) | superseded by 0019 | Phase 4 |
 | [0014](0014-lab-cwd-from-image.md) | The lab's starting directory is the image's `WORKDIR`, else `/home/lab` | accepted | Phase 5, owner's laptop check |
 | [0015](0015-ws-token-minting-in-web.md) | web mints WebSocket tokens; labd mints only with `dev_mint_tokens` | accepted | Phase 6 |
 | [0016](0016-stop-lab-on-correct-flag.md) | A correct flag stops the lab (reason `solved`) | accepted | owner, 2026-10-01 |
 | [0017](0017-phase-8-optional-vps-capacity-on-laptop.md) | Phase 8 optional; the VPS's capacity is measured on the laptop with 8 CPUs online (Phase 7) | accepted | owner, 2026-10-01 |
 | [0018](0018-drain-via-internal-api.md) | Drain and resume through `POST /internal/drain`, not an override file | accepted | Phase 7 |
+| [0019](0019-max-sessions-120.md) | Production `max_sessions` is 120: P10 held 150 on 8 CPUs, less a 20 % margin for a VPS vCPU | accepted | Phase 7, P10 |

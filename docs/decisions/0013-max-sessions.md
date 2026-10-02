@@ -1,6 +1,6 @@
 # 0013 — Production `max_sessions` is 100
 
-Date: 2026-10-01 · Status: accepted · Phase: 4 (task 4.11) · Refines: spec "Capacity estimates", plan 4.11
+Date: 2026-10-01 · Status: superseded by 0019 · Phase: 4 (task 4.11) · Refines: spec "Capacity estimates", plan 4.11
 
 ## Context
 

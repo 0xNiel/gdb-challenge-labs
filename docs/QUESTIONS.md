@@ -4,6 +4,17 @@ Each question has a **default in force**. Work proceeds under the default until 
 
 ## Open
 
+### Q15. Production `max_sessions`: 120?
+
+P10 on the laptop with 8 CPUs online held 150 labs (10 % busy loops) with every criterion met; 150 was the largest count the laptop's RAM allowed, not a limit (`docs/metrics/vps-capacity.md`). A VPS vCPU is probably slower and may have noisy neighbours, so the estimate keeps a margin of 20 to 30 % (*est.*): 120 at 20 %, 105 at 30 %. Memory caps the box at 166 if every lab fills its 128 MiB limit.
+
+Options:
+- (a) 120: the 20 % margin. At 120 the laptop's CPU was at 80 %.
+- (b) 105: the 30 % margin, for a VPS with unknown neighbours.
+- (c) 100: keep ADR 0013 until a VPS is rented and P10 runs there (Phase 8, task 8.8).
+
+**Default in force:** (a), ADR 0019; `deploy/labd.prod.yaml` says 120. It is a one-line config change that reloads with SIGHUP, so it costs nothing to lower once the VPS is measured.
+
 ### Q13. gdb does not work under gVisor on arm64 (Mac developers)
 
 P0 on the arm64 dev VM: any program started by gdb under gVisor crashes in the dynamic loader before `main` (10 of 10 runs, both gVisor platforms, any dynamically linked binary). The same gdb session passes 27 of 27 checks under runc. So a Mac developer cannot debug a lab under gVisor locally.
