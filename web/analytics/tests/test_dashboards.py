@@ -75,6 +75,7 @@ def fixture_data(imported):
     for i, line in enumerate(["break main", "run", "print total", "run"]):
         event(now - timedelta(minutes=13, seconds=-i), "command_entered", sid, seq=i + 1, line=line)
     event(ended, "lab_ended", sid, reason="idle_timeout", duration_s=1200, commands=4)
+    return began, ended
 
 
 @pytest.mark.parametrize("page", PAGES)
@@ -87,14 +88,14 @@ def test_staff_sees_each_dashboard(client, staff, fixture_data, fake_labd, page)
 
 
 def test_dashboard_numbers(client, staff, fixture_data, fake_labd):
-    usage = client.get("/admin/analytics/usage").context
-    today = usage["rows"][-1]
-    assert (today["labs"], today["users"], today["median_min"], today["start_p50"]) == (
-        1,
-        1,
-        20.0,
-        1500,
-    )
+    # Starts count on the day they began, lengths on the day they ended: in the first half hour
+    # of a UTC day the fixture's session spans two rows.
+    began, ended = fixture_data
+    rows = {r["day"]: r for r in client.get("/admin/analytics/usage").context["rows"]}
+    start_day = rows[began.replace(hour=0, minute=0, second=0, microsecond=0)]
+    end_day = rows[ended.replace(hour=0, minute=0, second=0, microsecond=0)]
+    assert (start_day["labs"], start_day["users"], start_day["start_p50"]) == (1, 1, 1500)
+    assert end_day["median_min"] == 20.0
     learning = client.get("/admin/analytics/learning").context
     lab1 = next(r for r in learning["rows"] if r["challenge"].slug == "tier1-01-off-by-one")
     assert lab1["started"] == 1 and lab1["solved"] == 0
