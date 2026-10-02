@@ -1,0 +1,12 @@
+{
+  "host": "linux-laptop",
+  "date": "2026-10-02",
+  "labs": 20,
+  "hold_min": 5,
+  "session_minutes": 100,
+  "events_bytes": 147456,
+  "samples_bytes": 532480,
+  "events_per_session_minute": 1474,
+  "samples_per_session_minute": 5324,
+  "source": "pg_total_relation_size before and after scripts/live-run.sh (reader profile, labd sampler every 10 s)"
+}
