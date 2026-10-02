@@ -15,11 +15,13 @@ Phase 7 human check: 2026-10-01 <OG> OK
 
 ## Current phase
 
-**Phase 7 — Metrics, rollups, admin live view, and the VPS capacity estimate: in progress** on branch `phase-7-metrics-admin`. The owner made Phase 8 optional and asked for a measured estimate of concurrent labs on the target VPS (8 vCPU, 32 GB, 400 GB NVMe, 32 TB). ADR 0017 moves that into Phase 7 (tasks 7.10–7.12), measured on the laptop with 8 CPUs online.
+**Phase 7 — Metrics, rollups, admin live view, and the VPS capacity estimate: done** (gate passed 2026-10-02 00:29 UTC on the Mac, with the laptop's P10, live run and human check); merged to `main`.
 
-First estimate (`docs/metrics/vps-capacity.md`): memory allows about 425 labs in typical use and 166 if every lab filled its memory limit; bandwidth and disk allow thousands. CPU decides, and its two inputs (a real learner's CPU, the share of busy loops) are not measured yet: about 80 to 130 at 75 % CPU with 10 % busy loops. `max_sessions` stays 100 until P10 measures it.
+**Capacity of the target VPS** (8 vCPU, 32 GB; `docs/metrics/vps-capacity.md`): P10 on the laptop with 8 CPUs online held 150 labs with 10 % busy loops, every criterion met; the limit was not reached. Memory caps the box at about 425 labs in typical use and 166 if every lab filled its limit. **`max_sessions` is now 120** (ADR 0019, superseding ADR 0013): 150 less a 20 % margin (*est.*) for a VPS vCPU. QUESTIONS.md Q15 asks the owner to confirm.
 
-Every Phase 7 task is built. On the Mac, gate 7 passes everything except four laptop items: the capacity search on 8 CPUs, the CPU estimate it feeds, the twenty-lab human check, and its screenshot.
+**Next:** nothing is scheduled. Phase 8 is optional (ADR 0017) and is not started until the owner asks.
+
+<details><summary>Phase 7 laptop checklist (done 2026-10-01)</summary>
 
 **On the laptop, in this order** (about 1 hour 30 minutes, mostly waiting):
 
@@ -47,6 +49,8 @@ Every Phase 7 task is built. On the Mac, gate 7 passes everything except four la
    ```
    git add docs/metrics docs/STATUS.md && git commit -m "[P7] metrics: P10 on 8 CPUs; live run; human check" && git push
    ```
+
+</details>
 
 <details><summary>Phase 6 laptop checklist (done 2026-10-01)</summary>
 
@@ -168,7 +172,7 @@ Phase 0 task 0.9 (second developer onboarding) is still open and non-blocking.
 | 4 | Perf suite and measured capacity | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
 | 5 | Challenge pipeline and tier 1 content | done; merged to `main` | passed on the Mac; x86-64 builds and human checks from the laptop | 2026-10-01 |
 | 6 | Django web app | done; merged to `main` | passed on the laptop (x86-64) | 2026-10-01 |
-| 7 | Metrics, rollups, admin live view; VPS capacity (ADR 0017) | in progress: built; needs the laptop's P10, the live check, and the estimate | Mac: all but the laptop items | 2026-10-01 |
+| 7 | Metrics, rollups, admin live view; VPS capacity (ADR 0017) | done; merged to `main` | passed on the Mac; P10, live run and human check from the laptop (x86-64) | 2026-10-02 |
 | 8 | Production on the VPS, tiers 2–3, beta | optional (deferred by the owner, ADR 0017) | — | — |
 
 States: `not started`, `in progress`, `gate failing`, `done`, `blocked on N`, `optional`.
@@ -186,7 +190,61 @@ x86-64 laptop, one lab (`docs/metrics/single-lab-2026-09-29-linux-laptop.json`, 
 
 Early warning: a whole scripted gdb session takes 6.4× longer under gVisor than under runc, against a < 2× target for `step`. The per-command number comes in Phase 4.
 
+Capacity of the target VPS (8 vCPU, 32 GB, 400 GB, 32 TB), from P10 on the laptop with 8 CPUs online ([metrics/vps-capacity.md](metrics/vps-capacity.md), `docs/metrics/capacity-search-2026-10-01-linux-laptop.md`):
+
+| Bound | Concurrent labs | Source |
+| --- | --- | --- |
+| CPU, 10 % busy loops | at least 150, every criterion met; limit not reached (laptop RAM stopped the run). Echo p95 9.7 ms, `next` p95 18 ms, host CPU 98 % at 150 | `run-P10-2026-10-01-linux-laptop-n150.json` |
+| Memory, typical | about 425 (50.2 MB per lab; *est.* 3.2 GB for the rest; 25 % headroom) | `run-P2-2026-10-01-linux-laptop.json` |
+| Memory, every lab at 128 MiB | about 166 | `deploy/labd.prod.yaml` limits |
+| Disk, bandwidth | not limits: about 98 GB of data and 0.25 TB a month at 400 labs | `data-per-session-2026-10-02-linux-laptop.json`, `run-P8-2026-10-01-linux-laptop.json` |
+| **`max_sessions`** | **120**: 150 less a 20 % margin (*est.*) for a VPS vCPU (ADR 0019) | |
+
+- A learner on the real tier-1 labs costs 0.17 to 0.19 % of a core; a busy loop 50 %. The busy-loop share and `cpu_millicores` are the dials.
+- Data per session-minute: `events` 1474 B, `samples` 5324 B (20-lab live run).
+
 ## Log
+
+### 2026-10-02 — Phase 7 gate passed; VPS capacity estimate (task 7.12)
+- **Task 7.12**: `docs/metrics/vps-capacity.md` rewritten from P10. Its CPU section is measured only; the VPS vCPU margin (20 to 30 %, *est.*) is its own section. Disk recomputed with the measured 1474 B (`events`) and 5324 B (`samples`) per session-minute: about 29 GB at 120 labs around the clock, 98 GB at 400. `capacity.md` gets a Phase 7 disk table outside the generated block.
+- **ADR 0019 supersedes ADR 0013**: production `max_sessions` 120, `max_queue` 50. `deploy/labd.prod.yaml` and `TestParse_ProductionFile` follow. **QUESTIONS.md Q15** asks the owner to confirm 120 (or 105, or 100); 120 is in force.
+- **Found and fixed**: `test_dashboard_numbers` failed in the first 30 minutes of every UTC day. Its fixture session began 30 minutes before now, and the usage view counts starts on their start day and lengths on their end day, so just after midnight they are two rows. The view was right; the test now looks up each row by its own day.
+- **Checks on the Mac**: `check`, `test --all` (138 web tests), `lint` pass (staticcheck only warns: the Mac's is built with Go 1.25); `test --integration` and `test --e2e` (runc, not authoritative) pass; `go test -race -count=5 ./...` passes; staticcheck in the VM, with and without `-tags integration`, clean.
+- **Next:** none. Phase 8 is optional (ADR 0017).
+
+Phase 7 gate on the Mac:
+```
+  PASS  no labd running, namespace labs empty
+
+==> [gate 7] Go and Django suites
+  PASS  run.sh test --go
+  PASS  ruff check
+  PASS  pytest (unit and view)
+  PASS  makemigrations --check clean
+
+==> [gate 7] integration: the sampler writes every metric from 2 real labs (task 7.1)
+  PASS  run.sh test --integration
+  PASS  no containers left in namespace labs
+
+==> [gate 7] end to end: lab 1 solved in the browser; admin kills a lab, drains and resumes (task 7.7)
+  PASS  run.sh test --e2e
+  PASS  no containers left in namespace labs
+
+==> [gate 7] rollups and retention on the dev Postgres, as role web (tasks 7.4, 7.5)
+  PASS  rollup --minute writes rows from the e2e run's samples and events
+  PASS  rollup --hour writes rows from the minute rows
+  PASS  retention runs as role web
+
+==> [gate 7] human check (task 7.8): twenty labs watched on /admin/live, one killed
+  PASS  STATUS.md records 'Phase 7 human check'
+  PASS  screenshot of /admin/live (admin-live-2026-10-02-linux-laptop.png)
+
+==> [gate 7] VPS capacity (ADR 0017, tasks 7.11 and 7.12)
+  PASS  P10 on x86-64 with 8 CPUs under runsc (capacity-search-2026-10-01-linux-laptop.json): largest passing 150
+  PASS  vps-capacity.md: no estimate left in the CPU section
+
+==> GATE 7 PASSED. Paste this output into docs/STATUS.md.
+```
 
 ### 2026-10-01 — Phase 7 built: sampler, rollups, dashboards, admin live view
 - **Sampler** (7.1, `labd/internal/metrics`):
