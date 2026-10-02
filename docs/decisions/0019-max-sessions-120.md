@@ -1,6 +1,6 @@
 # 0019 — Production `max_sessions` is 120
 
-Date: 2026-10-01 · Status: accepted (owner to confirm: QUESTIONS.md Q15) · Phase: 7 (task 7.12) · Supersedes: 0013
+Date: 2026-10-01 · Status: accepted (confirmed by the owner 2026-10-02, QUESTIONS.md Q15) · Phase: 7 (task 7.12) · Supersedes: 0013
 
 ## Context
 
@@ -27,4 +27,4 @@ A VPS vCPU is probably slower than the laptop's performance-core threads and may
 
 - 20 % more learners at once than ADR 0013 allowed, on the same box.
 - If the VPS is much slower than the margin assumes, echo latency rises first; at 150 on the laptop it was 10 % of its target, so there is room. Phase 8's task 8.8 checks it on the VPS.
-- The 30 % margin (105) is the fallback if the owner prefers it; Q15 asks.
+- The 30 % margin (105) is the fallback if the VPS turns out slower than assumed.

@@ -17,7 +17,7 @@ Phase 7 human check: 2026-10-01 <OG> OK
 
 **Phase 7 — Metrics, rollups, admin live view, and the VPS capacity estimate: done** (gate passed 2026-10-02 00:29 UTC on the Mac, with the laptop's P10, live run and human check); merged to `main`.
 
-**Capacity of the target VPS** (8 vCPU, 32 GB; `docs/metrics/vps-capacity.md`): P10 on the laptop with 8 CPUs online held 150 labs with 10 % busy loops, every criterion met; the limit was not reached. Memory caps the box at about 425 labs in typical use and 166 if every lab filled its limit. **`max_sessions` is now 120** (ADR 0019, superseding ADR 0013): 150 less a 20 % margin (*est.*) for a VPS vCPU. QUESTIONS.md Q15 asks the owner to confirm.
+**Capacity of the target VPS** (8 vCPU, 32 GB; `docs/metrics/vps-capacity.md`): P10 on the laptop with 8 CPUs online held 150 labs with 10 % busy loops, every criterion met; the limit was not reached. Memory caps the box at about 425 labs in typical use and 166 if every lab filled its limit. **`max_sessions` is now 120** (ADR 0019, superseding ADR 0013): 150 less a 20 % margin (*est.*) for a VPS vCPU. The owner confirmed 120 on 2026-10-02 (Q15 resolved).
 
 **Next:** nothing is scheduled. Phase 8 is optional (ADR 0017) and is not started until the owner asks.
 
