@@ -50,8 +50,15 @@ stack_state() {
 
 check_tools() {
   step 1 "host tools"
-  "$RUN" check >/dev/null 2>&1 || fail "a required tool is missing on this machine" \
-    "./run.sh doctor          # lists what is missing and the command that installs each"
+  if ! "$RUN" check >/dev/null 2>&1; then
+    # A fresh Linux host lacks Go, uv, containerd and runsc until provisioning installs them.
+    if ! is_darwin && ! command -v runsc >/dev/null; then
+      fail "this machine is not set up as a lab host yet" \
+        "./run.sh vm up           # installs containerd, gVisor, Postgres, Go and uv (sudo asks once)"
+    fi
+    fail "a required tool is missing on this machine" \
+      "./run.sh doctor          # lists what is missing and the command that installs each"
+  fi
   ok "every required tool is installed"
 }
 

@@ -140,13 +140,11 @@ flowchart TB
 
 [labd/README.md](labd/README.md) has the full package map.
 
-## Quick start: build and run on a fresh machine
+## Quick start
 
-At the end of these steps you have the whole app on your machine: Django at http://127.0.0.1:8000, labd behind it, and the five tier-1 labs. You sign up, start lab 1, and debug it with gdb in the browser terminal.
+At the end you have the whole app on your machine: Django at http://127.0.0.1:8000, labd behind it, and the five tier-1 labs. You sign up, start lab 1, and debug it with gdb in the browser terminal.
 
 Every command runs from the repo root. On macOS, `run.sh` runs the Linux parts (containerd, labs, labd, Django) inside a Lima VM for you, so the commands are the same on both systems.
-
-**Shortcut:** `make lab-up` checks every step below in order and starts the app when they all pass. When one fails, it stops and prints the command to run, so on a fresh machine you can run it, follow what it says, and run it again. `make lab-down` stops the app. The steps below explain what each check needs.
 
 | Host | Labs run under | Notes |
 | --- | --- | --- |
@@ -163,9 +161,9 @@ sudo apt-get update
 sudo apt-get install -y git make curl
 ```
 
-Then install Docker Engine (https://docs.docker.com/engine/install/ubuntu/, or `sudo apt-get install -y docker.io`). Docker is used only to build the lab images. Install it **before** step 3: `vm up` runs its own pinned containerd, and Docker keeps working on it. Optional: `sudo usermod -aG docker $USER`, then log out and back in. Without it, the image scripts ask for sudo instead.
+Then install Docker Engine (https://docs.docker.com/engine/install/ubuntu/, or `sudo apt-get install -y docker.io`). Docker is used only to build the lab images. Install it **before** the first `./run.sh vm up`: that command runs its own pinned containerd, and Docker keeps working on it. Optional: `sudo usermod -aG docker $USER`, then log out and back in. Without it, the image scripts ask for sudo instead.
 
-You don't need to install Go, uv, jq, shellcheck or Postgres yourself: `./run.sh vm up` installs them in step 3.
+You don't need to install Go, uv, jq, shellcheck or Postgres yourself. `./run.sh vm up` installs them.
 
 **macOS:**
 
@@ -176,53 +174,44 @@ brew install go uv lima jq shellcheck
 
 Then install Docker Desktop (https://www.docker.com/products/docker-desktop/) and start it. It must be running whenever you build images.
 
-### 2. Clone and check the machine
+### 2. Clone and run `make lab-up`
 
 ```
-git clone <repo-url> labbing-platform
-cd labbing-platform
-./run.sh doctor
+git clone https://github.com/0xNiel/gdb-challenge-labs.git
+cd gdb-challenge-labs
+make lab-up
 ```
 
-`doctor` prints what is installed, what is missing, and the command that installs each missing item. On a fresh Linux machine it lists Go, uv and containerd as missing until step 3; that is expected. On macOS, install anything it lists before going on.
-
-### 3. Set up the lab runtime
+`make lab-up` checks seven things in order: the host tools, the lab host (the Lima VM on macOS, this machine on Linux), its provisioning, containerd and Postgres, the five lab images, and that nothing else holds the ports. When every check passes, it starts the app. When one fails, it stops and prints the command that fixes it:
 
 ```
-./run.sh vm up        # Linux: installs containerd, gVisor, Postgres 16, Go, uv (sudo asks once)
-                      # macOS: creates and provisions the Lima VM (the first run downloads Ubuntu)
-./run.sh vm verify    # must print "runsc ok" and "cgroup2fs"
-./run.sh check        # every required dependency is present: exits 0
+==> [2/7] lab host
+    FAIL  the Lima VM 'labs' does not exist
+
+To fix it, run:
+
+    ./run.sh vm up           # creates and provisions it (the first run downloads Ubuntu)
+
+Then run make lab-up again.
 ```
 
-`vm up` is safe to run again. Run it after any pull that changes `deploy/scripts/provision.sh`.
+Run the command, then `make lab-up` again, until it ends with the URL. On a fresh machine that is about three rounds:
 
-### 4. Build labd and the images
-
-```
-./run.sh build        # labd and labd-perf
-./run.sh images all   # the gcc build image, the labbase image (Alpine + gdb), the perf image
-```
-
-Then build the five tier-1 labs. Each build compiles the bug twice, checks that the two builds match, checks that the flag isn't in the binary, solves the lab with gdb in the sandbox, and imports the image into containerd:
+1. `./run.sh vm up` sets up the lab host. On macOS the first run downloads Ubuntu; on Linux, sudo asks once.
+2. `./run.sh images challenge ...` builds each of the five labs. `make lab-up` prints one line per missing lab. A build takes 5 to 20 seconds; the first one is slower because it also builds the gcc toolchain and labbase images.
+3. `make lab-up` starts the app:
 
 ```
-for d in challenges/tier1-c-fundamentals/0*; do ./run.sh images challenge "$d" || break; done
-```
-
-Each lab ends with `dev image local/lab-<slug>@sha256:… recorded in .scratch/local-images.json`. Without that file, `web-stack up` refuses to start. The labs use the dev flag secret, which is fine on a dev machine.
-
-### 5. Start the app
-
-```
-./run.sh web-stack up
-```
-
-This builds labd, starts it, loads your local lab images, migrates the dev Postgres, imports the challenges, and starts Django. It ends with:
-
-```
+==> [7/7] start the app
+...
 ==> up: http://127.0.0.1:8000 (sign up, open lab 1). Stop with: scripts/web-stack.sh down
+
+Open http://127.0.0.1:8000, sign up with any email, and start lab 1. Stop with: make lab-down
 ```
+
+Until its last step, `make lab-up` only checks: it never installs anything or builds a lab image, so it is safe to run at any time. If the app is already running, it prints the URL and stops.
+
+### 3. Use the app
 
 Open http://127.0.0.1:8000 in your browser. On macOS the VM forwards the port to the Mac; if the first load fails, reload after a second or two.
 
@@ -237,17 +226,71 @@ To see the admin pages, make your account staff, then open http://127.0.0.1:8000
 ./run.sh manage make_staff you@example.com
 ```
 
-`./run.sh web-stack status` shows what is running. Logs are in `.scratch/web-stack/` (`labd.log`, `web.log`).
+### 4. Stop the app
 
-### 6. Stop the app
+```
+make lab-down       # stop Django and labd, remove any lab still running
+make lab-status     # what is running
+make vm-down        # macOS: also stop the Lima VM
+```
+
+Your account and progress stay in Postgres for the next `make lab-up`. Logs are in `.scratch/web-stack/` (`labd.log`, `web.log`).
+
+## Step by step
+
+The same setup without `make lab-up`: each step below is one of its checks, done by hand. Install the [prerequisites](#1-install-the-prerequisites) first.
+
+### 1. Check the machine
+
+```
+./run.sh doctor
+```
+
+`doctor` prints what is installed, what is missing, and the command that installs each missing item. On a fresh Linux machine it lists Go, uv and containerd as missing until step 2; that is expected. On macOS, install anything it lists before going on.
+
+### 2. Set up the lab runtime
+
+```
+./run.sh vm up        # Linux: installs containerd, gVisor, Postgres 16, Go, uv (sudo asks once)
+                      # macOS: creates and provisions the Lima VM (the first run downloads Ubuntu)
+./run.sh vm verify    # must print "runsc ok" and "cgroup2fs"
+./run.sh check        # every required dependency is present: exits 0
+```
+
+`vm up` is safe to run again. Run it after any pull that changes `deploy/scripts/provision.sh`.
+
+### 3. Build labd and the images
+
+```
+./run.sh build        # labd and labd-perf
+./run.sh images all   # the gcc build image, the labbase image (Alpine + gdb), the perf image
+```
+
+Then build the five tier-1 labs. Each build compiles the bug twice, checks that the two builds match, checks that the flag isn't in the binary, solves the lab with gdb in the sandbox, and imports the image into containerd:
+
+```
+for d in challenges/tier1-c-fundamentals/0*; do ./run.sh images challenge "$d" || break; done
+```
+
+Each lab ends with `dev image local/lab-<slug>@sha256:… recorded in .scratch/local-images.json`. Without that file, `web-stack up` refuses to start. The labs use the dev flag secret, which is fine on a dev machine.
+
+### 4. Start the app
+
+```
+./run.sh web-stack up
+```
+
+This builds labd, starts it, loads your local lab images, migrates the dev Postgres, imports the challenges, and starts Django. It ends with the URL; then [use the app](#3-use-the-app) as above. `./run.sh web-stack status` shows what is running.
+
+### 5. Stop the app
 
 ```
 ./run.sh web-stack down
 ```
 
-This stops Django and labd, then removes any lab still running. Labs outlive labd on purpose, so always stop with `down` rather than killing processes. Your account and progress stay in Postgres for the next `up`.
+This stops Django and labd, then removes any lab still running. Labs outlive labd on purpose, so always stop with `down` (or `make lab-down`, which runs it) rather than killing processes.
 
-### 7. Optional: run the tests
+### 6. Optional: run the tests
 
 ```
 ./run.sh test --all          # Go and Django unit tests
@@ -258,13 +301,15 @@ This stops Django and labd, then removes any lab still running. Labs outlive lab
 
 The first `--e2e` on Linux needs a browser, installed once per machine: `(cd web && uv run playwright install --with-deps chromium)`.
 
-### When something goes wrong
+## When something goes wrong
+
+`make lab-up` names the fix for anything it checks. These are the messages you can still meet, from `web-stack` or the image builds:
 
 | Message | Fix |
 | --- | --- |
-| `already up (scripts/web-stack.sh down first)` | `./run.sh web-stack down`, then `up` again |
-| `no dev lab images: build them with scripts/challenge-build.sh` | Step 4: build the five labs |
-| `preflight failed` | A labd is still running or labs are left over. `./run.sh web-stack down`; if labs remain, `./run.sh labs clean` |
+| `already up (scripts/web-stack.sh down first)` | `make lab-down`, then `make lab-up` |
+| `no dev lab images: build them with scripts/challenge-build.sh` | Build the five labs ([step 3](#3-build-labd-and-the-images)) |
+| `preflight failed` | A labd is still running or labs are left over. `make lab-down`; if labs remain, `./run.sh labs clean` |
 | `docker daemon not reachable` | Start Docker Desktop (macOS) or `sudo systemctl start docker` (Linux) |
 | `lab host unreachable (./run.sh vm up)` | macOS: the VM is stopped. `./run.sh vm up` |
 | Page loads but the lab never starts | Read `.scratch/web-stack/labd.log` |

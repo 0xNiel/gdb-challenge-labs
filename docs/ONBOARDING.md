@@ -36,7 +36,7 @@ On Linux, `vm up` changes the machine itself: it installs system services (conta
 
 ## 3. Build and test
 
-To build the images and labs and run the app itself (`web-stack up` and `down`), follow the [README quick start](../README.md#quick-start-build-and-run-on-a-fresh-machine), steps 4 to 6.
+To build the images and labs and run the app itself (`web-stack up` and `down`), run `make lab-up` ([README quick start](../README.md#quick-start)), or do it by hand with the [README step by step](../README.md#step-by-step), steps 3 to 5.
 
 ```
 ./run.sh build
