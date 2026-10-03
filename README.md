@@ -135,3 +135,7 @@ The first `--e2e` on Linux needs a browser, installed once per machine: `(cd web
 | Page loads but the lab never starts | Read `.scratch/web-stack/labd.log` |
 
 `./run.sh help` lists every command, and `make help` lists the same commands as Make targets. Contributing? Read [docs/ONBOARDING.md](docs/ONBOARDING.md) next.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
