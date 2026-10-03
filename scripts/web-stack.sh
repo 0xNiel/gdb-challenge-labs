@@ -64,7 +64,11 @@ up() {
       -e "s|^site_host:.*|site_host: $ORIGIN   # Django's origin: the lab page opens the WebSocket|" \
       "$ROOT/labd/labd.dev.yaml" > "$W/labd.yaml"
   say "starting labd (log: .scratch/web-stack/labd.log)"
-  "$ROOT/scripts/with-containerd-group.sh" "$ROOT/labd/bin/labd" -config "$W/labd.yaml" serve >"$W/labd.log" 2>&1 &
+  # setsid: labd and Django outlive this script's terminal. From macOS this runs in a
+  # `limactl shell` with a TTY; when it closes, the kernel sends SIGHUP to everything started
+  # here: Django exits and labd reloads. Background jobs of a script are never group leaders,
+  # so setsid runs in place and $! stays the real pid.
+  setsid "$ROOT/scripts/with-containerd-group.sh" "$ROOT/labd/bin/labd" -config "$W/labd.yaml" serve >"$W/labd.log" 2>&1 &
   echo $! > "$W/labd.pid"
   wait_http http://127.0.0.1:8081/healthz 30 "$W/labd.log"
 
@@ -73,7 +77,7 @@ up() {
   uv run -q python manage.py migrate --no-input >"$W/migrate.log"
   uv run -q python manage.py import_challenges "$W/challenges.json" --repo "$ROOT"
   say "starting Django on $ORIGIN (log: .scratch/web-stack/web.log)"
-  uv run -q python manage.py runserver --noreload "127.0.0.1:$WEB_PORT" >"$W/web.log" 2>&1 &
+  setsid uv run -q python manage.py runserver --noreload "127.0.0.1:$WEB_PORT" >"$W/web.log" 2>&1 &
   echo $! > "$W/web.pid"
   wait_http "$ORIGIN/healthz" 30 "$W/web.log"
   say "up: $ORIGIN (sign up, open lab 1). Stop with: scripts/web-stack.sh down"
