@@ -1,11 +1,144 @@
+> **Why I built this.** Tech education sites hand you a real shell in a browser tab, and I wanted to know how they do it. What runs behind that terminal? How do you let strangers type into a shell on your server without handing them the server? This project is my answer, built end to end as a proof of concept and a template. It is not deployed anywhere.
+>
+> My second goal was to write a thin container orchestration layer in Go and test it properly. No Kubernetes and no Docker daemon: one Go service that talks to containerd, keeps every lab in a gVisor sandbox with hard limits, and cleans up after itself. Then I measured what a lab really costs. On an 8-CPU machine it held 150 concurrent labs with every limit met ([docs/metrics/vps-capacity.md](docs/metrics/vps-capacity.md)).
+
 # gdb Challenge Labs
 
 A web platform where developers learn gdb by debugging real bugs in sandboxed (gVisor) containers from the browser and submitting CTF-style flags.
 
-- Working with an AI assistant or starting a session: read [CLAUDE.md](CLAUDE.md).
+- How the app is defended: [SECURITY.md](SECURITY.md).
 - Where the project is right now: [docs/STATUS.md](docs/STATUS.md).
 - The plan: [docs/plan/IMPLEMENTATION_PLAN.md](docs/plan/IMPLEMENTATION_PLAN.md).
 - The spec: [docs/spec/mvp-spec.md](docs/spec/mvp-spec.md).
+- Working with an AI assistant or starting a session: read [CLAUDE.md](CLAUDE.md).
+
+## What it looks like
+
+The Learn page. Tier 1 has five labs, and each one unlocks when you solve the one before it.
+
+![The Learn page with tier 1: lab 1 unlocked, labs 2 to 5 locked](docs/images/1-Dashboard.png)
+
+Every lab has a lesson that teaches the gdb commands it needs.
+
+![The lesson for lab 1, "Meet gdb: run, break, step, look"](docs/images/2-Lesson.png)
+
+The lab itself. On the left is a real shell inside a gVisor sandbox, here running gdb on lab 1's binary. On the right are the lesson, the read-only source, the hints and the flag form.
+
+![A running lab: a terminal with a gdb session on the left, the lesson on the right](docs/images/3-Lab.png)
+
+## Architecture
+
+Four processes on one Linux box. `web` (Django) owns users, the curriculum, progress and flags. `labd` (Go) owns the labs: it starts and stops containers and bridges each one's terminal to the browser. containerd runs the containers under gVisor (`runsc`), and Postgres holds all durable state. Only `labd` can reach the containerd socket, and only `web` talks to users.
+
+```mermaid
+flowchart LR
+  subgraph browser["Browser"]
+    pages["Django pages<br/>lesson, source, hints, flag form"]
+    xterm["xterm.js terminal"]
+  end
+  caddy["Caddy<br/>TLS and routing"]
+  subgraph host["One Linux host"]
+    web["web: Django<br/>users, curriculum, progress,<br/>flags, admin, terminal tokens"]
+    subgraph labd["labd: Go"]
+      api["internal API<br/>127.0.0.1:8081"]
+      gw["terminal gateway<br/>127.0.0.1:8082"]
+      orch["orchestrator"]
+    end
+    pg[("Postgres")]
+    cd["containerd<br/>namespace labs"]
+    subgraph gvisor["gVisor sandboxes (runsc)"]
+      lab1["lab container"]
+      lab2["lab container"]
+      labn["..."]
+    end
+  end
+  pages -- HTTPS --> caddy
+  xterm -- "WebSocket, one-time token" --> caddy
+  caddy -- "pages and forms" --> web
+  caddy -- "/ws/term" --> gw
+  web -- "HTTP, bearer secret" --> api
+  web --> pg
+  api --> orch
+  gw <-- "PTY bytes" --> orch
+  orch -- "sessions, events, samples" --> pg
+  orch -- "gRPC, unix socket" --> cd
+  cd --> lab1
+  cd --> lab2
+  cd --> labn
+```
+
+Caddy and the production systemd units are designed in the spec but not built, because I stopped before the optional deployment phase. In development there is no Caddy: Django serves port 8000 and the browser opens the WebSocket on labd's port 8082 directly.
+
+Starting a lab, using it, and solving it:
+
+```mermaid
+sequenceDiagram
+  actor user as Learner
+  participant web as web (Django)
+  participant labd as labd
+  participant ctr as containerd + gVisor
+  user->>web: Start the lab
+  web->>web: logged in, challenge unlocked?
+  web->>labd: POST /internal/sessions (bearer secret)
+  labd->>labd: one lab per user, take a slot or join the FIFO queue
+  labd->>ctr: create the container from the pinned image, start it with a PTY
+  labd-->>web: session id, state
+  web-->>user: lab page
+  user->>web: GET terminal token (Django session cookie)
+  web-->>user: HMAC token, valid 60 s, single use
+  user->>labd: WebSocket /ws/term/{id}?t=token
+  labd->>labd: check Origin, verify and burn the token
+  labd-->>user: terminal bytes both ways, rate limited
+  user->>web: submit flag
+  web->>web: derive the flag, constant-time compare
+  web->>labd: DELETE /internal/sessions/{id} (reason solved)
+  labd->>ctr: kill the task, delete the container, free the slot
+```
+
+### Inside labd
+
+`labd` is one Go binary. The terminal gateway and the orchestrator are separate packages in the same process, so a keystroke reaches the lab without another network hop. Every outside dependency sits behind an interface: the tests run the orchestrator against a fake runtime, an in-memory store and a fake clock, and a separate integration suite runs it against real containerd.
+
+```mermaid
+flowchart TB
+  web["web (Django)"] -- "loopback HTTP, bearer secret" --> api
+  browser["Browser (xterm.js)"] -- WebSocket --> term
+  subgraph labd["labd serve"]
+    config["config<br/>labd.yaml, reload on SIGHUP"]
+    api["api<br/>loopback only, bearer auth<br/>start, stop, list, stats, drain, reload"]
+    term["term: terminal gateway<br/>Origin check, HMAC token,<br/>input and output rate limits,<br/>command capture"]
+    subgraph orch["orch"]
+      manager["Manager<br/>slot semaphore, FIFO queue,<br/>one lab per user, TTL and idle timers"]
+      reconciler["Reconciler<br/>on boot: adopt or remove<br/>every container in namespace labs"]
+      spec["Spec builder<br/>sandbox-base.json + manifest limits,<br/>CheckInvariants before every create"]
+      runtime["Runtime interface<br/>containerd client"]
+    end
+    metrics["metrics sampler<br/>cgroup and /proc, every 10 s"]
+    store["store interface<br/>Postgres via pgx"]
+  end
+  api --> manager
+  term -- "PTY input and output,<br/>resize, extend" --> manager
+  config --> manager
+  manager --> spec --> runtime
+  reconciler --> runtime
+  manager --> store
+  term -- "command_entered events" --> store
+  metrics -- "per-lab memory" --> manager
+  metrics -- samples --> store
+  runtime -- "gRPC, unix socket" --> containerd["containerd + runsc"]
+  store --> pg[("Postgres")]
+```
+
+| Package | Job |
+| --- | --- |
+| [labd/internal/orch](labd/internal/orch) | Session lifecycle, the concurrency cap and queue, timers, the boot reconciler, and the OCI spec builder. The only package that imports containerd |
+| [labd/internal/term](labd/internal/term) | The WebSocket to PTY bridge: token check, rate limits, resize, command capture ([protocol](labd/internal/term/README.md)) |
+| [labd/internal/api](labd/internal/api) | The internal HTTP API. It refuses to listen on anything but loopback |
+| [labd/internal/metrics](labd/internal/metrics) | Samples cgroup and `/proc` numbers per lab and for the host |
+| [labd/internal/store](labd/internal/store) | Postgres access and the embedded SQL migrations |
+| [labd/sandbox](labd/sandbox) | `sandbox-base.json`, the OCI spec every lab starts from, compiled into the binary |
+
+[labd/README.md](labd/README.md) has the full package map.
 
 ## Quick start: build and run on a fresh machine
 
