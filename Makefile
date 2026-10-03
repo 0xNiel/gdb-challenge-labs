@@ -15,13 +15,20 @@ PORT     ?= 8000
 ARCH     ?=
 DIR      ?=
 
-.PHONY: help doctor check vm-up vm-verify vm-ssh vm-down vm-delete build test test-go test-web test-integration test-e2e \
+.PHONY: help lab-up lab-down lab-status doctor checkvm-up vm-verify vm-ssh vm-down vm-delete build test test-go test-web test-integration test-e2e \
         lint fmt labd web dev db-up db-shell db-migrate db-reset images-labbase images-perf images-build images-all \
         image-challenge perf gate deploy
 
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 	@echo; echo "  variables: PHASE SCENARIO N HOLD RAMP RUNTIME PORT ARCH DIR   (see ./run.sh help)"
+
+lab-up: ## check every step and start the app at http://127.0.0.1:8000, or say what to run first
+	./run.sh lab up
+lab-down: ## stop the app and remove any lab still running
+	./run.sh lab down
+lab-status: ## what is running
+	./run.sh lab status
 
 doctor: ## check dependencies for this host; report ok / missing / how to install
 	./run.sh doctor

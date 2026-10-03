@@ -205,6 +205,11 @@ Capacity of the target VPS (8 vCPU, 32 GB, 400 GB, 32 TB), from P10 on the lapto
 
 ## Log
 
+### 2026-10-03 — Public repo; `make lab-up` / `make lab-down`
+- **Repo made ready to publish**: personal emails, home paths and hostnames rewritten out of the whole history (`git filter-repo`); every commit is now authored by the GitHub noreply address. New remote `0xNiel/gdb-challenge-labs`. MIT `LICENSE` added.
+- **`make lab-up`** (`./run.sh lab up`, `scripts/lab.sh`): seven checks in order (host tools, lab host, provisioning, containerd and Postgres, the five lab images for this host's arch, nothing in the way), then `web-stack up`. It stops at the first failed check and prints the command that fixes it; it never installs or builds anything itself. `make lab-down` wraps `web-stack down`; `make lab-status` shows the VM and the stack.
+- **Checked on the Mac**: up from stopped (about 5 s), up when already up, down, status; the failure messages for a missing lab image, a missing VM, port 8000 taken on the Mac, and a half-running stack. Not yet run on the Linux laptop: there the containerd image check is skipped when `sudo` would prompt.
+
 ### 2026-10-02 — Phase 7 gate passed; VPS capacity estimate (task 7.12)
 - **Task 7.12**: `docs/metrics/vps-capacity.md` rewritten from P10. Its CPU section is measured only; the VPS vCPU margin (20 to 30 %, *est.*) is its own section. Disk recomputed with the measured 1474 B (`events`) and 5324 B (`samples`) per session-minute: about 29 GB at 120 labs around the clock, 98 GB at 400. `capacity.md` gets a Phase 7 disk table outside the generated block.
 - **ADR 0019 supersedes ADR 0013**: production `max_sessions` 120, `max_queue` 50. `deploy/labd.prod.yaml` and `TestParse_ProductionFile` follow. **QUESTIONS.md Q15** asks the owner to confirm 120 (or 105, or 100); 120 is in force.

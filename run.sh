@@ -29,7 +29,10 @@ usage() {
 gdb Challenge Labs — ./run.sh <command> [flags]
 
   help                         this text
-  doctor [--strict]            check every dependency for THIS host (macOS or Linux, arm64 or x86-64),
+  lab up|down|status           the whole app in one command: up checks every step in order
+                               (tools, VM, services, lab images, free ports), prints the command
+                               that fixes the first failure, or starts the app (scripts/lab.sh)
+  doctor [--strict]          check every dependency for THIS host (macOS or Linux, arm64 or x86-64),
                                print what is ok, what is missing and how to install it; --strict exits 1
   check                        alias for `doctor --strict` (used by gates and CI)
 
@@ -565,6 +568,7 @@ main() {
   local cmd="${1:-help}"; shift || true
   case "$cmd" in
     help|-h|--help) usage ;;
+    lab)     bash "$ROOT/scripts/lab.sh" "$@" ;;  # on the host: it checks the VM itself
     doctor)  cmd_doctor "$@" ;;
     check)   cmd_check "$@" ;;
     vm)      cmd_vm "$@" ;;

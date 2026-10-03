@@ -13,6 +13,8 @@ At the end of these steps you have the whole app on your machine: Django at http
 
 Every command runs from the repo root. On macOS, `run.sh` runs the Linux parts (containerd, labs, labd, Django) inside a Lima VM for you, so the commands are the same on both systems.
 
+**Shortcut:** `make lab-up` checks every step below in order and starts the app when they all pass. When one fails, it stops and prints the command to run, so on a fresh machine you can run it, follow what it says, and run it again. `make lab-down` stops the app. The steps below explain what each check needs.
+
 | Host | Labs run under | Notes |
 | --- | --- | --- |
 | Linux x86-64, Ubuntu 24.04 or another Debian/Ubuntu | gVisor (`runsc`), as in production | The reference setup. `vm up` installs system services on this machine with sudo |
