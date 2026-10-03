@@ -1,6 +1,8 @@
-> **Why I built this.** Tech education sites hand you a real shell in a browser tab, and I wanted to know how they do it. What runs behind that terminal? How do you let strangers type into a shell on your server without handing them the server? This project is my answer, built end to end as a proof of concept and a template. It is not deployed anywhere.
->
-> My second goal was to write a thin container orchestration layer in Go and test it properly. No Kubernetes and no Docker daemon: one Go service that talks to containerd, keeps every lab in a gVisor sandbox with hard limits, and cleans up after itself. Then I measured what a lab really costs. On an 8-CPU machine it held 150 concurrent labs with every limit met ([docs/metrics/vps-capacity.md](docs/metrics/vps-capacity.md)).
+**Why I built this.** Tech education sites hand you a real shell in a browser tab, and I wanted to know how they do it. What runs behind that terminal? How do you let strangers type into a shell on your server without handing them the server? This project is my answer, built end to end as a proof of concept and a template. It is not deployed anywhere.
+
+My second goal was to write a thin container orchestration layer in Go and test it properly. No Kubernetes and no Docker daemon: one Go service that talks to containerd, keeps every lab in a gVisor sandbox with hard limits, and cleans up after itself. Then I measured what a lab really costs. On an 8-CPU machine it held 150 concurrent labs with every limit met ([docs/metrics/vps-capacity.md](docs/metrics/vps-capacity.md)).
+
+---
 
 # gdb Challenge Labs
 
